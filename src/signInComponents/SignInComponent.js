@@ -62,6 +62,7 @@ const SignInPage = () => {
     </MainContainer>
   );
 };
+
 const MainContainer = styled.main`
   background-color: #fff;
   display: flex;
