@@ -1,5 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
+import { Link } from 'react-router-dom';
+
 
 function mainPage(props) {
   return (
@@ -24,11 +26,13 @@ function mainPage(props) {
                   <Div11>
                     <Div12>
                       <Div13>
-                        <Img2
+                      <Link to="/slider" style={{ textDecoration: 'none' }}>
+                      <Img2
                           loading="lazy"
                           src="https://cdn.builder.io/api/v1/image/assets/TEMP/baf4c644000a2ca7444ec44e15c20fa1c9dd044a60681bc1057ac431dac9c544?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
                         />
-                        <Div14>Slider</Div14>
+                        <Div14 style={{ textDecoration: 'none', color: 'black'}}>Slider</Div14>
+                      </Link>
                       </Div13>
                       <Div15>
                         <Img3
