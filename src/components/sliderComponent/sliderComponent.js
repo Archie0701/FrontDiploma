@@ -1,80 +1,56 @@
 import * as React from "react";
 import styled from "styled-components";
-import { Link } from 'react-router-dom';
-
-import './style.css';
-
-
 
 function MyComponent(props) {
   return (
     <Div>
       <Div2>
         <Div3>
-        <Link class="link" to="/main"><Logo src="https://cdn.builder.io/api/v1/image/assets/TEMP/3905e52e9c6b961ec6717c80409232f3222eab9fc52b8caf2e55d314ff83b93e?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="KaizenCloud Logo" />
-        </Link>
-        <Link class="link" to="/main">
+        <Logo src="https://cdn.builder.io/api/v1/image/assets/TEMP/3905e52e9c6b961ec6717c80409232f3222eab9fc52b8caf2e55d314ff83b93e?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="KaizenCloud Logo" />
           <Img
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/3927336db9487f568ff408f74e1c15f4923992fb7df65027f04740330ef9b676?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
           />
-          </Link>
-          <Link class="link" to="/main">
           <Img2
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/be1e262c51b781adefde1ed54a742d841941ec89f676a85721792f38bc9ac061?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
           />
-          </Link>
-          <Link class="link" to="/main">
           <Img3
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/c076e6824233e52b16e32cf78756a71928a23aa05c184db05634c92927feb03f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
           />
-          </Link>
-          <Link class="link" to="/main">
           <Img4
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/11090c7aac88afef2d142d5d27a3ad7894848a709c7f10afa40b6467f9bf0b7f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
           />
-          </Link>
-          <Link class="link" to="/main">
           <Img5
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/896eb868d3ad13ba5210775d6114fa338f0956edcd8c1150ae371165e3f01a7b?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
           />
-          </Link>
-          <Link class="link" to="/main">
           <Img6
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/5cad224f16a6fc23c80847beab1b9c8c6e9a264bf0234be196d73358c85e00fd?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
           />
-          </Link>
-          <Link class="link" to="/main">
           <Img7
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/6236b84bf174b42f3ae39f588cbc1551625088c8e0016e99592ad17058d2b3a8?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
           />
-          </Link>
         </Div3>
         <Div4>
           <Div5>
             <Div6>Company name</Div6>
             <Div7>
               <Div8>
-              <Link class="link" to="/main">
-              <Img8
+                <Img8
                   loading="lazy"
                   srcSet="https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
-                  />
+                />
                 <Div9>Sissenov Adil</Div9>
-              </Link>
               </Div8>
-              <button class="exit-button" onClick={handleExit} >
               <Img9
                 loading="lazy"
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/483f340a0fe1ef0a69a1d87efd2d9de2ca3cb8171e49ab57c91743f0577baabb?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
               />
-              </button>
             </Div7>
           </Div5>
           <Div10>
@@ -89,8 +65,8 @@ function MyComponent(props) {
                       <Div18>Specialist</Div18>
                     </Div15>
                     <Div19>
-                      <Link class="link" to="/main"><Div20>Back</Div20></Link>
-                      <Link class="link" to="/main"><Div21>Next</Div21></Link>
+                      <Div20>Back</Div20>
+                      <Div21>Next</Div21>
                     </Div19>
                   </Div13>
                   <Div22 />
@@ -134,22 +110,19 @@ function MyComponent(props) {
                       </Div39>
                       <Div42>Description</Div42>
                     </Div38>
-                    <form>
-                    <div class="criteria-container">
-                    <input id="html" type="checkbox"></input>
-                    <div class="criteria">
-                    <label for="html">Increases profits</label>
-                    <desc>Description</desc>
-                    </div>
-                    </div>
-                    <Div73 >
-                      <div class="form-accept">
-                      <button type="button" onclick="accept()">Accept</button>
-                      <button type="button" onclick="reject()">Reject</button>
-                      </div>
-                     
+                    <Div43 />
+                    <Div44>
+                      <Div45>
+                        <Div46 />
+                        <Div47>Increases profits</Div47>
+                      </Div45>
+                      <Div48>Impact on operating or marginal profit</Div48>
+                    </Div44>
+                    <Div49 />
+                    <Div73>
+                      <Div74>Accept</Div74>
+                      <Div75>Reject</Div75>
                     </Div73>
-                    </form>
                   </Div37>
                 </Div33>
               </Column2>
@@ -161,13 +134,6 @@ function MyComponent(props) {
   );
 }
 
-const handleExit = () => {
-    const shouldExit = window.confirm("Are you sure you want to exit?");
-    if (shouldExit) {
-      window.close();
-      }
-    };
-  
 const Logo = styled.img`
   aspect-ratio: 1.12;
   object-fit: contain;
@@ -677,66 +643,66 @@ const Div42 = styled.div`
     margin-top: 40px;
   }
 `;
-// const Div43 = styled.div`
-//   background-color: #e6e6e6;
-//   margin-top: 10px;
-//   height: 1px;
-//   @media (max-width: 991px) {
-//     max-width: 100%;
-//   }
-// `;
-// const Div44 = styled.div`
-//   display: flex;
-//   width: 418px;
-//   max-width: 100%;
-//   justify-content: space-between;
-//   gap: 70px;
-//   font-weight: 400;
-//   margin: 14px 0 0 11px;
-//   @media (max-width: 991px) {
-//     margin-left: 10px;
-//   }
-// `;
-// const Div45 = styled.div`
-//   display: flex;
-//   justify-content: space-between;
-//   gap: 12px;
-//   font-size: 14px;
-//   color: #5d5d5d;
-//   white-space: nowrap;
-//   @media (max-width: 991px) {
-//     white-space: initial;
-//   }
-// `;
-// const Div46 = styled.div`
-//   border-radius: 5px;
-//   border: 1px solid #d3d3d3;
-//   background-color: #fff;
-//   width: 18px;
-//   height: 18px;
-// `;
-// const Div47 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   flex-grow: 1;
-//   @media (max-width: 991px) {
-//     white-space: initial;
-//   }
-// `;
-// const Div48 = styled.div`
-//   color: #7b7b7b;
-//   flex-grow: 1;
-//   flex-basis: auto;
-//   margin: auto 0;
-//   font: 10px Roboto, sans-serif;
-// `;
-// const Div49 = styled.div`
-//   background-color: #e6e6e6;
-//   margin-top: 13px;
-//   height: 1px;
-//   @media (max-width: 991px) {
-//     max-width: 100%;
-//   }
-//   `
+const Div43 = styled.div`
+  background-color: #e6e6e6;
+  margin-top: 10px;
+  height: 1px;
+  @media (max-width: 991px) {
+    max-width: 100%;
+  }
+`;
+const Div44 = styled.div`
+  display: flex;
+  width: 418px;
+  max-width: 100%;
+  justify-content: space-between;
+  gap: 70px;
+  font-weight: 400;
+  margin: 14px 0 0 11px;
+  @media (max-width: 991px) {
+    margin-left: 10px;
+  }
+`;
+const Div45 = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 14px;
+  color: #5d5d5d;
+  white-space: nowrap;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Div46 = styled.div`
+  border-radius: 5px;
+  border: 1px solid #d3d3d3;
+  background-color: #fff;
+  width: 18px;
+  height: 18px;
+`;
+const Div47 = styled.div`
+  font-family: Roboto, sans-serif;
+  flex-grow: 1;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Div48 = styled.div`
+  color: #7b7b7b;
+  flex-grow: 1;
+  flex-basis: auto;
+  margin: auto 0;
+  font: 12px Roboto, sans-serif;
+`;
+const Div49 = styled.div`
+  background-color: #e6e6e6;
+  margin-top: 13px;
+  height: 1px;
+  @media (max-width: 991px) {
+    max-width: 100%;
+  }
+  `
 const Div73 = styled.div`
   align-self: start;
   display: flex;
@@ -749,33 +715,33 @@ const Div73 = styled.div`
     white-space: initial;
   }
 `;
-// const Div74 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   border-radius: 8px;
-//   background-color: rgba(24, 119, 242, 1);
-//   flex-grow: 1;
-//   justify-content: center;
-//   color: #fff;
-//   font-weight: 500;
-//   padding: 12px 35px;
-//   @media (max-width: 991px) {
-//     white-space: initial;
-//     padding: 0 20px;
-//   }
-// `;
-// const Div75 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   border-radius: 8px;
-//   background-color: rgba(230, 230, 230, 1);
-//   flex-grow: 1;
-//   justify-content: center;
-//   color: #434343;
-//   font-weight: 400;
-//   padding: 12px 38px;
-//   @media (max-width: 991px) {
-//     white-space: initial;
-//     padding: 0 20px;
-//   }
-// `;
+const Div74 = styled.div`
+  font-family: Roboto, sans-serif;
+  border-radius: 8px;
+  background-color: rgba(24, 119, 242, 1);
+  flex-grow: 1;
+  justify-content: center;
+  color: #fff;
+  font-weight: 500;
+  padding: 12px 35px;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+const Div75 = styled.div`
+  font-family: Roboto, sans-serif;
+  border-radius: 8px;
+  background-color: rgba(230, 230, 230, 1);
+  flex-grow: 1;
+  justify-content: center;
+  color: #434343;
+  font-weight: 400;
+  padding: 12px 38px;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
 
 export default MyComponent;

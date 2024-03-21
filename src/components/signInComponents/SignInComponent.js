@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import styled from "styled-components";
 import { login } from '../../services/apiService';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import '../CSS/PromoSection.css'; // Подключаем файл стилей для анимации
+
 
 const SignInPage = () => {
   const [formData, setFormData] = useState({
@@ -15,15 +18,22 @@ const SignInPage = () => {
       [name]: type === 'checkbox' ? checked : value,
     }));
   };
+
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const images = [
+    "https://cdn.builder.io/api/v1/image/assets/TEMP/ac879f6dbd5e22e7024a03fa83c96b1953fb078244fa54362febd476fbca7799?apiKey=76bc4e76ba824cf091e9566ff1ae9339&",
+    "https://cdn.builder.io/api/v1/image/assets/TEMP/ac879f6dbd5e22e7024a03fa83c96b1953fb078244fa54362febd476fbca7799?apiKey=76bc4e76ba824cf091e9566ff1ae9339&",
+    "https://png.pngtree.com/thumb_back/fw800/background/20230610/pngtree-picture-of-a-blue-bird-on-a-black-background-image_2937385.jpg"
+  ];
   
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await login({
+      await login({
         email: formData.email,
         password: formData.password
       });
-      console.log('Login successful:', response);
+      window.location.href = "../proposers"
 
       // Действия после успешного входа (например, перенаправление на другую страницу)
     } catch (error) {
@@ -96,13 +106,17 @@ const SignInPage = () => {
       </AccountActions>
     </SignInForm>
         <PromoSection>
-          <PromoImage src="https://cdn.builder.io/api/v1/image/assets/TEMP/ac879f6dbd5e22e7024a03fa83c96b1953fb078244fa54362febd476fbca7799?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Innovators Image" />
+        <TransitionGroup style={{textAlign: 'center'}}>
+        <CSSTransition key={currentSlide} timeout={500} classNames="slide">
+        <PromoImage src={images[currentSlide]} alt="Promo"/>
+        </CSSTransition>
+        </TransitionGroup>
           <PromoTitle>Find like-minded innovators like you</PromoTitle>
           <PromoText>Share your ideas and promote them together with colleagues.</PromoText>
           <SocialIcons>
-          <SocialIcon />
-          <SocialIcon />
-          <SocialIcon />
+          {images.map((_, index) => (
+            <SocialIcon key={index} onClick={() => setCurrentSlide(index)} />
+          ))}
         </SocialIcons>
         </PromoSection>
       </ContentWrapper>
@@ -275,6 +289,7 @@ const ForgotPasswordLink = styled.a`
 
 const SignInButton = styled.button`
   width: 100%;
+  border: none;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -415,11 +430,15 @@ const SocialIcons = styled.div`
   gap: 15px;
 `;
 
-const SocialIcon = styled.div`
+const SocialIcon = styled.button`
+  border:none;
   background-color: #acdbfd;
+  cursor:pointer;
   border-radius: 50%;
   width: 16px;
   height: 16px;
+  &:hover {
+    background-color: #00A5E0;
+  }
 `;
-
 export default SignInPage;

@@ -10,13 +10,27 @@ const apiService = axios.create({
 // Функция для входа пользователя
 export const login = async (userData) => {
   try {
-    const csrfToken = 'tiYz6lXdQGaKlSLP1EzUaFU5ttnRngnvNo8ageJgbGpLIfjxyRgF5TJOWxSoVxRO'; // Ваш CSRF-токен
 
     const response = await apiService.post('/login/', userData, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'X-CSRFToken': csrfToken
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const registration = async (userData) => {
+  try {
+
+    const response = await apiService.post('/proposers/', userData, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
       }
     });
     

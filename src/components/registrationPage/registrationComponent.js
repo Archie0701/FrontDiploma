@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import { registration } from "../../services/apiService";
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import '../CSS/PromoSection.css'; // Подключаем файл стилей для анимации
+
 
 const SignUpPage = () => {
   const [formData, setFormData] = useState({
@@ -11,7 +15,8 @@ const SignUpPage = () => {
     agreedToTerms: false
   });
 
-  const [passwordMatch, setPasswordMatch] = useState(true);
+
+  const [setPasswordMatch] = useState(true);
 
   const handleChange = (e) => {
     const { name, value, checked, type } = e.target;
@@ -29,6 +34,13 @@ const SignUpPage = () => {
     }
   };
 
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const images = [
+    "https://cdn.builder.io/api/v1/image/assets/TEMP/ac879f6dbd5e22e7024a03fa83c96b1953fb078244fa54362febd476fbca7799?apiKey=76bc4e76ba824cf091e9566ff1ae9339&",
+    "https://cdn.builder.io/api/v1/image/assets/TEMP/ac879f6dbd5e22e7024a03fa83c96b1953fb078244fa54362febd476fbca7799?apiKey=76bc4e76ba824cf091e9566ff1ae9339&",
+    "https://png.pngtree.com/thumb_back/fw800/background/20230610/pngtree-picture-of-a-blue-bird-on-a-black-background-image_2937385.jpg"
+  ];
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
@@ -37,7 +49,22 @@ const SignUpPage = () => {
       return;
     }
     // Your form submission logic here
-    console.log('Form submitted:', formData);
+    try {
+      const response = await registration({
+        email: formData.email,
+        first_name: formData.name,
+        last_name: formData.surname,
+        password: formData.password,
+        confirm_password: formData.confirmPassword
+      });
+      console.log('Registration successful:', response);
+      window.location.href = "../login"
+
+      // Действия после успешного входа (например, перенаправление на другую страницу)
+    } catch (error) {
+      console.error('Registration failed:', error);
+      // Обработка ошибки входа (например, отображение сообщения об ошибке)
+    }
   };
 
   return (
@@ -47,10 +74,9 @@ const SignUpPage = () => {
         <BrandName>KaizenCloud</BrandName>
       </Header>
       <ContentWrapper>
-        <SignInForm>
+        <SignInForm onSubmit={handleSubmit}>
           <Title>Sign up to your account</Title>
           <SubTitle>Welcome! Enter the data required in the screen:</SubTitle>
-          <form onSubmit={handleSubmit}>
             <InputOption>
               <Icon src="https://cdn.builder.io/api/v1/image/assets/TEMP/ee4214162733dba192ba3af17c7d29b632759c9375d65612bdc4c45e5f640e30?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Email Icon" />
               <OptionText>
@@ -130,12 +156,11 @@ const SignUpPage = () => {
                   required
                 />
                 <label htmlFor="agree-to-terms">
-                  I agree to the <a href="#">Terms of Uses, Privacy Policy</a>
+                  I agree to the <a href="/policy">Terms of Uses, Privacy Policy</a>
                 </label>
               </CheckboxWrapper>
             </OptionWrapper>
             <SignInButton type="submit" >Sign up</SignInButton>
-          </form>
           <OptionWrapper>
             <CheckboxWrapper>
             </CheckboxWrapper>
@@ -151,14 +176,18 @@ const SignUpPage = () => {
           </AccountActions>
         </SignInForm>
         <PromoSection>
-          <PromoImage src="https://cdn.builder.io/api/v1/image/assets/TEMP/ac879f6dbd5e22e7024a03fa83c96b1953fb078244fa54362febd476fbca7799?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Innovators Image" />
+        <TransitionGroup style={{textAlign: 'center'}}>
+        <CSSTransition key={currentSlide} timeout={500} classNames="slide">
+        <PromoImage src={images[currentSlide]} alt="Promo"/>
+        </CSSTransition>
+        </TransitionGroup>
           <PromoTitle>Find like-minded innovators like you</PromoTitle>
           <PromoText>Share your ideas and promote them together with colleagues.</PromoText>
           <SocialIcons>
-            <SocialIcon />
-            <SocialIcon />
-            <SocialIcon />
-          </SocialIcons>
+          {images.map((_, index) => (
+            <SocialIcon key={index} onClick={() => setCurrentSlide(index)} />
+          ))}
+        </SocialIcons>
         </PromoSection>
       </ContentWrapper>
     </MainContainer>
@@ -370,6 +399,7 @@ const SignInButton = styled.button`
   align-items: center;
   border-radius: 6px;
   background-color: #2b79c2;
+  border:none;
   margin-top: 40px;
   color: #fff;
   cursor: pointer;
@@ -504,11 +534,16 @@ const SocialIcons = styled.div`
   gap: 15px;
 `;
 
-const SocialIcon = styled.div`
+const SocialIcon = styled.button`
+  border:none;
   background-color: #acdbfd;
+  cursor:pointer;
   border-radius: 50%;
   width: 16px;
   height: 16px;
+  &:hover {
+    background-color: #00A5E0;
+  }
 `;
 
 export default SignUpPage;
