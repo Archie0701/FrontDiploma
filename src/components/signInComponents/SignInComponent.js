@@ -1,17 +1,46 @@
 import React, { useState } from "react";
 import styled from "styled-components";
+import { login } from '../../services/apiService';
+import { CSSTransition, TransitionGroup } from 'react-transition-group';
+import '../CSS/PromoSection.css'; // Подключаем файл стилей для анимации
+
 
 const SignInPage = () => {
-  const [checked, setChecked] = useState(false);
+  const [formData, setFormData] = useState({
+    email: '',
+    password: ''
+  });
 
-  const handleChange = () => {
-    setChecked(!checked);
+  const handleChange = (e) => {
+    const { name, value, checked, type } = e.target;
+    setFormData((prevData) => ({
+      ...prevData,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
-  const confirmForm = () => {
-    window.location.href = "/main"
-  }
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const images = [
+    "https://cdn.builder.io/api/v1/image/assets/TEMP/ac879f6dbd5e22e7024a03fa83c96b1953fb078244fa54362febd476fbca7799?apiKey=76bc4e76ba824cf091e9566ff1ae9339&",
+    "https://cdn.builder.io/api/v1/image/assets/TEMP/ac879f6dbd5e22e7024a03fa83c96b1953fb078244fa54362febd476fbca7799?apiKey=76bc4e76ba824cf091e9566ff1ae9339&",
+    "https://png.pngtree.com/thumb_back/fw800/background/20230610/pngtree-picture-of-a-blue-bird-on-a-black-background-image_2937385.jpg"
+  ];
+  
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await login({
+        email: formData.email,
+        password: formData.password
+      });
+      window.location.href = "../proposers"
 
+      // Действия после успешного входа (например, перенаправление на другую страницу)
+    } catch (error) {
+      console.error('Login failed:', error);
+      // Обработка ошибки входа (например, отображение сообщения об ошибке)
+    }
+  };
   return (
     <MainContainer>
       <Header>
@@ -19,43 +48,75 @@ const SignInPage = () => {
         <BrandName>KaizenCloud</BrandName>
       </Header>
       <ContentWrapper>
-        <SignInForm>
-          <Title>Sign in to your account</Title>
-          <SubTitle>Welcome back! Select method to sign in:</SubTitle>
-          <InputOption>
-            <Icon src="https://cdn.builder.io/api/v1/image/assets/TEMP/ee4214162733dba192ba3af17c7d29b632759c9375d65612bdc4c45e5f640e30?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Email Icon" />
-            <OptionText ><input type="text" style={{backgroundColor: 'transparent'}} placeholder="Email" /></OptionText>
-          </InputOption>
-          <InputOption>
-            <Icon src="https://cdn.builder.io/api/v1/image/assets/TEMP/dc17cd43c93fe5cd52de4cb4083e202bac1fc58d4dda10fc30e6d313c0287ae3?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Password Icon" />
-            <OptionText><input type="password" style={{backgroundColor: 'transparent'}} placeholder="Password" /></OptionText>
-          </InputOption>
-          <OptionWrapper>
-          <CheckboxWrapper>
-  <StyledCheckbox input id="remember-me" type="checkbox" checked={checked} onChange={handleChange} />
-  <label htmlFor="remember-me" style={{color:'#5D5D5D'}}>Remember me</label>
-</CheckboxWrapper>
-            <ForgotPasswordLink href="#">Forgot your password?</ForgotPasswordLink>
-          </OptionWrapper>
-          <SignInButton onClick={confirmForm}><button onClick={confirmForm}>Sign in</button></SignInButton>
-          <DividerWithText>or</DividerWithText>
-          <GoogleSignIn>
-            <Icon src="https://cdn.builder.io/api/v1/image/assets/TEMP/03ec27e4270b25fbe6088125b711ec327e5bbe66af2de7472d8a3fa12ded3285?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" style={{width:'12%'}} alt="Google Icon" />
-            <OptionText>Sign in with Google</OptionText>
-          </GoogleSignIn>
-          <AccountActions>
-          Don’t have an account?{" "}
-          <CreateAccountLink href="#">Create an account</CreateAccountLink>
-        </AccountActions>
-        </SignInForm>
+      <SignInForm onSubmit={handleSubmit}>
+      <Title>Sign in to your account</Title>
+      <SubTitle>Welcome back! Select method to sign in:</SubTitle>
+      <InputOption>
+        <Icon src="https://cdn.builder.io/api/v1/image/assets/TEMP/ee4214162733dba192ba3af17c7d29b632759c9375d65612bdc4c45e5f640e30?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Email Icon" />
+        <OptionText>
+          <input
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleChange}
+            style={{ backgroundColor: 'transparent' }}
+            placeholder="Email"
+            required
+          />
+        </OptionText>
+      </InputOption>
+      <InputOption>
+        <Icon src="https://cdn.builder.io/api/v1/image/assets/TEMP/dc17cd43c93fe5cd52de4cb4083e202bac1fc58d4dda10fc30e6d313c0287ae3?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Password Icon" />
+        <OptionText>
+          <input
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            style={{ backgroundColor: 'transparent' }}
+            placeholder="Password"
+            required
+          />
+        </OptionText>
+      </InputOption>
+      <OptionWrapper>
+        <CheckboxWrapper>
+          <StyledCheckbox
+            id="remember-me"
+            type="checkbox"
+            name="rememberMe"
+            checked={formData.rememberMe}
+            onChange={handleChange}
+          />
+          <label htmlFor="remember-me" style={{ color: '#5D5D5D' }}>
+            Remember me
+          </label>
+        </CheckboxWrapper>
+        <ForgotPasswordLink href="#">Forgot your password?</ForgotPasswordLink>
+      </OptionWrapper>
+      <SignInButton type="submit" style={{padding: 10}}>Sign in</SignInButton>
+      <DividerWithText>or</DividerWithText>
+      <GoogleSignIn>
+        <Icon src="https://cdn.builder.io/api/v1/image/assets/TEMP/03ec27e4270b25fbe6088125b711ec327e5bbe66af2de7472d8a3fa12ded3285?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" style={{ width: '12%' }} alt="Google Icon" />
+        <OptionText>Sign in with Google</OptionText>
+      </GoogleSignIn>
+      <AccountActions>
+        Don’t have an account?{' '}
+        <CreateAccountLink href="../registration">Create an account</CreateAccountLink>
+      </AccountActions>
+    </SignInForm>
         <PromoSection>
-          <PromoImage src="https://cdn.builder.io/api/v1/image/assets/TEMP/ac879f6dbd5e22e7024a03fa83c96b1953fb078244fa54362febd476fbca7799?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Innovators Image" />
+        <TransitionGroup style={{textAlign: 'center'}}>
+        <CSSTransition key={currentSlide} timeout={500} classNames="slide">
+        <PromoImage src={images[currentSlide]} alt="Promo"/>
+        </CSSTransition>
+        </TransitionGroup>
           <PromoTitle>Find like-minded innovators like you</PromoTitle>
           <PromoText>Share your ideas and promote them together with colleagues.</PromoText>
           <SocialIcons>
-          <SocialIcon />
-          <SocialIcon />
-          <SocialIcon />
+          {images.map((_, index) => (
+            <SocialIcon key={index} onClick={() => setCurrentSlide(index)} />
+          ))}
         </SocialIcons>
         </PromoSection>
       </ContentWrapper>
@@ -144,7 +205,7 @@ const ContentWrapper = styled.section`
   }
 `;
 
-const SignInForm = styled.article`
+const SignInForm = styled.form`
 
 `;
 
@@ -206,6 +267,7 @@ const Icon = styled.img`
 
 const OptionText = styled.span`
   flex-grow: 1;
+  margin-top: 3px;
 `;
 
 const OptionWrapper = styled.div`
@@ -226,14 +288,15 @@ const ForgotPasswordLink = styled.a`
   }
 `;
 
-const SignInButton = styled.div`
+const SignInButton = styled.button`
   width: 100%;
+  border: none;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 6px;
   background-color: #2b79c2;
-  margin-top: 50px;
+  margin-top: 30px;
   color: #fff;
   cursor: pointer;
   font: 400 16px Roboto, sans-serif;
@@ -270,7 +333,7 @@ const DividerWithText = styled.div`
   color: #4f4f4f;
   font-weight: 300;
   text-align: center;
-  margin-top: 50px;
+  margin-top: 30px;
   &::before,
   &::after {
     content: '';
@@ -286,7 +349,7 @@ const DividerWithText = styled.div`
 
 const GoogleSignIn = styled.div`
   display: flex;
-  margin-top: 50px;
+  margin-top: 30px;
   border-radius: 6px;
   border: 1px solid #2b79c2;
   gap: 20px;
@@ -368,11 +431,15 @@ const SocialIcons = styled.div`
   gap: 15px;
 `;
 
-const SocialIcon = styled.div`
+const SocialIcon = styled.button`
+  border:none;
   background-color: #acdbfd;
+  cursor:pointer;
   border-radius: 50%;
   width: 16px;
   height: 16px;
+  &:hover {
+    background-color: #00A5E0;
+  }
 `;
-
 export default SignInPage;
