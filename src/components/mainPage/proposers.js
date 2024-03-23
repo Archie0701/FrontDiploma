@@ -1,25 +1,71 @@
-import * as React from "react";
+import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import { Link } from 'react-router-dom';
 import { LineChart } from '@mui/x-charts';
+import Spinner from '../Spinner/Spinner'; 
+import { fetchUserData, fetchProposalCountData } from '../../services/apiService';
+import Logo from '../../static/User-512.webp';
 
-function logOut(){
-  window.location.href = "../login"
+export const logOut = () => {
+  // Удаляем токен из localStorage
+  localStorage.removeItem('accessToken');
+  window.location.href = "../login";
+};
+
+
+
+function MainPage(props) {
+
+
+  const [userData, setUserData] = useState(null);
+  const [proposalData, setProposalData] = useState(null);
+  const [loading, setLoading] = useState(true); // Добавляем состояние для отслеживания загрузки данных
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Вызываем функцию fetchUserData для получения данных пользователя
+        const userDataResponse = await fetchUserData();
+        const proposalDataResponse = await fetchProposalCountData();
+        setProposalData(proposalDataResponse);
+        setUserData(userDataResponse);
+  
+        // Устанавливаем состояние загрузки в false, так как данные получены
+        setLoading(false);
+  
+        // Выводим данные в консоль для проверки
+        console.log('User Data:', userDataResponse);
+        console.log('Proposal Data:', proposalDataResponse);
+      } catch (error) {
+        setError(error.message);
+        
+        // Выводим ошибку в консоль для проверки
+        console.error('Error fetching user data:', error);
+        window.location.href = "../login";
+      }
+    };
+  
+    fetchData(); // Вызываем функцию при монтировании компонента
+  }, []);
+if (loading) {
+  return <Spinner/> ; // Показываем сообщение о загрузке, пока данные загружаются
 }
-
-function mainPage(props) {
   return (
     <Div>
       <Div2>
         <Column>
           <Div3>
             <Div4>
-              <Img
-                loading="lazy"
-                srcSet="https://cdn.builder.io/api/v1/image/assets/TEMP/5732ae616ee8ed789aa9389f3a81264d6590fd572c423f1bceda3dc7a187bb2f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/5732ae616ee8ed789aa9389f3a81264d6590fd572c423f1bceda3dc7a187bb2f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/5732ae616ee8ed789aa9389f3a81264d6590fd572c423f1bceda3dc7a187bb2f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/5732ae616ee8ed789aa9389f3a81264d6590fd572c423f1bceda3dc7a187bb2f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/5732ae616ee8ed789aa9389f3a81264d6590fd572c423f1bceda3dc7a187bb2f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/5732ae616ee8ed789aa9389f3a81264d6590fd572c423f1bceda3dc7a187bb2f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/5732ae616ee8ed789aa9389f3a81264d6590fd572c423f1bceda3dc7a187bb2f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/5732ae616ee8ed789aa9389f3a81264d6590fd572c423f1bceda3dc7a187bb2f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
-              />
+            <Img
+  loading="lazy"
+  srcSet={userData.avatar || Logo}
+  alt="Person Image"
+  width="65"
+  height="65"
+/>
               <Div5>
-                <Div6>Sissenov Adil</Div6>
+                <Div6>{userData.last_name} {userData.first_name}</Div6>
                 <Div7>Digitalization Supervisor</Div7>
               </Div5>
             </Div4>
@@ -118,11 +164,14 @@ function mainPage(props) {
               </Div27>
               <Div29>
                 <Div30>
-                  <Img9
-                    loading="lazy"
-                    srcSet="https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=100 100w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=200 200w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=400 400w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=800 800w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=1200 1200w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=1600 1600w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&width=2000 2000w, https://cdn.builder.io/api/v1/image/assets/TEMP/262cea62402ceca16ec3c8c99c433e228026ceb8890191c91d7c0809bb306424?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
-                  />
-                  <Div31>Sissenov Adil</Div31>
+                <Img9
+  loading="lazy"
+  srcSet={userData.avatar || Logo}
+  alt="Person Image"
+  width="24"
+  height="24"
+/>
+                  <Div31>{userData.last_name} {userData.first_name}</Div31>
                 </Div30>
                 <Img10
                   loading="lazy"
@@ -143,28 +192,27 @@ function mainPage(props) {
                       <Div36>
                         <Div37>General information about the activity</Div37>
                         <Div38>Proposals received</Div38>
-                        <Div39>6385</Div39>
+                        <Div39>{proposalData.proposal_count}</Div39>
                       </Div36>
                     </Column5>
                     <Column6>
                       <Div40>
                         <Div41>Active users</Div41>
-                        <Div42>650</Div42>
+                        <Div42>{proposalData.active_user_count}</Div42>
                       </Div40>
                     </Column6>
                   </Div35>
                 </Div34>
                 <Div43>
                   <Div44>Registered users</Div44>
-                  <Div45>838</Div45>
+                  <Div45>{proposalData.user_count}</Div45>
                 </Div43>
               </Div33>
               <Div46>Proposals received</Div46>
               <LineChart
-                xAxis={[{ data: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] }]}
+                xAxis={[{ data: [proposalData.proposal_count] }]}
                 series={[
-                  { curve: "linear", data: [0, 5, 2, 6, 3, 9.3] },
-                  { curve: "linear", data: [6, 3, 7, 9.5, 4, 2] },
+                  { curve: "linear", data: [2] }
                 ]}
                 width={1100}
                 height={300}
@@ -238,7 +286,7 @@ const Img = styled.img`
 `;
 
 const Div5 = styled.div`
-  align-self: start;
+  align-self: start;  
   display: flex;
   margin-top: 9px;
   flex-grow: 1;
@@ -610,6 +658,8 @@ const Img10 = styled.button`
   object-fit: auto;
   object-position: center;
   width: 15px;
+  
+  cursor:pointer;
   background: transparent;
   border: none !important;
   font-size:0;
@@ -775,6 +825,7 @@ const Div46 = styled.div`
   }
 `;
 
+
 // const Div47 = styled.div`
 //   display: flex;
 //   justify-content: space-between;
@@ -934,4 +985,4 @@ const Div46 = styled.div`
 //   font-family: Roboto, sans-serif;
 // `;
 
-export default mainPage;
+export default MainPage;

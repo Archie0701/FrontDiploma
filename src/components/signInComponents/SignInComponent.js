@@ -94,7 +94,7 @@ const SignInPage = () => {
         </CheckboxWrapper>
         <ForgotPasswordLink href="#">Forgot your password?</ForgotPasswordLink>
       </OptionWrapper>
-      <SignInButton type="submit">Sign in</SignInButton>
+      <SignInButton type="submit" style={{padding: 10}}>Sign in</SignInButton>
       <DividerWithText>or</DividerWithText>
       <GoogleSignIn>
         <Icon src="https://cdn.builder.io/api/v1/image/assets/TEMP/03ec27e4270b25fbe6088125b711ec327e5bbe66af2de7472d8a3fa12ded3285?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" style={{ width: '12%' }} alt="Google Icon" />
@@ -267,6 +267,7 @@ const Icon = styled.img`
 
 const OptionText = styled.span`
   flex-grow: 1;
+  margin-top: 3px;
 `;
 
 const OptionWrapper = styled.div`

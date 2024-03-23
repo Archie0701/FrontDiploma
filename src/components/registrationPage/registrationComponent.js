@@ -160,16 +160,11 @@ const SignUpPage = () => {
                 </label>
               </CheckboxWrapper>
             </OptionWrapper>
-            <SignInButton type="submit" >Sign up</SignInButton>
+            <SignInButton type="submit" style={{padding: 10}} >Sign up</SignInButton>
           <OptionWrapper>
             <CheckboxWrapper>
             </CheckboxWrapper>
           </OptionWrapper>
-          <DividerWithText>or</DividerWithText>
-          <GoogleSignIn>
-            <Icon src="https://cdn.builder.io/api/v1/image/assets/TEMP/03ec27e4270b25fbe6088125b711ec327e5bbe66af2de7472d8a3fa12ded3285?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" style={{ width: '12%' }} alt="Google Icon" />
-            <OptionText style={{ marginTop: 6 }}>Sign up with Google</OptionText>
-          </GoogleSignIn>
           <AccountActions>
             Already have an account? {" "}
             <CreateAccountLink href="../login">Sign in</CreateAccountLink>
@@ -510,7 +505,7 @@ const AccountActions = styled.div`
   flex-grow: 1;
   font: 400 16px Roboto, sans-serif;
   color: #707070;
-  margin-top:30px;
+  margin-top:20px;
   text-align: center;
   white-space: nowrap;
   font: 400 19px Roboto, sans-serif;
