@@ -68,10 +68,10 @@ export const fetchProposalCountData = async () => {
   }
 };
 
-export const fetchProposalData = async () => {
+export const criterias = async () => {
   try {
     // Получаем access token из localStorage
-    const response = await apiService.get('proposals/', {
+    const response = await apiService.get('criterias/', {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -84,6 +84,44 @@ export const fetchProposalData = async () => {
   }
 };
 
+export const fetchNewProposalData = async () => {
+  try {
+    // Получаем access token из localStorage
+    const response = await apiService.get('proposals/', {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    });
+
+    // Фильтруем только предложения со статусом "New"
+    const newProposals = response.data.filter(proposal => proposal.status === 'New');
+    
+    return newProposals;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const acceptProposal = async (proposalId, selectedCriteriaIds) => {
+  try {
+    // Отправляем запрос на принятие предложения с использованием proposalId и передачей критериев в теле запроса
+    const response = await apiService.put(`/proposals/${proposalId}/accept/`, { criteria: selectedCriteriaIds });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const declineProposal = async (proposalId, selectedCriteriaIds) => {
+  try {
+    // Отправляем запрос на отклонение предложения с использованием proposalId и передачей критериев в теле запроса
+    const response = await apiService.put(`/proposals/${proposalId}/decline/`, {criteria: selectedCriteriaIds });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
 export const registration = async (userData) => {
   try {
