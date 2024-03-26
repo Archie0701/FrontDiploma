@@ -113,6 +113,17 @@ export const acceptProposal = async (proposalId, selectedCriteriaIds) => {
   }
 };
 
+
+export const fetchProposerData = async (id) => {
+  try {
+    const response = await apiService.get(`proposers/`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    });
+    
+
 export const declineProposal = async (proposalId, selectedCriteriaIds) => {
   try {
     // Отправляем запрос на отклонение предложения с использованием proposalId и передачей критериев в теле запроса
