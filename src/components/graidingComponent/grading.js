@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
-import { fetchUserData, fetchNewProposalData } from '../../services/apiService';
+import { fetchUserData, fetchAcceptedProposalData, fetchProposersId } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
 import './style.css'; //
@@ -40,23 +40,23 @@ function Grading(props) {
   const [loading, setLoading] = useState(true);
   const [proposalData, setProposalData] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
- 
-
-  // Обновленная функция fetchData
+  const [proposersData, setProposersData] = useState(null);
   // Обновленная функция fetchData
   const fetchData = async () => {
     try {
       const userDataResponse = await fetchUserData();
-      const proposalDataResponse = await fetchNewProposalData();
-
-
-      // Продолжаем обновление других состояний и выполнение вашей логики
+      const proposalDataResponse = await fetchAcceptedProposalData();
+  
       if (userDataResponse) {
         setUserData(userDataResponse);
-      }
-
+      } 
       setProposalData(proposalDataResponse);
       setLoading(false);
+  
+      // Если есть предложения, запросить данные о первом предложившем лице
+      if (proposalDataResponse.length > 0) {
+        fetchProposersData(proposalDataResponse[0].proposer);
+      }
     } catch (error) {
       console.error('Error fetching user data:', error);
       window.location.href = "../login";
@@ -68,12 +68,34 @@ function Grading(props) {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (proposalData) {
+      fetchProposersData();
+    }
+  }, [proposalData]);
+
+  const fetchProposersData = async (proposerId) => {
+    try {
+      // Запрашиваем данные о предложившем лице по его id
+      const proposerDataResponse = await fetchProposersId(proposerId);
+      const proposerData = proposerDataResponse.data;
+  
+      // Обработка полученных данных о предложившем лице
+      console.log('Proposer data:', proposerData);
+      setProposersData(proposerData);
+    } catch (error) {
+      console.error('Error fetching proposer data:', error);
+      // Обработка ошибок
+    }
+  };
 
 
-  const employeeData = [
-    {
-      name: "Sissenov Adil",
-      id: "000000000000",
+  let employeeData = [];
+
+  if (proposersData && proposersData.user) {
+    employeeData = [{
+      name: proposersData.user.first_name,
+      score: proposersData.points,
       benefits: [
         "Brings/Increases profit",
         "Reduces costs",
@@ -84,21 +106,26 @@ function Grading(props) {
         "Brings/Increases profit",
         "Brings/Increases profit",
       ]
-    }
-  ];
+    }];
+  } else {
+    console.error("proposersData is invalid");
+  }
 
 
 
   const handleNext = () => {
-    const nextProposal = proposalData.find((data, index) => index > currentIndex && data.status === "New");
+    const nextProposal = proposalData.find((data, index) => index > currentIndex && data.status === "Accepted");
     if (nextProposal) {
+      setCurrentIndex(proposalData.indexOf(nextProposal));
+      fetchProposersData(nextProposal.proposer);
     }
   };
 
   const handleBack = () => {
-    const prevProposal = proposalData.slice(0, currentIndex).reverse().find(data => data.status === "New");
+    const prevProposal = proposalData.slice(0, currentIndex).reverse().find(data => data.status === "Accepted");
     if (prevProposal) {
       setCurrentIndex(proposalData.indexOf(prevProposal));
+      fetchProposersData(prevProposal.proposer);
     }
   };
 
@@ -206,7 +233,7 @@ function Grading(props) {
             {proposalData && (
               <Div11 className="slider">
                 <Column>
-                  {proposalData.filter(data => data.status === "New").map((data, index) => (
+                  {proposalData.filter(data => data.status === "Accepted").map((data, index) => (
                     <Div12
                       className={`slide ${index === currentIndex ? 'active' : ''} ${index < currentIndex ? 'slideToLeft' : index > currentIndex ? 'slideToRight' : ''}`}
                       key={data.id}
@@ -224,7 +251,7 @@ function Grading(props) {
                       <Div22 />
                       <Div23>
                         <Div24>
-                          <Div25>New proposals</Div25>
+                          <Div25>Accepted</Div25>
                           <Div26>{data.text}</Div26>
                         </Div24>
                         <Div27 />
@@ -249,7 +276,7 @@ function Grading(props) {
           <EmployeeAvatar src="https://cdn.builder.io/api/v1/image/assets/TEMP/3e8e0fc76c3a135312bf03173b585264be24c42d6b683692201c8547563522d3?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Employee Avatar" />
           <EmployeeText>
             <EmployeeName>{employee.name}</EmployeeName>
-            <EmployeeId>{employee.id}</EmployeeId>
+            <EmployeeId>{employee.score}</EmployeeId>
           </EmployeeText>
         </EmployeeDetails>
         {employee.benefits.map((benefit, index) => (

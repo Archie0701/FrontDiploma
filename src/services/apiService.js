@@ -103,6 +103,40 @@ export const fetchNewProposalData = async () => {
   }
 };
 
+export const fetchAcceptedProposalData = async () => {
+  try {
+    // Получаем access token из localStorage
+    const response = await apiService.get('proposals/', {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    });
+
+    const newProposals = response.data.filter(proposal => proposal.status === 'Accepted');
+    
+    return newProposals;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const fetchProposersId = async (id) => {
+  try {
+    // Получаем access token из localStorage
+    const response = await apiService.get(`/proposers/${id}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    });
+
+    return response;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const acceptProposal = async (proposalId, selectedCriteriaIds) => {
   try {
     // Отправляем запрос на принятие предложения с использованием proposalId и передачей критериев в теле запроса
