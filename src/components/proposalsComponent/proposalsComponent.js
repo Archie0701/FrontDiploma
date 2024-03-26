@@ -4,7 +4,7 @@ import Spinner from '../Spinner/Spinner';
 import searchIconSvg from '../../images/search-icon.svg'
 import datePolygonSvg from '../../images/date-polygon.svg'
 import checkboxArrowSvg from '../../images/checkbox-arrow.svg'
-import { fetchUserData, fetchProposalData } from '../../services/apiService';
+import { fetchUserData, fetchProposalData, fetchProposerData } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
 import './style.css';
@@ -20,12 +20,13 @@ function MyComponent(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true); // Добавляем состояние для отслеживания загрузки данных
   const [proposalData, setProposalData] = useState(null);
+  const [proposals, setProposals] = useState(null);
+  const [proposerData, setProposerData] = useState(null);
 
   const [query, setQuery] = useState('');
 
-  const handleInputChange = (event) => {
-    setQuery(event.target.value);
-  };
+  
+  
 
   const [isChecked, setIsChecked] = useState(false);
 
@@ -34,21 +35,32 @@ function MyComponent(props) {
   };
 
   const [error, setError] = useState(null);
+  let rowNum = 0;
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Вызываем функцию fetchUserData для получения данных пользователя
         const userDataResponse = await fetchUserData();
         const proposalData = await fetchProposalData();
+        const proposerData = await fetchProposerData()
         setProposalData(proposalData);
+        setProposals(proposalData);
         setUserData(userDataResponse);
 
         // Устанавливаем состояние загрузки в false, так как данные получены
-        setLoading(false);
 
         // Выводим данные в консоль для проверки
         console.log('Proposal Data:', proposalData);
         console.log('User Data:', userDataResponse);
+        const transformedData = {};
+        proposerData.forEach((item) => {
+          transformedData[item.id] = item;
+        });
+        console.log('Proposer Data:', transformedData);
+        setProposerData(transformedData)
+
+        
+        setLoading(false);
       } catch (error) {
         setError(error.message);
 
@@ -61,6 +73,30 @@ function MyComponent(props) {
     fetchData(); // Вызываем функцию при монтировании компонента
   }, []);
 
+
+
+  const handleInputChange = (event) => {
+    const { value } = event.target;
+    setQuery(value);
+    if (value === '') {
+      setProposals(proposalData); // Assuming initialProposals contains the initial data
+    } else{
+    
+    const filteredProposals = proposalData.filter(proposal => {
+      const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+      console.log("Query:", value.toLowerCase());
+      console.log("Full name:", fullName);
+      console.log("Text:", proposal.text);
+      console.log("Full name logic", fullName.toLowerCase().includes(value.toLowerCase()));
+      console.log("Text logic: ", proposal.text.toLowerCase().includes(value.toLowerCase()));
+      return fullName.toLowerCase().includes(value.toLowerCase()) || proposal.text.toLowerCase().includes(value.toLowerCase());
+    });
+      setProposals(filteredProposals);
+    }
+  };
+  
+  
+
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedLanguage, setSelectedLanguage] = React.useState("ENG");
   const languages = ["ENG", "РУС", "ҚАЗ"];
@@ -71,43 +107,6 @@ function MyComponent(props) {
   };
 
   const filteredLanguages = languages.filter(lang => lang !== selectedLanguage);
-
-  const data = [
-    {
-      id: 1,
-      name: "Adil",
-      surname: "Sissenov",
-      proposal: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
-      Date: "2023-10-12",
-      status: "Graded"
-    },
-    {
-      id: 2,
-      name: "John",
-      surname: "Doe",
-      proposal: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
-      Date: "2023-10-10",
-      status: "Graded"
-    }
-    ,
-    {
-      id: 3,
-      name: "John",
-      surname: "Doe",
-      proposal: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
-      Date: "2023-09-10",
-      status: "Graded"
-    }
-    ,
-    {
-      id: 4,
-      name: "John",
-      surname: "Doe",
-      proposal: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
-      Date: "2023-09-10",
-      status: "Graded"
-    }
-  ];
   
   if (loading) {
     return <Spinner />; // Показываем сообщение о загрузке, пока данные загружаются
@@ -115,7 +114,7 @@ function MyComponent(props) {
   return (
     <Div>
       <Div2>
-        <Div3>
+        <Menu>
           <Link to="/proposers" style={{ textDecoration: 'none' }}>
           <LogoKaizen src="https://cdn.builder.io/api/v1/image/assets/TEMP/3905e52e9c6b961ec6717c80409232f3222eab9fc52b8caf2e55d314ff83b93e?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="KaizenCloud Logo" />
           </Link>
@@ -171,14 +170,14 @@ function MyComponent(props) {
               <path d="M13.1665 9.50004C12.5832 9.50004 12.0901 9.29865 11.6873 8.89587C11.2846 8.4931 11.0832 8.00004 11.0832 7.41671C11.0832 6.83337 11.2846 6.34032 11.6873 5.93754C12.0901 5.53476 12.5832 5.33337 13.1665 5.33337C13.7498 5.33337 14.2429 5.53476 14.6457 5.93754C15.0484 6.34032 15.2498 6.83337 15.2498 7.41671C15.2498 8.00004 15.0484 8.4931 14.6457 8.89587C14.2429 9.29865 13.7498 9.50004 13.1665 9.50004ZM8.99984 13.6667V12.5C8.99984 12.1667 9.08664 11.8577 9.26025 11.573C9.43386 11.2882 9.68039 11.0834 9.99984 10.9584C10.4998 10.75 11.0172 10.5938 11.5519 10.4896C12.0866 10.3855 12.6248 10.3334 13.1665 10.3334C13.7082 10.3334 14.2464 10.3855 14.7811 10.4896C15.3158 10.5938 15.8332 10.75 16.3332 10.9584C16.6526 11.0834 16.8991 11.2882 17.0728 11.573C17.2464 11.8577 17.3332 12.1667 17.3332 12.5V13.6667H8.99984ZM7.33317 7.00004C6.4165 7.00004 5.63178 6.67365 4.979 6.02087C4.32623 5.3681 3.99984 4.58337 3.99984 3.66671C3.99984 2.75004 4.32623 1.96532 4.979 1.31254C5.63178 0.659763 6.4165 0.333374 7.33317 0.333374C8.24984 0.333374 9.03456 0.659763 9.68734 1.31254C10.3401 1.96532 10.6665 2.75004 10.6665 3.66671C10.6665 4.58337 10.3401 5.3681 9.68734 6.02087C9.03456 6.67365 8.24984 7.00004 7.33317 7.00004ZM0.666504 13.6667V11.3334C0.666504 10.8612 0.784559 10.4271 1.02067 10.0313C1.25678 9.63546 1.58317 9.33337 1.99984 9.12504C2.83317 8.70837 3.69775 8.38893 4.59359 8.16671C5.48942 7.94448 6.40261 7.83337 7.33317 7.83337C7.81928 7.83337 8.30539 7.87504 8.7915 7.95837C9.27761 8.04171 9.76373 8.13893 10.2498 8.25004L9.5415 8.95837L8.83317 9.66671C8.58317 9.59726 8.33317 9.55212 8.08317 9.53129C7.83317 9.51046 7.58317 9.50004 7.33317 9.50004C6.52761 9.50004 5.73942 9.59726 4.96859 9.79171C4.19775 9.98615 3.45817 10.2639 2.74984 10.625C2.61095 10.6945 2.50678 10.7917 2.43734 10.9167C2.36789 11.0417 2.33317 11.1806 2.33317 11.3334V12H7.33317V13.6667H0.666504ZM7.33317 5.33337C7.7915 5.33337 8.18386 5.17018 8.51025 4.84379C8.83664 4.5174 8.99984 4.12504 8.99984 3.66671C8.99984 3.20837 8.83664 2.81601 8.51025 2.48962C8.18386 2.16324 7.7915 2.00004 7.33317 2.00004C6.87484 2.00004 6.48248 2.16324 6.15609 2.48962C5.8297 2.81601 5.6665 3.20837 5.6665 3.66671C5.6665 4.12504 5.8297 4.5174 6.15609 4.84379C6.48248 5.17018 6.87484 5.33337 7.33317 5.33337Z" fill="#7D7D7D" />
             </svg>
           </Button5>
-          <Button6
+          <MenuCollapse
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/6236b84bf174b42f3ae39f588cbc1551625088c8e0016e99592ad17058d2b3a8?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
           ><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M7.55556 11.5556L7.55556 4.44444L4 8L7.55556 11.5556ZM16 14.2222C16 14.7111 15.8259 15.1296 15.4778 15.4778C15.1296 15.8259 14.7111 16 14.2222 16H1.77778C1.28889 16 0.87037 15.8259 0.522222 15.4778C0.174074 15.1296 0 14.7111 0 14.2222L0 1.77778C0 1.28889 0.174074 0.87037 0.522222 0.522222C0.87037 0.174073 1.28889 0 1.77778 0H14.2222C14.7111 0 15.1296 0.174073 15.4778 0.522222C15.8259 0.87037 16 1.28889 16 1.77778V14.2222ZM11.5556 14.2222H14.2222V1.77778H11.5556V14.2222ZM9.77778 14.2222V1.77778H1.77778L1.77778 14.2222H9.77778Z" fill="#5A5A5A" />
             </svg>
-          </Button6>
-        </Div3>
+          </MenuCollapse>
+        </Menu>
         <Div4>
           <Div5>
             <Div6>Company name</Div6>
@@ -231,15 +230,15 @@ function MyComponent(props) {
           <Div10>
             <Div50>
               <SearchBarWrapper>
-                <SearchInput>
-                  <SearchIcon src={searchIconSvg} alt="Search icon" />
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={handleInputChange}
-                    placeholder="Search"
-                  />
-                </SearchInput>
+              <SearchInput>
+                <SearchIcon src={searchIconSvg} alt="Search icon" />
+                <input
+                  type="text"
+                  value={query}
+                  onChange={handleInputChange}
+                  placeholder="Search"
+                />
+              </SearchInput>
                 <DateRange>
                   <DateRangeText>Last 7 days: Sep 12, 2023 - Sep 13, 2023</DateRangeText>
                   <CalendarIcon src={datePolygonSvg} alt="Calendar icon" />
@@ -278,23 +277,32 @@ function MyComponent(props) {
                 </TableHeaderRight>
               </TableHeader>
               <TableBody>
-                {data.map((item) => (
-                  <TableRow key={item.id}>
-                      <CheckboxWrapper>
-                      <Checkbox/>
-                      </CheckboxWrapper>
-                      <TableRowLabel className="row_number">{item.id}</TableRowLabel>
-                      <TableRowLabel className="row_name">{item.name}</TableRowLabel>
-                      <TableRowLabel className="row_surname">{item.surname}</TableRowLabel>
-                        <TableRowLabel className="row_proposals">{item.proposal}</TableRowLabel>
-                        <TableRowLabel className="row_status">{item.status}</TableRowLabel>
-                        <TableRowLabel className="row_date">{item.Date}</TableRowLabel>
-                      <TableRowLabel className='row_actions'>
-                        <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/45ba6e34c4feb0d1b52792ce057608876be231e17318d83a73a051445a2210ec?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
-                        <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/0539ef010e404541cac233bb9e81504535f80b90b240f64a9e5f8bd27bf3a7a1?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
-                      </TableRowLabel>
-                  </TableRow>
-                ))}
+                {proposals.map((item) => (
+                <TableRow>
+                  <CheckboxWrapper>
+                    <Checkbox />
+                  </CheckboxWrapper>
+                  <TableRowLabel className="row_number">{++rowNum}</TableRowLabel>
+                  <TableRowLabel className="row_name">{proposerData[item.proposer].user.first_name}</TableRowLabel>
+                  <TableRowLabel className="row_surname">{proposerData[item.proposer].user.last_name}</TableRowLabel>
+                  <TableRowLabel className="row_proposal">{item.text}</TableRowLabel>
+                  <TableRowLabel className="row_status">{item.status}</TableRowLabel>
+                  <TableRowLabel className="row_date">{item.created_at.split('T')[0]}</TableRowLabel>
+                  <TableRowLabel className="row_actions">
+                    <ActionIcon
+                      loading="lazy"
+                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/45ba6e34c4feb0d1b52792ce057608876be231e17318d83a73a051445a2210ec?apiKey=f933b1b419864e2493a2da58c5eeea0a&"
+                      alt="Action Icon"
+                    />
+                    <ActionIcon
+                      loading="lazy"
+                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/0539ef010e404541cac233bb9e81504535f80b90b240f64a9e5f8bd27bf3a7a1?apiKey=f933b1b419864e2493a2da58c5eeea0a&"
+                      alt="Action Icon"
+                    />
+                  </TableRowLabel>
+                </TableRow>
+              ))}
+              
               </TableBody>
               </Table>
               
@@ -339,7 +347,7 @@ const Div2 = styled.div`
     flex-wrap: wrap;
   }
 `;
-const Div3 = styled.div`
+const Menu = styled.div`
   align-items: center;
   background-color: #fff;
   display: flex;
@@ -483,7 +491,8 @@ const Button5 = styled.button`
   width: 40px;
   margin-top: 10px;
 `;
-const Button6 = styled.button`
+
+const MenuCollapse = styled.button`
   aspect-ratio: 1;
   border:none;
   
@@ -508,6 +517,7 @@ const Button6 = styled.button`
     margin-top: 40px;
   }
 `;
+
 const Div4 = styled.div`
   align-self: start;
   display: flex;
@@ -888,10 +898,10 @@ justify-content: center;
   min-width: 81px;
 }
 
-&.row_proposals {
+&.row_proposal {
   padding: 7px 0 7px 17px;
   justify-content: start;
-  max-width: 840px;
+  width: 840px;
   line-height: 1.5;
 }
 

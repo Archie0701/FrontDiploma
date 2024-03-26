@@ -4,7 +4,7 @@ import Spinner from '../Spinner/Spinner';
 import searchIconSvg from '../../images/search-icon.svg'
 import datePolygonSvg from '../../images/date-polygon.svg'
 import checkboxArrowSvg from '../../images/checkbox-arrow.svg'
-import { fetchUserData, fetchProposalData } from '../../services/apiService';
+import { fetchUserData, fetchProposalData, fetchProposerData } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
 import './style.css';
@@ -20,12 +20,10 @@ function MyComponent(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true); // Добавляем состояние для отслеживания загрузки данных
   const [proposalData, setProposalData] = useState(null);
-
+  const [proposals, setProposals] = useState(null);
+  const [proposerData, setProposerData] = useState(null);
   const [query, setQuery] = useState('');
 
-  const handleInputChange = (event) => {
-    setQuery(event.target.value);
-  };
 
   const [isChecked, setIsChecked] = useState(false);
 
@@ -34,13 +32,16 @@ function MyComponent(props) {
   };
 
   const [error, setError] = useState(null);
+  let rowNum = 0
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Вызываем функцию fetchUserData для получения данных пользователя
         const userDataResponse = await fetchUserData();
         const proposalData = await fetchProposalData();
+        const proposerData = await fetchProposerData()
         setProposalData(proposalData);
+        setProposals(proposalData);
         setUserData(userDataResponse);
 
         // Устанавливаем состояние загрузки в false, так как данные получены
@@ -49,6 +50,12 @@ function MyComponent(props) {
         // Выводим данные в консоль для проверки
         console.log('Proposal Data:', proposalData);
         console.log('User Data:', userDataResponse);
+        const transformedData = {};
+        proposerData.forEach((item) => {
+          transformedData[item.id] = item;
+        });
+        console.log('Proposer Data:', transformedData);
+        setProposerData(transformedData)
       } catch (error) {
         setError(error.message);
 
@@ -61,6 +68,27 @@ function MyComponent(props) {
     fetchData(); // Вызываем функцию при монтировании компонента
   }, []);
 
+
+  const handleInputChange = (event) => {
+    const { value } = event.target;
+    setQuery(value);
+    if (value === '') {
+      setProposals(proposalData); // Assuming initialProposals contains the initial data
+    } else{
+    
+    const filteredProposals = proposalData.filter(proposal => {
+      const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+      console.log("Query:", value.toLowerCase());
+      console.log("Full name:", fullName);
+      console.log("Text:", proposal.text);
+      console.log("Full name logic", fullName.toLowerCase().includes(value.toLowerCase()));
+      console.log("Text logic: ", proposal.text.toLowerCase().includes(value.toLowerCase()));
+      return fullName.toLowerCase().includes(value.toLowerCase()) || proposal.text.toLowerCase().includes(value.toLowerCase());
+    });
+      setProposals(filteredProposals);
+    }
+  };
+
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedLanguage, setSelectedLanguage] = React.useState("ENG");
   const languages = ["ENG", "РУС", "ҚАЗ"];
@@ -71,55 +99,6 @@ function MyComponent(props) {
   };
 
   const filteredLanguages = languages.filter(lang => lang !== selectedLanguage);
-
-  const data = [
-    {
-      id: 1,
-      name: "Adil",
-      surname: "Sissenov",
-      proposal: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
-      points: "243/700",
-      grade: "94%",
-      gradeDate: "2023-09-12",
-      acceptDate: "2023-10-12",
-      status: "Graded"
-    },
-    {
-      id: 2,
-      name: "John",
-      surname: "Doe",
-      proposal: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
-      points: "300/700",
-      grade: "90%",
-      gradeDate: "2023-09-10",
-      acceptDate: "2023-10-10",
-      status: "Graded"
-    }
-    ,
-    {
-      id: 3,
-      name: "John",
-      surname: "Doe",
-      proposal: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
-      points: "300/700",
-      grade: "80%",
-      gradeDate: "2023-09-10",
-      acceptDate: "2023-10-10",
-      status: "Graded"
-    }
-    ,
-    {
-      id: 4,
-      name: "John",
-      surname: "Doe",
-      proposal: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.",
-      points: "344/700",
-      grade: "60%",
-      gradeDate: "2023-09-10",
-      acceptDate: "2023-10-10",
-      status: "Graded"
-    }
-  ];
   
   if (loading) {
     return <Spinner />; // Показываем сообщение о загрузке, пока данные загружаются
@@ -243,15 +222,15 @@ function MyComponent(props) {
           <Div10>
             <Div50>
               <SearchBarWrapper>
-                <SearchInput>
-                  <SearchIcon src={searchIconSvg} alt="Search icon" />
-                  <input
-                    type="text"
-                    value={query}
-                    onChange={handleInputChange}
-                    placeholder="Search"
-                  />
-                </SearchInput>
+              <SearchInput>
+                <SearchIcon src={searchIconSvg} alt="Search icon" />
+                <input
+                  type="text"
+                  value={query}
+                  onChange={handleInputChange}
+                  placeholder="Search"
+                />
+              </SearchInput>
                 <DateRange>
                   <DateRangeText>Last 7 days: Sep 12, 2023 - Sep 13, 2023</DateRangeText>
                   <CalendarIcon src={datePolygonSvg} alt="Calendar icon" />
@@ -260,7 +239,7 @@ function MyComponent(props) {
             </Div50>
             <Container>
               <Header>
-                <HeaderWrapper className='proposalsText'>Proposals</HeaderWrapper>
+                <HeaderWrapper className='RatedText'>Rated</HeaderWrapper>
                 <HeaderWrapper className='telegram'>
                   <TelegramIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/4d484e66da61470f3184485f746290ccbf90e558c80901f62078f59458779b8b?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Telegram Icon" />
                   <TelegramOffersText>Telegram offers</TelegramOffersText>
@@ -293,19 +272,19 @@ function MyComponent(props) {
                 </TableHeaderRight>
               </TableHeader>
               <TableBody>
-                {data.map((item) => (
-                  <TableRow key={item.id}>
+                {proposals.map((item) => (
+                  <TableRow>
                       <CheckboxWrapper>
                       <Checkbox/>
                       </CheckboxWrapper>
-                      <TableRowLabel className="row_number">{item.id}</TableRowLabel>
-                      <TableRowLabel className="row_name">{item.name}</TableRowLabel>
-                      <TableRowLabel className="row_surname">{item.surname}</TableRowLabel>
-                        <TableRowLabel className="row_proposals">{item.proposal}</TableRowLabel>
+                      <TableRowLabel className="row_number">{++rowNum}</TableRowLabel>
+                      <TableRowLabel className="row_name">{proposerData[item.proposer].user.first_name}</TableRowLabel>
+                      <TableRowLabel className="row_surname">{proposerData[item.proposer].user.last_name}</TableRowLabel>
+                        <TableRowLabel className="row_proposal">{item.text}</TableRowLabel>
                         <TableRowLabel className="row_points">{item.points}</TableRowLabel>
                         <TableRowLabel className="row_grade">{item.grade}</TableRowLabel>
-                        <TableRowLabel className="row_date_graded">{item.gradeDate}</TableRowLabel>
-                        <TableRowLabel className="row_date_accepted">{item.acceptDate}</TableRowLabel>
+                        <TableRowLabel className="row_date_graded">{item.graded_at.split('T')[0]}</TableRowLabel>
+                        <TableRowLabel className="row_date_accepted">{item.accepted_at.split('T')[0]}</TableRowLabel>
                         <TableRowLabel className="row_status">{item.status}</TableRowLabel>
                       <TableRowLabel className='row_actions'>
                         <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/45ba6e34c4feb0d1b52792ce057608876be231e17318d83a73a051445a2210ec?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
@@ -756,15 +735,6 @@ const Container = styled.div`
   padding-bottom: 8px;
 `;
 
-const BackgroundImage = styled.img`
-  position: absolute;
-  inset: 0;
-  height: 100%;
-  width: 100%;
-  object-fit: cover;
-  border-top-left-radius: 10px;
-  object-position: center;
-`;
 
 const Header = styled.header`
   position: relative;
@@ -788,7 +758,7 @@ const HeaderWrapper = styled.div`
   display: flex;
   color: #6c6c6c;
   
-  &.proposalsText {
+  &.RatedText {
     padding: 11px 450px 12px 30px;
     color: #1871ed;
     font-family: Roboto, sans-serif;
@@ -906,10 +876,10 @@ justify-content: center;
   min-width: 81px;
 }
 
-&.row_proposals {
+&.row_proposal {
   padding: 7px 0 7px 17px;
   justify-content: start;
-  max-width: 683px;
+  width: 683px;
   line-height: 1.5;
 }
 
@@ -989,8 +959,7 @@ const TableHeaderLabel = styled.div`
   &.header_proposals {
     padding: 7px 0 7px 17px;
     justify-content: start;
-    width: 642px;
-    max-width: 683px;
+    width: 683px;
     line-height: 1.5;
   }
 
@@ -1064,83 +1033,6 @@ const TableRow = styled.div`
   }
 `;
 
-
-const TableRowRightContent = styled.div`
-  display: flex;
-  width: 100%;
-  align-items: center;
-  gap: 20px;
-  justify-content: space-between;
-  padding: 0 20px;
-  
-  @media (max-width: 991px) {
-    max-width: 100%;
-    flex-wrap: wrap;
-  }
-`;
-
-const TableRowProposal = styled.div`
-  color: #2f2f2f;
-  font-size: 13px;
-  font-family: Roboto, sans-serif;
-  align-self: stretch;
-  flex-grow: 1;
-  flex-basis: auto;
-  
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-`;
-
-const TableRowPoints = styled.div`
-  font-family: Roboto, sans-serif;
-  align-self: stretch;
-  margin: auto 0;
-`;
-
-const TableRowGrade = styled.div`
-  font-family: Roboto, sans-serif;
-  align-self: stretch;
-  margin: auto 0;
-`;
-
-const TableRowRightDetails = styled.div`
-  align-self: stretch;
-  display: flex;
-  gap: 20px;
-  font-size: 12px;
-  color: #000;
-  font-weight: 300;
-  white-space: nowrap;
-  justify-content: space-between;
-  margin: auto 0;
-  
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-
-const TableRowGradeDate = styled.div`
-  font-family: Roboto, sans-serif;
-`;
-
-const TableRowAcceptDate = styled.div`
-  font-family: Roboto, sans-serif;
-`;
-
-const TableRowStatus = styled.div`
-  color: #3c6ea8;
-  font-family: Roboto, sans-serif;
-  font-weight: 500;
-`;
-
-const TableRowActions = styled.div`
-  align-self: stretch;
-  display: flex;
-  gap: 10px;
-  margin: auto 0;
-`;
-
 const ActionIcon = styled.img`
   aspect-ratio: 1;
   object-fit: auto;
@@ -1184,313 +1076,4 @@ const FooterPageTotal = styled.div`
 const FooterTotal = styled.div`
   font-family: Roboto, sans-serif;
 `;
-
-const Div11 = styled.div`
-  display: flex;
-  @media (max-width: 991px) {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0px;
-  }
-`;
-const Column = styled.div`
-  display: flex;
-  flex-direction: column;
-  line-height: normal;
-  width: 70%;
-  margin-left: 0px;
-  @media (max-width: 991px) {
-    width: 100%;
-  }
-`;
-const Div12 = styled.div`
-  border-radius: 8px;
-  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
-  background-color: #fff;
-  display: flex;
-  flex-direction: column;
-  font-size: 14px;
-  width: 100%;
-  padding: 3px 0 22px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    margin-top: 15px;
-  }
-`;
-const Div13 = styled.div`
-  display: flex;
-  width: 100%;
-  padding-right: 32px;
-  justify-content: space-between;
-  gap: 20px;
-  color: #5d5d5d;
-  font-weight: 400;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    flex-wrap: wrap;
-    padding-right: 20px;
-  }
-`;
-const Div14 = styled.div`
-  font-family: Roboto, sans-serif;
-  margin: auto 20px;
-`;
-const Div15 = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 4px;
-  white-space: nowrap;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const ArchiveButton = styled.button`
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-  border:none;
-  cursor:pointer;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px 4px 4px 8px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 13px 27px;
-  
-  @media (max-width: 991px) {
-    white-space: initial;
-    padding: 0 20px;
-  }
-`;
-const ChangeStatus = styled.button`
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-border:none;
-  cursor:pointer;
-  font-family: Roboto, sans-serif;
-  border-radius: 4px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 12px 20px;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const SpecialistButton = styled.button`
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-border:none;
-  cursor:pointer;
-  font-family: Roboto, sans-serif;
-  border-radius: 4px 8px 8px 4px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 12px 34px 12px 14px;
-  @media (max-width: 991px) {
-    padding-right: 20px;
-    white-space: initial;
-  }
-`;
-const Div19 = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 4px;
-  white-space: nowrap;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const BackButton = styled.button`
-cursor:pointer;
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-border:none;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px 4px 4px 8px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 13px 21px;
-  @media (max-width: 991px) {
-    white-space: initial;
-    padding: 0 20px;
-  }
-`;
-const Div31 = styled.div`
-  font-family: Roboto, sans-serif;
-  font-weight: 400;
-  margin-top: 26px;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const Comments = styled.input`
-  border:none;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  background-color: #f2f2f2;
-  margin-top: 24px;
-  font-weight: 300;
-  padding: 14px 60px 70px 10px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    padding-right: 20px;
-  }
-`;
-const Column2 = styled.div`
-  display: flex;
-  flex-direction: column;
-  line-height: normal;
-  width: 30%;
-  margin-left: 20px;
-  @media (max-width: 991px) {
-    width: 100%;
-  }
-`;
-const Div33 = styled.div`
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    margin-top: 15px;
-  }
-`;
-const Div34 = styled.div`
-  border-radius: 8px;
-  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
-  background-color: #fff;
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  font-size: 15px;
-  color: #5d5d5d;
-  font-weight: 300;
-  white-space: nowrap;
-  padding: 20px 27px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    flex-wrap: wrap;
-    white-space: initial;
-    padding: 0 20px;
-  }
-`;
-const Div35 = styled.div`
-  border-radius: 8px;
-  background-color: #a0a0a0;
-  width: 52px;
-  height: 52px;
-`;
-
-const Div47 = styled.div`
-  font-family: Roboto, sans-serif;
-  margin: auto 0;
-  flex-grow: 1;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const Div48 = styled.div`
-  color: #7b7b7b;
-  flex-grow: 1;
-  flex-basis: auto;
-  margin: auto 0;
-  font: 12px Roboto, sans-serif;
-`;
-const Div49 = styled.div`
-  background-color: #e6e6e6;
-  margin-top: 13px;
-  height: 1px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-  `
-const Div73 = styled.div`
-  align-self: start;
-  display: flex;
-  gap: 10px;
-  font-size: 14px;
-  white-space: nowrap;
-  margin: 32px 0 0 11px;
-  @media (max-width: 991px) {
-    margin-left: 10px;
-    white-space: initial;
-  }
-`;
-const RejectButton = styled.button`
-  cursor:pointer;
-  border:none;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  &:hover {
-    transform: translateY(-5px);
-    transition: transform 0.5s;
-    color: #fff;
-    cursor:pointer;
-    box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
-    background-color:red;
-    pointer-events: visible;
-    position: relative;
-    z-index: 0;
-    visibility: visible;
-    float: none;
-  }
-  background-color: rgba(230, 230, 230, 1);
-  flex-grow: 1;
-  justify-content: center;
-  color: #434343;
-  font-weight: 400;
-  padding: 12px 38px;
-  @media (max-width: 991px) {
-    white-space: initial;
-    padding: 0 20px;
-  }
-`;
-
 export default MyComponent;

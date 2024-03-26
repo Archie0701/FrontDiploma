@@ -84,6 +84,21 @@ export const fetchProposalData = async () => {
   }
 };
 
+export const fetchProposerData = async (id) => {
+  try {
+    const response = await apiService.get(`proposers/`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 
 export const registration = async (userData) => {
   try {
