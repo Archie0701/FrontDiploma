@@ -7,7 +7,9 @@ import checkboxArrowSvg from '../../images/checkbox-arrow.svg'
 import { fetchUserData, fetchProposalData, fetchProposerData } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
-import './style.css';
+import { DateRangePicker } from 'rsuite';
+import 'rsuite/dist/rsuite-rtl.css'
+import '../proposalsComponent/style.css'
 
 export const logOut = () => {
   // Удаляем токен из localStorage
@@ -229,7 +231,7 @@ function MyComponent(props) {
           </Div5>
           <Div10>
             <Div50>
-              <SearchBarWrapper>
+              <SearchBarAndDateWrapper>
               <SearchInput>
                 <SearchIcon src={searchIconSvg} alt="Search icon" />
                 <input
@@ -240,10 +242,9 @@ function MyComponent(props) {
                 />
               </SearchInput>
                 <DateRange>
-                  <DateRangeText>Last 7 days: Sep 12, 2023 - Sep 13, 2023</DateRangeText>
-                  <CalendarIcon src={datePolygonSvg} alt="Calendar icon" />
+                <DateRangePicker />
                 </DateRange>
-              </SearchBarWrapper>
+              </SearchBarAndDateWrapper>
             </Div50>
             <Container>
               <Header>
@@ -675,9 +676,10 @@ const Div10 = styled.div`
   }
 `;
 
-const SearchBarWrapper = styled.div`
+const SearchBarAndDateWrapper = styled.div`
   display: flex;
   gap: 5px;
+  height: 40px;
   
   @media (max-width: 991px) {
     flex-wrap: wrap;
@@ -688,12 +690,11 @@ const SearchInput = styled.div`
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 10px 15px;
+  padding: 0 15px;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.1);
-  flex: 1;
-  
+    
   @media (max-width: 991px) {
     flex-wrap: wrap;
   }
@@ -717,7 +718,8 @@ const SearchText = styled.span`
 `;
 
 const DateRange = styled.div`
-  display: flex;
+  text-align: center;
+  ${'' /* display: flex;
   align-items: center;
   gap: 20px;
   padding: 11px 16px;
@@ -725,7 +727,7 @@ const DateRange = styled.div`
   border-radius: 8px;
   font-size: 15px;
   color: #434343;
-  font-weight: 300;
+  font-weight: 300; */}
 `;
 
 const DateRangeText = styled.span`
