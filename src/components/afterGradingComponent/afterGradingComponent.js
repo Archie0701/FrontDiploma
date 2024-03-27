@@ -114,6 +114,7 @@ function MyComponent(props) {
 
           </Button>
           </Link>
+          <Link to="/grading">
           <Button1
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/be1e262c51b781adefde1ed54a742d841941ec89f676a85721792f38bc9ac061?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
@@ -121,6 +122,7 @@ function MyComponent(props) {
               <path d="M6.39333 13.0044L9.33333 11.3377L12.2733 13.0263L11.5033 9.86842L14.0933 7.76316L10.6867 7.47807L9.33333 4.49561L7.98 7.45614L4.57333 7.74123L7.16333 9.86842L6.39333 13.0044ZM3.57 16.6667L5.08667 10.5044L0 6.35965L6.72 5.8114L9.33333 0L11.9467 5.8114L18.6667 6.35965L13.58 10.5044L15.0967 16.6667L9.33333 13.3991L3.57 16.6667Z" fill="#7D7D7D" />
             </svg>
           </Button1>
+          </Link>
           <Link to="/after_grading">
           <Button2
             loading="lazy"
@@ -235,10 +237,6 @@ function MyComponent(props) {
             <Container>
               <Header>
                 <HeaderWrapper className='RatedText'>Rated</HeaderWrapper>
-                <HeaderWrapper className='telegram'>
-                  <TelegramIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/4d484e66da61470f3184485f746290ccbf90e558c80901f62078f59458779b8b?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Telegram Icon" />
-                  <TelegramOffersText>Telegram offers</TelegramOffersText>
-                </HeaderWrapper>
               </Header>
               <Table>
                 <Divider />
@@ -276,11 +274,11 @@ function MyComponent(props) {
                       <TableRowLabel className="row_name">{proposerData[item.proposer].user.first_name}</TableRowLabel>
                       <TableRowLabel className="row_surname">{proposerData[item.proposer].user.last_name}</TableRowLabel>
                         <TableRowLabel className="row_proposal">{item.text}</TableRowLabel>
-                        <TableRowLabel className="row_points">{item.points}</TableRowLabel>
-                        <TableRowLabel className="row_grade">{item.grade}</TableRowLabel>
+                        <TableRowLabel className="row_points">{item.total_score || "0"}</TableRowLabel>
+                        <TableRowLabel className="row_grade">{item.grade_percentage || "0"}</TableRowLabel>
                         <TableRowLabel className="row_date_graded">{item.graded_at.split('T')[0]}</TableRowLabel>
                         <TableRowLabel className="row_date_accepted">{item.accepted_at.split('T')[0]}</TableRowLabel>
-                        <TableRowLabel className="row_status">{item.status}</TableRowLabel>
+                        <TableRowLabel className="row_status" status={item.status}>{item.status}</TableRowLabel>
                       <TableRowLabel className='row_actions'>
                         <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/45ba6e34c4feb0d1b52792ce057608876be231e17318d83a73a051445a2210ec?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
                         <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/0539ef010e404541cac233bb9e81504535f80b90b240f64a9e5f8bd27bf3a7a1?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
@@ -305,6 +303,19 @@ function MyComponent(props) {
     </Div>
   );
 }
+
+const getStatusColor = (status) => {
+  switch(status) {
+    case 'New':
+      return '#1871ED';
+    case 'Accepted':
+      return '#63BE09';
+    case 'Declined':
+      return '#BE2A09';
+    default:
+      return '';
+  }
+};
 
 const LogoKaizen = styled.img`
   aspect-ratio: 1.12;
@@ -754,40 +765,14 @@ const HeaderWrapper = styled.div`
   color: #6c6c6c;
   
   &.RatedText {
+    font-size: 20px;
     padding: 11px 450px 12px 30px;
     color: #1871ed;
     font-family: Roboto, sans-serif;
     margin: auto 0;
   }
-  &.telegram {
-    background-color: rgba(250, 250, 250, 0.6);
-    padding: 11px 450px 11px 13px;
-    gap: 10px;
-  }
-  &.telegram:hover {
-    background-color: rgba(250, 250, 250, 0.8);
-    cursor: pointer;
-  }
   @media (max-width: 991px) {
     flex-wrap: wrap;
-  }
-`;
-
-const TelegramIcon = styled.img`
-  aspect-ratio: 1.11;
-  object-fit: auto;
-  object-position: center;
-  width: 21px;
-  fill: #6c6c6c;
-`;
-
-const TelegramOffersText = styled.div`
-  font-family: Roboto, sans-serif;
-  flex-grow: 1;
-  flex-basis: auto;
-  
-  @media (max-width: 991px) {
-    max-width: 100%;
   }
 `;
 
@@ -906,6 +891,7 @@ justify-content: center;
   padding-left: 16px;
   justify-content: start;
   min-width: 84px;
+  color: ${props => getStatusColor(props.status)};
 }
 
 &.row_actions {
@@ -986,6 +972,7 @@ const TableHeaderLabel = styled.div`
     padding-left: 16px;
     justify-content: start;
     min-width: 84px;
+    color: ${props => getStatusColor(props.status)};
   }
 
   &.header_actions {

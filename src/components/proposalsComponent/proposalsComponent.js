@@ -223,6 +223,7 @@ function MyComponent(props) {
 
           </Button>
           </Link>
+          <Link to="/grading">
           <Button1
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/be1e262c51b781adefde1ed54a742d841941ec89f676a85721792f38bc9ac061?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
@@ -230,6 +231,7 @@ function MyComponent(props) {
               <path d="M6.39333 13.0044L9.33333 11.3377L12.2733 13.0263L11.5033 9.86842L14.0933 7.76316L10.6867 7.47807L9.33333 4.49561L7.98 7.45614L4.57333 7.74123L7.16333 9.86842L6.39333 13.0044ZM3.57 16.6667L5.08667 10.5044L0 6.35965L6.72 5.8114L9.33333 0L11.9467 5.8114L18.6667 6.35965L13.58 10.5044L15.0967 16.6667L9.33333 13.3991L3.57 16.6667Z" fill="#7D7D7D" />
             </svg>
           </Button1>
+          </Link>
           <Link to="/after_grading">
           <Button2
             loading="lazy"
@@ -877,7 +879,7 @@ const HeaderWrapper = styled.div`
   color: #6c6c6c;
   
   &.proposalsText {
-    padding: 11px 450px 12px 30px;
+    padding: 11px 440px 12px 30px;
     font-size: 20px;
     color: #1871ed;
     font-family: Roboto, sans-serif;
@@ -1148,26 +1150,6 @@ const TableRowRightDetails = styled.div`
   }
 `;
 
-const TableRowGradeDate = styled.div`
-  font-family: Roboto, sans-serif;
-`;
-
-const TableRowAcceptDate = styled.div`
-  font-family: Roboto, sans-serif;
-`;
-
-const TableRowStatus = styled.div`
-  color: #3c6ea8;
-  font-family: Roboto, sans-serif;
-  font-weight: 500;
-`;
-
-const TableRowActions = styled.div`
-  align-self: stretch;
-  display: flex;
-  gap: 10px;
-  margin: auto 0;
-`;
 
 const ActionIcon = styled.img`
   aspect-ratio: 1;
@@ -1295,226 +1277,6 @@ const ArchiveButton = styled.button`
   justify-content: center;
   padding: 13px 27px;
   
-  @media (max-width: 991px) {
-    white-space: initial;
-    padding: 0 20px;
-  }
-`;
-const ChangeStatus = styled.button`
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-border:none;
-  cursor:pointer;
-  font-family: Roboto, sans-serif;
-  border-radius: 4px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 12px 20px;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const SpecialistButton = styled.button`
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-border:none;
-  cursor:pointer;
-  font-family: Roboto, sans-serif;
-  border-radius: 4px 8px 8px 4px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 12px 34px 12px 14px;
-  @media (max-width: 991px) {
-    padding-right: 20px;
-    white-space: initial;
-  }
-`;
-const Div19 = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 4px;
-  white-space: nowrap;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const BackButton = styled.button`
-cursor:pointer;
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-border:none;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px 4px 4px 8px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 13px 21px;
-  @media (max-width: 991px) {
-    white-space: initial;
-    padding: 0 20px;
-  }
-`;
-const Div31 = styled.div`
-  font-family: Roboto, sans-serif;
-  font-weight: 400;
-  margin-top: 26px;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const Comments = styled.input`
-  border:none;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  background-color: #f2f2f2;
-  margin-top: 24px;
-  font-weight: 300;
-  padding: 14px 60px 70px 10px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    padding-right: 20px;
-  }
-`;
-const Column2 = styled.div`
-  display: flex;
-  flex-direction: column;
-  line-height: normal;
-  width: 30%;
-  margin-left: 20px;
-  @media (max-width: 991px) {
-    width: 100%;
-  }
-`;
-const Div33 = styled.div`
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    margin-top: 15px;
-  }
-`;
-const Div34 = styled.div`
-  border-radius: 8px;
-  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
-  background-color: #fff;
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  font-size: 15px;
-  color: #5d5d5d;
-  font-weight: 300;
-  white-space: nowrap;
-  padding: 20px 27px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    flex-wrap: wrap;
-    white-space: initial;
-    padding: 0 20px;
-  }
-`;
-const Div35 = styled.div`
-  border-radius: 8px;
-  background-color: #a0a0a0;
-  width: 52px;
-  height: 52px;
-`;
-
-const Div47 = styled.div`
-  font-family: Roboto, sans-serif;
-  margin: auto 0;
-  flex-grow: 1;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const Div48 = styled.div`
-  color: #7b7b7b;
-  flex-grow: 1;
-  flex-basis: auto;
-  margin: auto 0;
-  font: 12px Roboto, sans-serif;
-`;
-const Div49 = styled.div`
-  background-color: #e6e6e6;
-  margin-top: 13px;
-  height: 1px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-  `
-const Div73 = styled.div`
-  align-self: start;
-  display: flex;
-  gap: 10px;
-  font-size: 14px;
-  white-space: nowrap;
-  margin: 32px 0 0 11px;
-  @media (max-width: 991px) {
-    margin-left: 10px;
-    white-space: initial;
-  }
-`;
-const RejectButton = styled.button`
-  cursor:pointer;
-  border:none;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  &:hover {
-    transform: translateY(-5px);
-    transition: transform 0.5s;
-    color: #fff;
-    cursor:pointer;
-    box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
-    background-color:red;
-    pointer-events: visible;
-    position: relative;
-    z-index: 0;
-    visibility: visible;
-    float: none;
-  }
-  background-color: rgba(230, 230, 230, 1);
-  flex-grow: 1;
-  justify-content: center;
-  color: #434343;
-  font-weight: 400;
-  padding: 12px 38px;
   @media (max-width: 991px) {
     white-space: initial;
     padding: 0 20px;

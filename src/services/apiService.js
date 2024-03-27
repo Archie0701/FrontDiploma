@@ -170,6 +170,20 @@ export const registration = async (userData) => {
   }
 };
 
+export const addProposal = async (proposalData) => {
+  try {
+
+    const response = await apiService.post('/proposals/', proposalData, {
+      'Accept': 'application/json',
+        'Content-Type': 'application/json',
+    })
+
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 // Другие функции для работы с API могут быть добавлены здесь
 
 export default apiService;
