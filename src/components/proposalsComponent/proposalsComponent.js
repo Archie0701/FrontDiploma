@@ -7,7 +7,14 @@ import checkboxArrowSvg from '../../images/checkbox-arrow.svg'
 import { fetchUserData, fetchProposalData, fetchProposerData } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
-import { DateRangePicker } from 'rsuite';
+import { DateRangePicker, Stack } from 'rsuite';
+import subDays from 'date-fns/subDays';
+import startOfWeek from 'date-fns/startOfWeek';
+import endOfWeek from 'date-fns/endOfWeek';
+import addDays from 'date-fns/addDays';
+import startOfMonth from 'date-fns/startOfMonth';
+import endOfMonth from 'date-fns/endOfMonth';
+import addMonths from 'date-fns/addMonths';
 import 'rsuite/dist/rsuite-rtl.css'
 import '../proposalsComponent/style.css'
 
@@ -17,7 +24,6 @@ export const logOut = () => {
   window.location.href = "../login";
 };
 
-
 function MyComponent(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true); // Добавляем состояние для отслеживания загрузки данных
@@ -26,10 +32,7 @@ function MyComponent(props) {
   const [proposerData, setProposerData] = useState(null);
 
   const [query, setQuery] = useState('');
-
-  
-  
-
+  const [date, setDate] = useState([]);
   const [isChecked, setIsChecked] = useState(false);
 
   const checkbox = (event) => {
@@ -37,6 +40,85 @@ function MyComponent(props) {
   };
 
   const [error, setError] = useState(null);
+
+  const predefinedRanges = [
+    {
+      label: 'Today',
+      value: [new Date(), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Yesterday',
+      value: [addDays(new Date(), -1), addDays(new Date(), -1)],
+      placement: 'left'
+    },
+    {
+      label: 'This week',
+      value: [startOfWeek(new Date()), endOfWeek(new Date())],
+      placement: 'left'
+    },
+    {
+      label: 'Last 7 days',
+      value: [subDays(new Date(), 6), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Last 30 days',
+      value: [subDays(new Date(), 29), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'This month',
+      value: [startOfMonth(new Date()), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Last month',
+      value: [startOfMonth(addMonths(new Date(), -1)), endOfMonth(addMonths(new Date(), -1))],
+      placement: 'left'
+    },
+    {
+      label: 'This year',
+      value: [new Date(new Date().getFullYear(), 0, 1), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Last year',
+      value: [new Date(new Date().getFullYear() - 1, 0, 1), new Date(new Date().getFullYear(), 0, 0)],
+      placement: 'left'
+    },
+    {
+      label: 'All time',
+      value: [new Date(new Date().getFullYear() - 1, 0, 1), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Last week',
+      closeOverlay: false,
+      value: value => {
+        const [start = new Date()] = value || [];
+        return [
+          addDays(startOfWeek(start, { weekStartsOn: 0 }), -7),
+          addDays(endOfWeek(start, { weekStartsOn: 0 }), -7)
+        ];
+      },
+      appearance: 'default'
+    },
+    {
+      label: 'Next week',
+      closeOverlay: false,
+      value: value => {
+        const [start = new Date()] = value || [];
+        return [
+          addDays(startOfWeek(start, { weekStartsOn: 0 }), 7),
+          addDays(endOfWeek(start, { weekStartsOn: 0 }), 7)
+        ];
+      },
+      appearance: 'default'
+    }
+  ];
+
+  
   let rowNum = 0;
   useEffect(() => {
     const fetchData = async () => {
@@ -77,26 +159,38 @@ function MyComponent(props) {
 
 
 
-  const handleInputChange = (event) => {
+  const searchInputChange = (event) => {
     const { value } = event.target;
     setQuery(value);
     if (value === '') {
-      setProposals(proposalData); // Assuming initialProposals contains the initial data
+      setProposals(proposalData);
     } else{
     
     const filteredProposals = proposalData.filter(proposal => {
       const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
-      console.log("Query:", value.toLowerCase());
-      console.log("Full name:", fullName);
-      console.log("Text:", proposal.text);
-      console.log("Full name logic", fullName.toLowerCase().includes(value.toLowerCase()));
-      console.log("Text logic: ", proposal.text.toLowerCase().includes(value.toLowerCase()));
       return fullName.toLowerCase().includes(value.toLowerCase()) || proposal.text.toLowerCase().includes(value.toLowerCase());
     });
       setProposals(filteredProposals);
     }
   };
-  
+
+  const dateSelected = (selectedDate) => {
+    const date1 = new Date(selectedDate[0]).setHours(0, 0, 0, 0);
+    const date2 = new Date(selectedDate[1]).setHours(0, 0, 0, 0);
+
+    const filteredProposals = proposals.filter(proposal => {
+      const created_date = new Date(proposal.created_at).setHours(0, 0, 0, 0);
+      if (created_date >= date1 && created_date <= date2 ) {
+      return true;
+      }
+      return false;
+    });
+      setProposals(filteredProposals);
+  };
+
+  const dateClean = () => {
+    setProposals(proposalData);
+  }
   
 
   const [isOpen, setIsOpen] = React.useState(false);
@@ -237,22 +331,29 @@ function MyComponent(props) {
                 <input
                   type="text"
                   value={query}
-                  onChange={handleInputChange}
+                  onChange={searchInputChange}
                   placeholder="Search"
                 />
               </SearchInput>
-                <DateRange>
-                <DateRangePicker />
-                </DateRange>
+              <Stack>
+                <DateRangePicker
+                  onOk={dateSelected}
+                  onClean={dateClean}
+                  className='dateRangePicker'
+                  size="lg"
+                  ranges={predefinedRanges}
+                  placeholder="Proposals date range"
+                  style={{ width: 300 }}
+                  onShortcutClick={(range) => {
+                    dateSelected(range.value);
+                  }}
+                />
+              </Stack>
               </SearchBarAndDateWrapper>
             </Div50>
             <Container>
               <Header>
                 <HeaderWrapper className='proposalsText'>Proposals</HeaderWrapper>
-                <HeaderWrapper className='telegram'>
-                  <TelegramIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/4d484e66da61470f3184485f746290ccbf90e558c80901f62078f59458779b8b?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Telegram Icon" />
-                  <TelegramOffersText>Telegram offers</TelegramOffersText>
-                </HeaderWrapper>
               </Header>
               <Table>
                 <Divider />
@@ -287,7 +388,7 @@ function MyComponent(props) {
                   <TableRowLabel className="row_name">{proposerData[item.proposer].user.first_name}</TableRowLabel>
                   <TableRowLabel className="row_surname">{proposerData[item.proposer].user.last_name}</TableRowLabel>
                   <TableRowLabel className="row_proposal">{item.text}</TableRowLabel>
-                  <TableRowLabel className="row_status">{item.status}</TableRowLabel>
+                  <TableRowLabel className="row_status" status={item.status}>{item.status}</TableRowLabel>
                   <TableRowLabel className="row_date">{item.created_at.split('T')[0]}</TableRowLabel>
                   <TableRowLabel className="row_actions">
                     <ActionIcon
@@ -322,6 +423,19 @@ function MyComponent(props) {
     </Div>
   );
 }
+
+const getStatusColor = (status) => {
+  switch(status) {
+    case 'New':
+      return '#1871ED';
+    case 'Accepted':
+      return '#63BE09';
+    case 'Declined':
+      return '#BE2A09';
+    default:
+      return '';
+  }
+};
 
 const LogoKaizen = styled.img`
   aspect-ratio: 1.12;
@@ -717,27 +831,7 @@ const SearchText = styled.span`
   }
 `;
 
-const DateRange = styled.div`
-  text-align: center;
-  ${'' /* display: flex;
-  align-items: center;
-  gap: 20px;
-  padding: 11px 16px;
-  background-color: #e6e6e6;
-  border-radius: 8px;
-  font-size: 15px;
-  color: #434343;
-  font-weight: 300; */}
-`;
 
-const DateRangeText = styled.span`
-  font-family: Roboto, sans-serif;
-`;
-
-const CalendarIcon = styled.img`
-  width: 17px;
-  height: 8px;
-`;
 
 const Container = styled.div`
   display: flex;
@@ -784,39 +878,13 @@ const HeaderWrapper = styled.div`
   
   &.proposalsText {
     padding: 11px 450px 12px 30px;
+    font-size: 20px;
     color: #1871ed;
     font-family: Roboto, sans-serif;
     margin: auto 0;
   }
-  &.telegram {
-    background-color: rgba(250, 250, 250, 0.6);
-    padding: 11px 450px 11px 13px;
-    gap: 10px;
-  }
-  &.telegram:hover {
-    background-color: rgba(250, 250, 250, 0.8);
-    cursor: pointer;
-  }
   @media (max-width: 991px) {
     flex-wrap: wrap;
-  }
-`;
-
-const TelegramIcon = styled.img`
-  aspect-ratio: 1.11;
-  object-fit: auto;
-  object-position: center;
-  width: 21px;
-  fill: #6c6c6c;
-`;
-
-const TelegramOffersText = styled.div`
-  font-family: Roboto, sans-serif;
-  flex-grow: 1;
-  flex-basis: auto;
-  
-  @media (max-width: 991px) {
-    max-width: 100%;
   }
 `;
 
@@ -917,6 +985,8 @@ justify-content: center;
   padding-left: 16px;
   justify-content: start;
   min-width: 84px;
+
+  color: ${props => getStatusColor(props.status)};
 }
 
 &.row_actions {

@@ -78,11 +78,6 @@ function MyComponent(props) {
     
     const filteredProposals = proposalData.filter(proposal => {
       const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
-      console.log("Query:", value.toLowerCase());
-      console.log("Full name:", fullName);
-      console.log("Text:", proposal.text);
-      console.log("Full name logic", fullName.toLowerCase().includes(value.toLowerCase()));
-      console.log("Text logic: ", proposal.text.toLowerCase().includes(value.toLowerCase()));
       return fullName.toLowerCase().includes(value.toLowerCase()) || proposal.text.toLowerCase().includes(value.toLowerCase());
     });
       setProposals(filteredProposals);

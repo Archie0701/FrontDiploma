@@ -103,6 +103,22 @@ export const fetchNewProposalData = async () => {
   }
 };
 
+
+export const fetchProposalData = async () => {
+  try {
+    // Получаем access token из localStorage
+    const response = await apiService.get('proposals/', {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const acceptProposal = async (proposalId, selectedCriteriaIds) => {
   try {
     // Отправляем запрос на принятие предложения с использованием proposalId и передачей критериев в теле запроса
@@ -122,8 +138,12 @@ export const fetchProposerData = async (id) => {
         'Content-Type': 'application/json',
       }
     });
-    
-
+  
+    return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
 export const declineProposal = async (proposalId, selectedCriteriaIds) => {
   try {
     // Отправляем запрос на отклонение предложения с использованием proposalId и передачей критериев в теле запроса
