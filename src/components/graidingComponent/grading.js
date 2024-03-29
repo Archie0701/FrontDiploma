@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
-import { fetchUserData, fetchAcceptedProposalData, fetchProposersId } from '../../services/apiService';
+import { fetchUserData, fetchAcceptedProposalData, fetchGradingsData, gradeProposal, updateProposalStatusGraded, addComment, updateProposalStatusArchive } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
 import './style.css'; //
@@ -12,10 +12,9 @@ export const logOut = () => {
   window.location.href = "../login";
 };
 
-const EmployeeScoreSlider = () => {
-  const [value, setValue] = useState(5);
+const EmployeeScoreSlider = ({ value, onValueChange }) => {
   const handleChange = (event) => {
-    setValue(event.target.value);
+    onValueChange(event.target.value);
   };
 
   return (
@@ -35,27 +34,41 @@ const EmployeeScoreSlider = () => {
   );
 };
 
+
+
 function Grading(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+
+     
   const [proposalData, setProposalData] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [proposersData, setProposersData] = useState(null);
+  const [gradingsData, setGradingData] = useState(null);
+  const [benefitScores, setBenefitScores] = useState({});
+  const [commentText, setCommentText] = useState('');
+  const [comments, setComments] = useState([]);
   // Обновленная функция fetchData
   const fetchData = async () => {
     try {
       const userDataResponse = await fetchUserData();
       const proposalDataResponse = await fetchAcceptedProposalData();
-  
+      const fetchGradingsDataResponse = await fetchGradingsData();
+      const gradingData = fetchGradingsDataResponse.data;
+   
       if (userDataResponse) {
         setUserData(userDataResponse);
       } 
       setProposalData(proposalDataResponse);
+
       setLoading(false);
+      setGradingData(gradingData);
+   
   
       // Если есть предложения, запросить данные о первом предложившем лице
       if (proposalDataResponse.length > 0) {
-        fetchProposersData(proposalDataResponse[0].proposer);
+        fetchProposersData(proposalDataResponse[0].proposer); // передайте ID предложения
+        fetchCommentsData(proposalDataResponse[0].id);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -63,61 +76,137 @@ function Grading(props) {
     }
   };
 
+  const handleAddComment = async () => {
+    try {
+      await addComment(proposalData[currentIndex].id, commentText);
+      // Обновляем список комментариев после добавления нового комментария
+      await fetchCommentsData(proposalData[currentIndex].id);
+      // Очищаем поле ввода после отправки комментария
+      setCommentText('');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  };
+
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      handleAddComment();
+    }
+  };
 
   useEffect(() => {
     fetchData();
+
+
   }, []);
 
   useEffect(() => {
     if (proposalData) {
       fetchProposersData();
+      fetchCommentsData();
     }
   }, [proposalData]);
 
-  const fetchProposersData = async (proposerId) => {
+  const fetchProposersData = async (id) => {
     try {
-      // Запрашиваем данные о предложившем лице по его id
-      const proposerDataResponse = await fetchProposersId(proposerId);
-      const proposerData = proposerDataResponse.data;
-  
-      // Обработка полученных данных о предложившем лице
-      console.log('Proposer data:', proposerData);
-      setProposersData(proposerData);
+      if (id) {
+        // Запрашиваем данные о предложившем лице по его id
+        const proposerDataResponse = await fetch(`http://3.71.200.223:8000/api/proposers/${id}/`);
+        
+        const proposerData = await proposerDataResponse.json();
+        // Обработка полученных данных о предложившем лице
+        setProposersData(proposerData);
+      }
     } catch (error) {
       console.error('Error fetching proposer data:', error);
       // Обработка ошибок
     }
   };
 
+  const fetchCommentsData = async (id) => {
+    try {
+      if (id) {
+        // Запрашиваем данные о комментариях для данного предложения по его id
+        const response = await fetch(`http://3.71.200.223:8000/api/proposals/${id}/get_comments/`);
+        const data = await response.json();
+        // Обработка полученных данных о комментариях
+        setComments(data.comments); // Убедитесь, что comments - это массив комментариев
+      }
+    } catch (error) {
+      console.error('Error fetching comments data:', error);
+    }
+  };
 
   let employeeData = [];
 
-  if (proposersData && proposersData.user) {
+  if (proposersData && proposersData.user && gradingsData) { // Изменено на проверку свойства user
     employeeData = [{
-      name: proposersData.user.first_name,
-      score: proposersData.points,
-      benefits: [
-        "Brings/Increases profit",
-        "Reduces costs",
-        "Brings/Increases profit",
-        "Brings/Increases profit",
-        "Brings/Increases profit",
-        "Brings/Increases profit",
-        "Brings/Increases profit",
-        "Brings/Increases profit",
-      ]
+      name: `${proposersData.user.first_name} ${proposersData.user.last_name}`, // Изменено на доступ к свойствам user
+      benefits: gradingsData.map((data, index) => ({ id: data.id, name: data.name }))
     }];
   } else {
     console.error("proposersData is invalid");
   }
 
+  const handleBenefitScoreChange = (grading, newValue) => { // Заменяем benefitName на benefitID
+    setBenefitScores(prevState => ({
+      ...prevState,
+      [grading]: newValue
+    }));
+  };
 
+  const updateProposalList = async () => {
+    try {
+      const updatedProposalData = await fetchAcceptedProposalData();
+      setProposalData(updatedProposalData);
+    } catch (error) {
+      console.error('Error updating proposal list:', error);
+    }
+  };
+
+  const archive = async (id) => {
+    await updateProposalStatusArchive(proposalData[currentIndex].id, "Archived");
+    updateProposalList();
+  }
+  
+  const acceptGrade = async () => {
+    try {
+      // Проверяем, есть ли данные для оценок
+      if (!benefitScores || Object.keys(benefitScores).length < gradingsData.length) {
+
+        alert("Change all grades.");
+        return;
+      }
+  
+      // Проверяем, есть ли данные о предложениях
+      if (!proposalData || proposalData.length === 0) {
+        console.error("No proposal data available.");
+        return;
+      }
+  
+      // Перебираем каждую оценку и отправляем запрос к API для каждой оценки
+      for (const [grading, score] of Object.entries(benefitScores)) {
+        console.log("Sending request for grading:", grading, "with score:", score +  " id: " + proposalData[currentIndex].id);
+        await gradeProposal(proposalData[currentIndex].id, grading, score); // Передаем grading и score
+      }
+  
+      // После успешного принятия оценок, обновляем статус на "Graded"
+      await updateProposalStatusGraded(proposalData[currentIndex].id, "Graded");
+  
+      console.log("All gradings accepted successfully!");
+      await updateProposalList();
+    } catch (error) {
+      console.error("Error while accepting gradings:", error);
+    }
+    
+  };
 
   const handleNext = () => {
     const nextProposal = proposalData.find((data, index) => index > currentIndex && data.status === "Accepted");
     if (nextProposal) {
       setCurrentIndex(proposalData.indexOf(nextProposal));
       fetchProposersData(nextProposal.proposer);
+      fetchCommentsData(nextProposal.id);
     }
   };
 
@@ -126,10 +215,11 @@ function Grading(props) {
     if (prevProposal) {
       setCurrentIndex(proposalData.indexOf(prevProposal));
       fetchProposersData(prevProposal.proposer);
+      fetchCommentsData(prevProposal.id);
     }
   };
 
-
+  
 
   if (loading) {
     return <Spinner />;
@@ -241,7 +331,7 @@ function Grading(props) {
                       <Div13>
                         <Div14>{formatDate(data.created_at)}</Div14>
                         <Div15>
-                          <ArchiveButton>Archive</ArchiveButton>
+                          <ArchiveButton onClick={archive}>Archive</ArchiveButton>
                         </Div15>
                         <Div19>
                           {currentIndex > 0 && <BackButton onClick={handleBack}>Back</BackButton>}
@@ -258,9 +348,15 @@ function Grading(props) {
                         <Div28>
                           <Div29>
                             <Div30>Comments</Div30>
-                            <Div31>Great job!</Div31>
+                            <Div31>    {comments.length > 0 && (
+    <div key={comments[comments.length - 1].id}>{comments[comments.length - 1].text}</div>
+  )}</Div31>
                           </Div29>
-                          <Comments type="text" placeholder="Your comments" />
+                          <Comments  type="text" 
+        placeholder="Your comments" 
+        value={commentText}
+        onChange={(e) => setCommentText(e.target.value)}
+        onKeyPress={handleKeyPress}/>
                         </Div28>
                       </Div23>
                     </Div12>
@@ -270,25 +366,28 @@ function Grading(props) {
                   <>
                   <Container>
   <EmployeeSection>
-    {employeeData.map((employee, index) => (
-      <EmployeeInfo key={index}>
-        <EmployeeDetails>
-          <EmployeeAvatar src="https://cdn.builder.io/api/v1/image/assets/TEMP/3e8e0fc76c3a135312bf03173b585264be24c42d6b683692201c8547563522d3?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Employee Avatar" />
-          <EmployeeText>
-            <EmployeeName>{employee.name}</EmployeeName>
-            <EmployeeId>{employee.score}</EmployeeId>
-          </EmployeeText>
-        </EmployeeDetails>
-        {employee.benefits.map((benefit, index) => (
-          <div key={index}>
-            <EmployeeBenefit>{benefit}</EmployeeBenefit>
-            <EmployeeScoreSlider />
-          </div>
-        ))}
-      </EmployeeInfo>
+  {employeeData.map((employee, index) => (
+  <EmployeeInfo key={index}>
+    <EmployeeDetails>
+      <EmployeeAvatar src="https://cdn.builder.io/api/v1/image/assets/TEMP/3e8e0fc76c3a135312bf03173b585264be24c42d6b683692201c8547563522d3?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Employee Avatar" />
+      <EmployeeText>
+        <EmployeeName>{employee.name}</EmployeeName>
+        <EmployeeId>{employee.score}</EmployeeId>
+      </EmployeeText>
+    </EmployeeDetails>
+    {employee.benefits.map((benefit, index) => (
+      <div key={index}>
+        <EmployeeBenefit>{benefit.name}</EmployeeBenefit>
+        <EmployeeScoreSlider
+          value={benefitScores[benefit.id] || 1} // Значение из состояния или по умолчанию
+          onValueChange={(value) => handleBenefitScoreChange(benefit.id, value)} // Передаем ID бенефита и новое значение
+        />
+      </div>
     ))}
+  </EmployeeInfo>
+))}
   </EmployeeSection>
-  <AcceptButton>Accept</AcceptButton>
+  <AcceptButton onClick={acceptGrade}>Accept</AcceptButton>
 </Container>
                   </>
                 </Column2>
