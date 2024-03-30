@@ -1,14 +1,9 @@
-body {
-  margin: 0;
-  border-collapse: collapse;
-}
-
-input {
+.input_search {
   border: none;
   width: 500px;
 }
 
-input:focus {
+.input_search:focus {
   outline: none;
 }
 /* .link {

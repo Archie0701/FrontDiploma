@@ -15,11 +15,10 @@ import addDays from 'date-fns/addDays';
 import startOfMonth from 'date-fns/startOfMonth';
 import endOfMonth from 'date-fns/endOfMonth';
 import addMonths from 'date-fns/addMonths';
-import 'rsuite/dist/rsuite-rtl.css'
-import '../proposalsComponent/style.css'
+import 'rsuite/dist/rsuite-no-reset.min.css';
+import '../proposalsComponent/style.css';
 
 export const logOut = () => {
-  // Удаляем токен из localStorage
   localStorage.removeItem('accessToken');
   window.location.href = "../login";
 };
@@ -31,9 +30,11 @@ function MyComponent(props) {
   const [proposals, setProposals] = useState(null);
   const [proposerData, setProposerData] = useState(null);
 
+
   const [query, setQuery] = useState('');
-  const [date, setDate] = useState([]);
   const [isChecked, setIsChecked] = useState(false);
+
+  
 
   const checkbox = (event) => {
     setIsChecked(event.target.checked);
@@ -173,10 +174,13 @@ function MyComponent(props) {
       setProposals(filteredProposals);
     }
   };
+  const [dateData, setdateData] = useState([]);
 
   const dateSelected = (selectedDate) => {
     const date1 = new Date(selectedDate[0]).setHours(0, 0, 0, 0);
     const date2 = new Date(selectedDate[1]).setHours(0, 0, 0, 0);
+
+    setdateData([date1, date2]);
 
     const filteredProposals = proposals.filter(proposal => {
       const created_date = new Date(proposal.created_at).setHours(0, 0, 0, 0);
@@ -189,9 +193,88 @@ function MyComponent(props) {
   };
 
   const dateClean = () => {
-    setProposals(proposalData);
+    if(query != ''){
+      const filteredProposalsBySearch = proposalData.filter(proposal => {
+        const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+        return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+      });
+
+      if(selectedOption != '~Status~'){
+        const filteredProposalsByStatus = filteredProposalsBySearch.filter(proposal => {
+          return proposal.status == selectedOption;
+        });
+        setProposals(filteredProposalsByStatus);
+      } else {
+        setProposals(filteredProposalsBySearch);
+      }
+    }
+    else {
+      if(selectedOption != '~Status~'){
+        const filteredProposalsByStatus = proposalData.filter(proposal => {
+          return proposal.status == selectedOption;
+        });
+        setProposals(filteredProposalsByStatus);
+      } else {
+        setProposals(proposalData);
+      }
+    } 
   }
   
+  const [isDrop, setIsDrop] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("~Status~");
+
+  const options = [
+    "New",
+    "Accepted",
+    "Declined",
+    "Graded",
+    "In progress",
+    "Done"
+  ];
+
+  const handleOptionSelect = (option) => {
+    setSelectedOption(option);
+    const filteredProposals = proposals.filter(proposal => {
+      return proposal.status == option;
+    });
+    setIsOpen(false);
+    setProposals(filteredProposals);
+      
+  };
+
+  const clearSelection = () => {
+    setSelectedOption("~Status~");
+    if(dateData.length === 0){
+      if(query == '') {
+        setProposals(proposalData);
+      }
+      const filteredProposalsBySearch = proposalData.filter(proposal => {
+        const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+        return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+      });
+      setProposals(filteredProposalsBySearch);
+    } else {
+      const filteredByDate = proposalData.filter(proposal => {
+        const created_date = new Date(proposal.created_at).setHours(0, 0, 0, 0);
+        if (created_date >= dateData[0] && created_date <= dateData[1] ) {
+        return true;
+        }
+        return false;
+      });
+
+      if(query == ''){
+        setProposals(filteredByDate);
+      }
+      else {
+        const filteredProposalsBySearch = filteredByDate.filter(proposal => {
+          const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+          return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+        });
+        setProposals(filteredProposalsBySearch);
+      }
+    }
+    setIsOpen(false);
+  };
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedLanguage, setSelectedLanguage] = React.useState("ENG");
@@ -327,11 +410,12 @@ function MyComponent(props) {
           </Div5>
           <Div10>
             <Div50>
-              <SearchBarAndDateWrapper>
+              <FilterWrapper>
               <SearchInput>
                 <SearchIcon src={searchIconSvg} alt="Search icon" />
                 <input
                   type="text"
+                  className='search_input'
                   value={query}
                   onChange={searchInputChange}
                   placeholder="Search"
@@ -351,7 +435,17 @@ function MyComponent(props) {
                   }}
                 />
               </Stack>
-              </SearchBarAndDateWrapper>
+              <div className="dropdown">
+                <button className="dropbtn" onClick={() => setIsDrop(!isOpen)}>{selectedOption} {selectedOption !== "~Status~" && <span className="clear" onClick={(e) => {e.stopPropagation(); clearSelection()}}>x</span>}</button>
+                {isDrop && (
+                  <div className="dropdown-content">
+                    {options.map((option, index) => (
+                      <button key={index} onClick={() => handleOptionSelect(option)}>{option}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              </FilterWrapper>
             </Div50>
             <Container>
               <Header>
@@ -426,6 +520,7 @@ function MyComponent(props) {
   );
 }
 
+
 const getStatusColor = (status) => {
   switch(status) {
     case 'New':
@@ -434,6 +529,14 @@ const getStatusColor = (status) => {
       return '#63BE09';
     case 'Declined':
       return '#BE2A09';
+    case 'Graded':
+      return '#1871ED';
+    case 'In progress':
+      return '#63BE09';
+    case 'Done':
+      return '#7CE68A';
+    case 'Archived':
+      return '#C9C2C1';
     default:
       return '';
   }
@@ -792,7 +895,7 @@ const Div10 = styled.div`
   }
 `;
 
-const SearchBarAndDateWrapper = styled.div`
+const FilterWrapper = styled.div`
   display: flex;
   gap: 5px;
   height: 40px;

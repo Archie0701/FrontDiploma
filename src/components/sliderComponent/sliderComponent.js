@@ -4,7 +4,7 @@ import Spinner from '../Spinner/Spinner';
 import { fetchUserData, fetchNewProposalData, acceptProposal, declineProposal, criterias } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
-import './style.css'; //
+import '../sliderComponent/style.css'; //
 
 export const logOut = () => {
   // Удаляем токен из localStorage

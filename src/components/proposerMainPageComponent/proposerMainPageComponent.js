@@ -5,11 +5,12 @@ import { LineChart } from '@mui/x-charts';
 import Spinner from '../Spinner/Spinner'; 
 import { fetchUserData, fetchProposalCountData } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
+import { useNavigate  } from 'react-router-dom';
 
-export const logOut = () => {
+export const logOut = (navigate) => {
   // Удаляем токен из localStorage
   localStorage.removeItem('accessToken');
-  window.location.href = "../login";
+  navigate('/login');
 };
 
 
@@ -21,6 +22,7 @@ function MainPage(props) {
   const [proposalData, setProposalData] = useState(null);
   const [loading, setLoading] = useState(true); // Добавляем состояние для отслеживания загрузки данных
   const [error, setError] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,7 +44,7 @@ function MainPage(props) {
         
         // Выводим ошибку в консоль для проверки
         console.error('Error fetching user data:', error);
-        window.location.href = "../login";
+        navigate('/login');
       }
     };
   
@@ -75,7 +77,6 @@ if (loading) {
                 <Column2>
                   <Div11>
                     <Div12>
-                      <Div13>
                         <Link to="/suggest" style={{ textDecoration: 'none' }}>
                           <Button
                             loading="lazy"
@@ -86,8 +87,7 @@ if (loading) {
                           </Button>
                           <Text style={{ textDecoration: 'none', color: 'black' }}>Suggest</Text>
                         </Link>
-                      </Div13>
-                      <Link to="/identify_problem" style={{ textDecoration: 'none' }}>
+                      <Link to="/identify_problem" style={{ textDecoration: 'none', maxWidth: '120px' }}>
                         <Button
                           loading="lazy"
                           src="https://cdn.builder.io/api/v1/image/assets/TEMP/baf4c644000a2ca7444ec44e15c20fa1c9dd044a60681bc1057ac431dac9c544?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
@@ -95,7 +95,22 @@ if (loading) {
                           <path d="M27.5 39.6681C28.1895 39.6681 28.7675 39.4349 29.234 38.9685C29.7004 38.502 29.9336 37.924 29.9336 37.2345C29.9336 36.545 29.7004 35.967 29.234 35.5006C28.7675 35.0341 28.1895 34.8009 27.5 34.8009C26.8105 34.8009 26.2325 35.0341 25.766 35.5006C25.2996 35.967 25.0664 36.545 25.0664 37.2345C25.0664 37.924 25.2996 38.502 25.766 38.9685C26.2325 39.4349 26.8105 39.6681 27.5 39.6681ZM25.0664 29.9336H29.9336V15.3319H25.0664V29.9336ZM27.5 55L19.3473 46.969H8.03097V35.6527L0 27.5L8.03097 19.3473V8.03097H19.3473L27.5 0L35.6527 8.03097H46.969V19.3473L55 27.5L46.969 35.6527V46.969H35.6527L27.5 55ZM27.5 48.1858L33.5841 42.1018H42.1018V33.5841L48.1858 27.5L42.1018 21.4159V12.8982H33.5841L27.5 6.81416L21.4159 12.8982H12.8982V21.4159L6.81416 27.5L12.8982 33.5841V42.1018H21.4159L27.5 48.1858Z" fill="#7D7D7D"/>
                           </svg>
                         </Button>
-                        <Text style={{ textDecoration: 'none', color: 'black' }}>Identify Problem</Text>
+                        <Text style={{ textDecoration: 'none', color: 'black'}}>Identify</Text>
+                        <Text style={{ textDecoration: 'none', color: 'black', marginTop: '5px'}}>Problem</Text>
+                      </Link>
+
+                      <Link to="/after_grading" style={{ textDecoration: 'none' }}>
+                        <Button
+                          loading="lazy"
+                          src="https://cdn.builder.io/api/v1/image/assets/TEMP/baf4c644000a2ca7444ec44e15c20fa1c9dd044a60681bc1057ac431dac9c544?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
+                        > <svg width="55" height="42" viewBox="0 0 55 42" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M27.9062 8.95833C27.9062 7.68693 28.9369 6.65625 30.2083 6.65625H51.875C53.1464 6.65625 54.1771 7.68693 54.1771 8.95833C54.1771 10.2297 53.1464 11.2604 51.875 11.2604H30.2083C28.9369 11.2604 27.9062 10.2297 27.9062 8.95833Z" fill="#7D7D7D" />
+                        <path fill-rule="evenodd" clip-rule="evenodd" d="M0.822876 33.3333C0.822876 32.0619 1.85355 31.0312 3.12496 31.0312H24.7916C26.063 31.0312 27.0937 32.0619 27.0937 33.3333C27.0937 34.6047 26.063 35.6354 24.7916 35.6354H3.12496C1.85355 35.6354 0.822876 34.6047 0.822876 33.3333Z" fill="#7D7D7D" />
+                        <path d="M19.375 8.95834C19.375 13.4457 15.7373 17.0833 11.25 17.0833C6.76269 17.0833 3.125 13.4457 3.125 8.95834C3.125 4.47103 6.76269 0.833344 11.25 0.833344C15.7373 0.833344 19.375 4.47103 19.375 8.95834Z" fill="#7D7D7D" />
+                        <path d="M51.875 33.3333C51.875 37.8207 48.2373 41.4583 43.75 41.4583C39.2627 41.4583 35.625 37.8207 35.625 33.3333C35.625 28.846 39.2627 25.2083 43.75 25.2083C48.2373 25.2083 51.875 28.846 51.875 33.3333Z" fill="#7D7D7D" />
+                      </svg>
+                        </Button>
+                        <Text style={{ textDecoration: 'none', color: 'black' }}>After Grading</Text>
                       </Link>
                     </Div12>
                     <Div17>
@@ -121,33 +136,21 @@ if (loading) {
                         </Button>
                         <Text style={{ textDecoration: 'none', color: 'black' }}>Assigned</Text>
                       </Link>
+
+                      <Link to="/proposers" style={{ textDecoration: 'none' }}>
+                        <Button
+                          loading="lazy"
+                          src="https://cdn.builder.io/api/v1/image/assets/TEMP/baf4c644000a2ca7444ec44e15c20fa1c9dd044a60681bc1057ac431dac9c544?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
+                        > <svg width="50" height="40" viewBox="0 0 50 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M37.5 27.5C35.75 27.5 34.2708 26.8958 33.0625 25.6875C31.8542 24.4792 31.25 23 31.25 21.25C31.25 19.5 31.8542 18.0208 33.0625 16.8125C34.2708 15.6042 35.75 15 37.5 15C39.25 15 40.7292 15.6042 41.9375 16.8125C43.1458 18.0208 43.75 19.5 43.75 21.25C43.75 23 43.1458 24.4792 41.9375 25.6875C40.7292 26.8958 39.25 27.5 37.5 27.5ZM25 40V36.5C25 35.5 25.2604 34.5729 25.7812 33.7188C26.3021 32.8646 27.0417 32.25 28 31.875C29.5 31.25 31.0521 30.7812 32.6562 30.4688C34.2604 30.1562 35.875 30 37.5 30C39.125 30 40.7396 30.1562 42.3438 30.4688C43.9479 30.7812 45.5 31.25 47 31.875C47.9583 32.25 48.6979 32.8646 49.2188 33.7188C49.7396 34.5729 50 35.5 50 36.5V40H25ZM20 20C17.25 20 14.8958 19.0208 12.9375 17.0625C10.9792 15.1042 10 12.75 10 10C10 7.25 10.9792 4.89583 12.9375 2.9375C14.8958 0.979167 17.25 0 20 0C22.75 0 25.1042 0.979167 27.0625 2.9375C29.0208 4.89583 30 7.25 30 10C30 12.75 29.0208 15.1042 27.0625 17.0625C25.1042 19.0208 22.75 20 20 20ZM0 40V33C0 31.5833 0.354167 30.2812 1.0625 29.0938C1.77083 27.9062 2.75 27 4 26.375C6.5 25.125 9.09375 24.1667 11.7812 23.5C14.4688 22.8333 17.2083 22.5 20 22.5C21.4583 22.5 22.9167 22.625 24.375 22.875C25.8333 23.125 27.2917 23.4167 28.75 23.75L26.625 25.875L24.5 28C23.75 27.7917 23 27.6562 22.25 27.5938C21.5 27.5312 20.75 27.5 20 27.5C17.5833 27.5 15.2188 27.7917 12.9062 28.375C10.5938 28.9583 8.375 29.7917 6.25 30.875C5.83333 31.0833 5.52083 31.375 5.3125 31.75C5.10417 32.125 5 32.5417 5 33V35H20V40H0ZM20 15C21.375 15 22.5521 14.5104 23.5312 13.5312C24.5104 12.5521 25 11.375 25 10C25 8.625 24.5104 7.44792 23.5312 6.46875C22.5521 5.48958 21.375 5 20 5C18.625 5 17.4479 5.48958 16.4688 6.46875C15.4896 7.44792 15 8.625 15 10C15 11.375 15.4896 12.5521 16.4688 13.5312C17.4479 14.5104 18.625 15 20 15Z" fill="#7D7D7D" />
+                          </svg>
+
+                        </Button>
+                        <Text style={{ textDecoration: 'none', color: 'black' }}>Proposers</Text>
+                      </Link>
                     </Div17>
                   </Div11>
                 </Column2>
-                <Div22>
-                  <Link to="/after_grading" style={{ textDecoration: 'none' }}>
-                    <Button
-                      loading="lazy"
-                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/baf4c644000a2ca7444ec44e15c20fa1c9dd044a60681bc1057ac431dac9c544?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
-                    > <svg width="55" height="42" viewBox="0 0 55 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M27.9062 8.95833C27.9062 7.68693 28.9369 6.65625 30.2083 6.65625H51.875C53.1464 6.65625 54.1771 7.68693 54.1771 8.95833C54.1771 10.2297 53.1464 11.2604 51.875 11.2604H30.2083C28.9369 11.2604 27.9062 10.2297 27.9062 8.95833Z" fill="#7D7D7D" />
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M0.822876 33.3333C0.822876 32.0619 1.85355 31.0312 3.12496 31.0312H24.7916C26.063 31.0312 27.0937 32.0619 27.0937 33.3333C27.0937 34.6047 26.063 35.6354 24.7916 35.6354H3.12496C1.85355 35.6354 0.822876 34.6047 0.822876 33.3333Z" fill="#7D7D7D" />
-                        <path d="M19.375 8.95834C19.375 13.4457 15.7373 17.0833 11.25 17.0833C6.76269 17.0833 3.125 13.4457 3.125 8.95834C3.125 4.47103 6.76269 0.833344 11.25 0.833344C15.7373 0.833344 19.375 4.47103 19.375 8.95834Z" fill="#7D7D7D" />
-                        <path d="M51.875 33.3333C51.875 37.8207 48.2373 41.4583 43.75 41.4583C39.2627 41.4583 35.625 37.8207 35.625 33.3333C35.625 28.846 39.2627 25.2083 43.75 25.2083C48.2373 25.2083 51.875 28.846 51.875 33.3333Z" fill="#7D7D7D" />
-                      </svg>
-
-                    </Button>
-                    <Text style={{ textDecoration: 'none', color: 'black' }}>After Grading</Text>
-                  </Link>
-                  <Img7
-                    loading="lazy"
-                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/b566d3c1e1defc6a5ea8f194f1a4a514529e6d045a2b948a54dd3a4166dabf3f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
-                  ><svg width="50" height="40" viewBox="0 0 50 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M37.5 27.5C35.75 27.5 34.2708 26.8958 33.0625 25.6875C31.8542 24.4792 31.25 23 31.25 21.25C31.25 19.5 31.8542 18.0208 33.0625 16.8125C34.2708 15.6042 35.75 15 37.5 15C39.25 15 40.7292 15.6042 41.9375 16.8125C43.1458 18.0208 43.75 19.5 43.75 21.25C43.75 23 43.1458 24.4792 41.9375 25.6875C40.7292 26.8958 39.25 27.5 37.5 27.5ZM25 40V36.5C25 35.5 25.2604 34.5729 25.7812 33.7188C26.3021 32.8646 27.0417 32.25 28 31.875C29.5 31.25 31.0521 30.7812 32.6562 30.4688C34.2604 30.1562 35.875 30 37.5 30C39.125 30 40.7396 30.1562 42.3438 30.4688C43.9479 30.7812 45.5 31.25 47 31.875C47.9583 32.25 48.6979 32.8646 49.2188 33.7188C49.7396 34.5729 50 35.5 50 36.5V40H25ZM20 20C17.25 20 14.8958 19.0208 12.9375 17.0625C10.9792 15.1042 10 12.75 10 10C10 7.25 10.9792 4.89583 12.9375 2.9375C14.8958 0.979167 17.25 0 20 0C22.75 0 25.1042 0.979167 27.0625 2.9375C29.0208 4.89583 30 7.25 30 10C30 12.75 29.0208 15.1042 27.0625 17.0625C25.1042 19.0208 22.75 20 20 20ZM0 40V33C0 31.5833 0.354167 30.2812 1.0625 29.0938C1.77083 27.9062 2.75 27 4 26.375C6.5 25.125 9.09375 24.1667 11.7812 23.5C14.4688 22.8333 17.2083 22.5 20 22.5C21.4583 22.5 22.9167 22.625 24.375 22.875C25.8333 23.125 27.2917 23.4167 28.75 23.75L26.625 25.875L24.5 28C23.75 27.7917 23 27.6562 22.25 27.5938C21.5 27.5312 20.75 27.5 20 27.5C17.5833 27.5 15.2188 27.7917 12.9062 28.375C10.5938 28.9583 8.375 29.7917 6.25 30.875C5.83333 31.0833 5.52083 31.375 5.3125 31.75C5.10417 32.125 5 32.5417 5 33V35H20V40H0ZM20 15C21.375 15 22.5521 14.5104 23.5312 13.5312C24.5104 12.5521 25 11.375 25 10C25 8.625 24.5104 7.44792 23.5312 6.46875C22.5521 5.48958 21.375 5 20 5C18.625 5 17.4479 5.48958 16.4688 6.46875C15.4896 7.44792 15 8.625 15 10C15 11.375 15.4896 12.5521 16.4688 13.5312C17.4479 14.5104 18.625 15 20 15Z" fill="#2B8DC2" />
-                    </svg>
-                  </Img7>
-                  <Div24>Proposers</Div24>
-                </Div22>
               </Div10>
             </Div9>
           </Div3>
@@ -176,7 +179,9 @@ if (loading) {
                 <Img10
                   loading="lazy"
                   src="https://cdn.builder.io/api/v1/image/assets/TEMP/86686b16897beeac74304533d5bb958a4d1e0106aa55fd71c28f706a5b838225?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
-                onClick={logOut}>
+                onClick={() => {
+                    logOut(navigate);
+                  }}>
                   <svg width="17" height="15" viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M10.0037 4.25V2.625C10.0037 2.19402 9.83123 1.7807 9.52423 1.47595C9.21722 1.1712 8.80084 1 8.36667 1H2.63704C2.20287 1 1.78648 1.1712 1.47948 1.47595C1.17247 1.7807 1 2.19402 1 2.625V12.375C1 12.806 1.17247 13.2193 1.47948 13.524C1.78648 13.8288 2.20287 14 2.63704 14H8.36667C8.80084 14 9.21722 13.8288 9.52423 13.524C9.83123 13.2193 10.0037 12.806 10.0037 12.375V10.75" stroke="#C4C4C4" stroke-linecap="round" stroke-linejoin="round" />
                     <path d="M4.27408 7.5H15.7333L13.2778 5.0625M13.2778 9.9375L15.7333 7.5" stroke="#C4C4C4" stroke-linecap="round" stroke-linejoin="round" />
@@ -214,7 +219,6 @@ if (loading) {
                 series={[
                   { curve: "linear", data: [2] }
                 ]}
-                width={1100}
                 height={300}
               />
             </Div32>
@@ -234,7 +238,6 @@ const Div = styled.div`
 `;
 
 const Div2 = styled.div`
-  gap: 40px;
   display: flex;
   @media (max-width: 991px) {
     flex-direction: column;
@@ -247,7 +250,6 @@ const Column = styled.div`
   display: flex;
   flex-direction: column;
   line-height: normal;
-  width: 27%;
   margin-top:5%;
   @media (max-width: 991px) {
     width: 100%;
@@ -268,7 +270,6 @@ const Div4 = styled.div`
   box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
   background-color: #fff;
   display: flex;
-  justify-content: space-between;
   gap: 17px;
   padding: 18px 80px 18px 18px;
   @media (max-width: 991px) {
@@ -373,17 +374,6 @@ const Div12 = styled.div`
   }
 `;
 
-const Div13 = styled.div`
-  align-self: start;
-  display: flex;
-  flex-grow: 1;
-  flex-basis: 0%;
-  flex-direction: column;
-  align-items: center;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
 
 const Button = styled.button`
   aspect-ratio: 1;
@@ -741,6 +731,8 @@ const Div37 = styled.div`
 `;
 
 const Div38 = styled.div`
+  display: flex;
+  justify-content: center;
   font: 600 16px Roboto, sans-serif;
   font-family: Roboto, sans-serif;
   margin-top: 49px;
@@ -750,6 +742,8 @@ const Div38 = styled.div`
 `;
 
 const Div39 = styled.div`
+  display: flex;
+  justify-content: center;
   margin-top: 21px;
   font: 400 32px Roboto, sans-serif;
 `;
@@ -786,6 +780,8 @@ const Div41 = styled.div`
 `;
 
 const Div42 = styled.div`
+  display: flex;  
+  justify-content: center;
   margin-top: 24px;
   font: 400 32px Roboto, sans-serif;
 `;
@@ -811,6 +807,8 @@ const Div44 = styled.div`
 `;
 
 const Div45 = styled.div`
+  display: flex;
+  justify-content: center;
   margin-top: 21px;
   font: 400 32px Roboto, sans-serif;
 `;

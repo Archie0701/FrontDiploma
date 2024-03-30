@@ -7,6 +7,14 @@ import checkboxArrowSvg from '../../images/checkbox-arrow.svg'
 import { fetchUserData, fetchProposalData, fetchProposerData } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
+import { DateRangePicker, Stack } from 'rsuite';
+import subDays from 'date-fns/subDays';
+import startOfWeek from 'date-fns/startOfWeek';
+import endOfWeek from 'date-fns/endOfWeek';
+import addDays from 'date-fns/addDays';
+import startOfMonth from 'date-fns/startOfMonth';
+import endOfMonth from 'date-fns/endOfMonth';
+import addMonths from 'date-fns/addMonths';
 import './style.css';
 
 export const logOut = () => {
@@ -26,6 +34,84 @@ function MyComponent(props) {
 
 
   const [isChecked, setIsChecked] = useState(false);
+
+
+  const predefinedRanges = [
+    {
+      label: 'Today',
+      value: [new Date(), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Yesterday',
+      value: [addDays(new Date(), -1), addDays(new Date(), -1)],
+      placement: 'left'
+    },
+    {
+      label: 'This week',
+      value: [startOfWeek(new Date()), endOfWeek(new Date())],
+      placement: 'left'
+    },
+    {
+      label: 'Last 7 days',
+      value: [subDays(new Date(), 6), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Last 30 days',
+      value: [subDays(new Date(), 29), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'This month',
+      value: [startOfMonth(new Date()), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Last month',
+      value: [startOfMonth(addMonths(new Date(), -1)), endOfMonth(addMonths(new Date(), -1))],
+      placement: 'left'
+    },
+    {
+      label: 'This year',
+      value: [new Date(new Date().getFullYear(), 0, 1), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Last year',
+      value: [new Date(new Date().getFullYear() - 1, 0, 1), new Date(new Date().getFullYear(), 0, 0)],
+      placement: 'left'
+    },
+    {
+      label: 'All time',
+      value: [new Date(new Date().getFullYear() - 1, 0, 1), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Last week',
+      closeOverlay: false,
+      value: value => {
+        const [start = new Date()] = value || [];
+        return [
+          addDays(startOfWeek(start, { weekStartsOn: 0 }), -7),
+          addDays(endOfWeek(start, { weekStartsOn: 0 }), -7)
+        ];
+      },
+      appearance: 'default'
+    },
+    {
+      label: 'Next week',
+      closeOverlay: false,
+      value: value => {
+        const [start = new Date()] = value || [];
+        return [
+          addDays(startOfWeek(start, { weekStartsOn: 0 }), 7),
+          addDays(endOfWeek(start, { weekStartsOn: 0 }), 7)
+        ];
+      },
+      appearance: 'default'
+    }
+  ];
 
   const checkbox = (event) => {
     setIsChecked(event.target.checked);
@@ -82,6 +168,83 @@ function MyComponent(props) {
     });
       setProposals(filteredProposals);
     }
+  };
+
+  const [dateData, setdateData] = useState([]);
+
+  const dateSelected = (selectedDate) => {
+    const date1 = new Date(selectedDate[0]).setHours(0, 0, 0, 0);
+    const date2 = new Date(selectedDate[1]).setHours(0, 0, 0, 0);
+
+    setdateData([date1, date2]);
+
+    // const filteredProposals = proposals.filter(proposal => {
+    //   const created_date = new Date(proposal.created_at).setHours(0, 0, 0, 0);
+    //   if (created_date >= date1 && created_date <= date2 ) {
+    //   return true;
+    //   }
+    //   return false;
+    // });
+    //   setProposals(filteredProposals);
+  };
+
+  const dateClean = () => {
+    // if(query != ''){
+    //   const filteredProposalsBySearch = proposalData.filter(proposal => {
+    //     const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+    //     return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+    //   });
+
+    //   if(selectedOption != 'filter by'){
+    //     const filteredProposalsByStatus = filteredProposalsBySearch.filter(proposal => {
+    //       return proposal.status == selectedOption;
+    //     });
+    //     setProposals(filteredProposalsByStatus);
+    //   } else {
+    //   }
+    // }
+    // else {
+    //   if(selectedOption != 'filter by'){
+    //     const filteredProposalsByStatus = proposalData.filter(proposal => {
+    //       return proposal.status == selectedOption;
+    //     });
+    //     setProposals(filteredProposalsByStatus);
+    //   } else {
+    //     setProposals(proposalData);
+      
+    // } 
+  }
+
+  const [isDrop, setIsDrop] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("Filter By");
+
+  const options = [
+    "Date Graded",
+    "Date Accepted",
+  ];
+
+  const handleOptionSelect = (option) => {
+    setSelectedOption(option);
+    const filteredProposals = proposals.filter(proposal => {
+      return proposal.status == option;
+    });
+    setIsOpen(false);
+    setProposals(filteredProposals);
+      
+  };
+
+  const clearSelection = () => {
+    setSelectedOption("Filter By");
+    if(query == '') {
+      setProposals(proposalData);
+    } else {
+      const filteredProposalsBySearch = proposalData.filter(proposal => {
+      const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+      return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+        });
+      setProposals(filteredProposalsBySearch);
+    }
+    setIsOpen(false);
   };
 
   const [isOpen, setIsOpen] = React.useState(false);
@@ -218,21 +381,42 @@ function MyComponent(props) {
           </Div5>
           <Div10>
             <Div50>
-              <SearchBarWrapper>
+              <FilterWrapper>
               <SearchInput>
                 <SearchIcon src={searchIconSvg} alt="Search icon" />
                 <input
                   type="text"
                   value={query}
+                  className='input_search'
                   onChange={handleInputChange}
                   placeholder="Search"
                 />
               </SearchInput>
-                <DateRange>
-                  <DateRangeText>Last 7 days: Sep 12, 2023 - Sep 13, 2023</DateRangeText>
-                  <CalendarIcon src={datePolygonSvg} alt="Calendar icon" />
-                </DateRange>
-              </SearchBarWrapper>
+              <Stack>
+                <DateRangePicker
+                  onOk={dateSelected}
+                  onClean={dateClean}
+                  className='dateRangePicker'
+                  size="lg"
+                  ranges={predefinedRanges}
+                  placeholder="Proposals date range"
+                  style={{ width: 300 }}
+                  onShortcutClick={(range) => {
+                    dateSelected(range.value);
+                  }}
+                />
+              </Stack>
+              <div className="dropdown">
+                <button className="dropbtn" onClick={() => setIsDrop(!isOpen)}>{selectedOption} {selectedOption !== "filter by" && <span className="clear" onClick={(e) => {e.stopPropagation(); clearSelection()}}>x</span>}</button>
+                {isDrop && (
+                  <div className="dropdown-content">
+                    {options.map((option, index) => (
+                      <button key={index} onClick={() => handleOptionSelect(option)}>{option}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              </FilterWrapper>
             </Div50>
             <Container>
               <Header>
@@ -265,26 +449,28 @@ function MyComponent(props) {
                 </TableHeaderRight>
               </TableHeader>
               <TableBody>
-                {proposals.map((item) => (
+              {proposals.map((item) => (
+                (item.total_score || item.grade_percentage && item.status == 'GRADED') ? (
                   <TableRow>
-                      <CheckboxWrapper>
-                      <Checkbox/>
-                      </CheckboxWrapper>
-                      <TableRowLabel className="row_number">{++rowNum}</TableRowLabel>
-                      <TableRowLabel className="row_name">{proposerData[item.proposer].user.first_name}</TableRowLabel>
-                      <TableRowLabel className="row_surname">{proposerData[item.proposer].user.last_name}</TableRowLabel>
-                        <TableRowLabel className="row_proposal">{item.text}</TableRowLabel>
-                        <TableRowLabel className="row_points">{item.total_score || "0"}</TableRowLabel>
-                        <TableRowLabel className="row_grade">{item.grade_percentage || "0"}</TableRowLabel>
-                        <TableRowLabel className="row_date_graded">{item.graded_at.split('T')[0]}</TableRowLabel>
-                        <TableRowLabel className="row_date_accepted">{item.accepted_at.split('T')[0]}</TableRowLabel>
-                        <TableRowLabel className="row_status" status={item.status}>{item.status}</TableRowLabel>
-                      <TableRowLabel className='row_actions'>
-                        <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/45ba6e34c4feb0d1b52792ce057608876be231e17318d83a73a051445a2210ec?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
-                        <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/0539ef010e404541cac233bb9e81504535f80b90b240f64a9e5f8bd27bf3a7a1?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
-                      </TableRowLabel>
+                    <CheckboxWrapper>
+                      <Checkbox />
+                    </CheckboxWrapper>
+                    <TableRowLabel className="row_number">{++rowNum}</TableRowLabel>
+                    <TableRowLabel className="row_name">{proposerData[item.proposer].user.first_name}</TableRowLabel>
+                    <TableRowLabel className="row_surname">{proposerData[item.proposer].user.last_name}</TableRowLabel>
+                    <TableRowLabel className="row_proposal">{item.text}</TableRowLabel>
+                    <TableRowLabel className="row_points">{item.total_score}</TableRowLabel>
+                    <TableRowLabel className="row_grade">{item.grade_percentage}</TableRowLabel>
+                    <TableRowLabel className="row_date_graded">{item.graded_at.split('T')[0]}</TableRowLabel>
+                    <TableRowLabel className="row_date_accepted">{item.accepted_at.split('T')[0]}</TableRowLabel>
+                    <TableRowLabel className="row_status" status={item.status}>{item.status}</TableRowLabel>
+                    <TableRowLabel className='row_actions'>
+                      <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/45ba6e34c4feb0d1b52792ce057608876be231e17318d83a73a051445a2210ec?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
+                      <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/0539ef010e404541cac233bb9e81504535f80b90b240f64a9e5f8bd27bf3a7a1?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
+                    </TableRowLabel>
                   </TableRow>
-                ))}
+                ) : null
+              ))}
               </TableBody>
               </Table>
               
@@ -668,10 +854,11 @@ const Div10 = styled.div`
   }
 `;
 
-const SearchBarWrapper = styled.div`
+const FilterWrapper = styled.div`
   display: flex;
   gap: 5px;
-  
+  height: 40px;
+
   @media (max-width: 991px) {
     flex-wrap: wrap;
   }
@@ -685,7 +872,6 @@ const SearchInput = styled.div`
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.1);
-  flex: 1;
   
   @media (max-width: 991px) {
     flex-wrap: wrap;

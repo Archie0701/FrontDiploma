@@ -1,14 +1,9 @@
-body {
-  margin: 0;
-  border-collapse: collapse;
-}
-
-input {
+.search_input {
   border: none;
   width: 700px;
 }
 
-input:focus {
+.search_input:focus {
   outline: none;
 }
 
@@ -55,54 +50,60 @@ input:focus {
 .rs-picker-daterange > .rs-input-group.rs-input-group-inside .rs-input::placeholder {
   text-align: center;
 }
-/* range style */
-/* .rs-picker-menu .rs-calendar .rs-calendar-table-cell-content {
-    padding-left: 0;
-    padding-right: 0;
-    border-radius: 21px;
-    display: inline-block;
-} */
-/* .link {
-    text-decoration: none;
-    display: flex;
-    color: black;
-  }
-.link Img {
-    margin-right: 10px;
+
+
+/* Dropdown container */
+.dropdown {
+  position: relative;
+  display: inline-block;
 }
-.exit-button {
-  border: none;
-  cursor: pointer;
-}
-.criteria-container{
-  display: flex;
-}
-.criteria {
-  min-width: 300px;
-  display: flex;
-  color:gray;
-  padding: 15px;
-  justify-content: space-around;
-}
-form button{
+
+/* Dropdown button */
+.dropbtn {
+  background-color: #fff;
+  color: #000;
   padding: 10px;
-  padding-left: 20px;
-  padding-right: 20px;
-  color: white;
+  font-size: 16px;
   border: none;
+  cursor: pointer;
   border-radius: 5px;
+  box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.1);
+}
+
+/* Dropdown content (hidden by default) */
+.dropdown-content {
+  display: none;
+  position: absolute;
+  background-color: #f9f9f9;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+  top: 100%; /* Position dropdown below the button */
+  left: 0; /* Align dropdown with the button */
+}
+
+/* Show the dropdown content on hover */
+.dropdown:hover .dropdown-content {
+  display: block;
+}
+
+/* Style the dropdown button on hover */
+.dropdown:hover .dropbtn {
+  background-color: #ddd;
+}
+
+/* Style the options */
+.dropdown-content button {
+  width: 100%;
+  text-align: left;
+  padding: 10px;
+  border: none;
+  background-color: inherit;
   cursor: pointer;
 }
-form button:first-child{
-  background-color: lime;
+
+/* Style the clear button */
+.clear {
+  margin-left: 5px;
+  cursor: pointer;
 }
-form button:last-child {
-  background-color: brown;
-}
-.form-accept{
-  width: 250px;
-  display: flex;
-  justify-content: space-around;
-  margin-left: auto;
-  margin-right: auto;
-} */
