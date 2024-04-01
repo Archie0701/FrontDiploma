@@ -204,6 +204,7 @@ function Grading(props) {
   const handleNext = () => {
     const nextProposal = proposalData.find((data, index) => index > currentIndex && data.status === "Accepted");
     if (nextProposal) {
+      console.log(nextProposal.proposer);
       setCurrentIndex(proposalData.indexOf(nextProposal));
       fetchProposersData(nextProposal.proposer);
       fetchCommentsData(nextProposal.id);
