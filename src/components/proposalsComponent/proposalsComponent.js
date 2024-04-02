@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
 import searchIconSvg from '../../images/search-icon.svg'
-import datePolygonSvg from '../../images/date-polygon.svg'
 import checkboxArrowSvg from '../../images/checkbox-arrow.svg'
 import { fetchUserData, fetchProposalData, fetchProposerData } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
@@ -24,24 +23,6 @@ export const logOut = () => {
 };
 
 function MyComponent(props) {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true); // Добавляем состояние для отслеживания загрузки данных
-  const [proposalData, setProposalData] = useState(null);
-  const [proposals, setProposals] = useState(null);
-  const [proposerData, setProposerData] = useState(null);
-
-
-  const [query, setQuery] = useState('');
-  const [isChecked, setIsChecked] = useState(false);
-
-  
-
-  const checkbox = (event) => {
-    setIsChecked(event.target.checked);
-  };
-
-  const [error, setError] = useState(null);
-
   const predefinedRanges = [
     {
       label: 'Today',
@@ -119,12 +100,25 @@ function MyComponent(props) {
     }
   ];
 
-  
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [proposalData, setProposalData] = useState(null);
+  const [proposals, setProposals] = useState(null);
+  const [proposerData, setProposerData] = useState(null);
+  const [query, setQuery] = useState('');
+  const [isChecked, setIsChecked] = useState(false);
+
+
+  const checkbox = (event) => {
+    setIsChecked(event.target.checked);
+  };
+
+  const [error, setError] = useState(null);
+
   let rowNum = 0;
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Вызываем функцию fetchUserData для получения данных пользователя
         const userDataResponse = await fetchUserData();
         const proposalData = await fetchProposalData();
         const proposerData = await fetchProposerData()
@@ -132,9 +126,6 @@ function MyComponent(props) {
         setProposals(proposalData);
         setUserData(userDataResponse);
 
-        // Устанавливаем состояние загрузки в false, так как данные получены
-
-        // Выводим данные в консоль для проверки
         console.log('Proposal Data:', proposalData);
         console.log('User Data:', userDataResponse);
         const transformedData = {};
@@ -149,13 +140,12 @@ function MyComponent(props) {
       } catch (error) {
         setError(error.message);
 
-        // Выводим ошибку в консоль для проверки
         console.error('Error fetching user data:', error);
         window.location.href = "../login";
       }
     };
 
-    fetchData(); // Вызываем функцию при монтировании компонента
+    fetchData();
   }, []);
 
 
@@ -193,33 +183,9 @@ function MyComponent(props) {
   };
 
   const dateClean = () => {
-    if(query != ''){
-      const filteredProposalsBySearch = proposalData.filter(proposal => {
-        const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
-        return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
-      });
-
-      if(selectedOption != '~Status~'){
-        const filteredProposalsByStatus = filteredProposalsBySearch.filter(proposal => {
-          return proposal.status == selectedOption;
-        });
-        setProposals(filteredProposalsByStatus);
-      } else {
-        setProposals(filteredProposalsBySearch);
-      }
-    }
-    else {
-      if(selectedOption != '~Status~'){
-        const filteredProposalsByStatus = proposalData.filter(proposal => {
-          return proposal.status == selectedOption;
-        });
-        setProposals(filteredProposalsByStatus);
-      } else {
-        setProposals(proposalData);
-      }
-    } 
+    filterOptimizer('date');
   }
-  
+
   const [isDrop, setIsDrop] = useState(false);
   const [selectedOption, setSelectedOption] = useState("~Status~");
 
@@ -234,47 +200,86 @@ function MyComponent(props) {
 
   const handleOptionSelect = (option) => {
     setSelectedOption(option);
+    if(selectedOption != '~Status~'){
+      filterOptimizer('status');
+    }
     const filteredProposals = proposals.filter(proposal => {
       return proposal.status == option;
     });
-    setIsOpen(false);
+    setIsDrop(false);
     setProposals(filteredProposals);
-      
   };
 
   const clearSelection = () => {
     setSelectedOption("~Status~");
-    if(dateData.length === 0){
-      if(query == '') {
-        setProposals(proposalData);
-      }
-      const filteredProposalsBySearch = proposalData.filter(proposal => {
-        const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
-        return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
-      });
-      setProposals(filteredProposalsBySearch);
-    } else {
-      const filteredByDate = proposalData.filter(proposal => {
-        const created_date = new Date(proposal.created_at).setHours(0, 0, 0, 0);
-        if (created_date >= dateData[0] && created_date <= dateData[1] ) {
-        return true;
-        }
-        return false;
-      });
+    filterOptimizer('status');
+  }
 
-      if(query == ''){
-        setProposals(filteredByDate);
+  function filterOptimizer(filter) {
+    switch(filter) {
+      case 'date': {
+        if(query != ''){
+          const filteredProposalsBySearch = proposalData.filter(proposal => {
+            const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+            return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+          });
+    
+          if(selectedOption != '~Status~'){
+            const filteredProposalsByStatus = filteredProposalsBySearch.filter(proposal => {
+              return proposal.status == selectedOption;
+            });
+            setProposals(filteredProposalsByStatus);
+          } else {
+            setProposals(filteredProposalsBySearch);
+          }
+        }
+        else {
+          if(selectedOption != '~Status~'){
+            const filteredProposalsByStatus = proposalData.filter(proposal => {
+              return proposal.status == selectedOption;
+            });
+            setProposals(filteredProposalsByStatus);
+          } else {
+            setProposals(proposalData);
+          }
+        } 
+        break;
       }
-      else {
-        const filteredProposalsBySearch = filteredByDate.filter(proposal => {
-          const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
-          return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
-        });
-        setProposals(filteredProposalsBySearch);
+      case 'status': {
+        if(dateData.length === 0){
+          const filteredProposalsBySearch = proposalData.filter(proposal => {
+            const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+            return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+          });
+          setProposals(filteredProposalsBySearch);
+          sortByDateOrder();
+        } else {
+          const filteredByDate = proposalData.filter(proposal => {
+            const created_date = new Date(proposal.created_at).setHours(0, 0, 0, 0);
+            if (created_date >= dateData[0] && created_date <= dateData[1] ) {
+            return true;
+            }
+            return false;
+          });
+    
+          if(query == ''){
+            setProposals(filteredByDate);
+          }
+          else {
+            const filteredProposalsBySearch = filteredByDate.filter(proposal => {
+              const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+              return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+            });
+            setProposals(filteredProposalsBySearch);
+          }
+        }
+        setIsDrop(false);
+        break;
       }
     }
-    setIsOpen(false);
-  };
+  }
+
+
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedLanguage, setSelectedLanguage] = React.useState("ENG");
@@ -286,9 +291,72 @@ function MyComponent(props) {
   };
 
   const filteredLanguages = languages.filter(lang => lang !== selectedLanguage);
+
+
+  const [sortOrder, setSortOrder] = useState('both');
+
+  function sortByDateOrder() {
+    switch (sortOrder) {
+      case 'descending':
+        const filteredByDateDesc = proposals.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateA - dateB;
+        });
+        setProposals(filteredByDateDesc);
+        break;
+      case 'ascending':
+        const filteredByDateAsc = proposals.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateB - dateA;
+        });
+        setProposals(filteredByDateAsc);
+        break;
+        }
+  }
+  const toggleSortOrder = () => {
+    switch (sortOrder) {
+      case 'both':
+        const filteredByDateDesc = proposals.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateB - dateA;
+        });
+        setProposals(filteredByDateDesc);
+        setSortOrder('descending');
+        break;
+      case 'descending':
+        const filteredByDateAsc = proposals.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateA - dateB;
+        });
+        setProposals(filteredByDateAsc);
+        setSortOrder('ascending');
+        break;
+      case 'ascending':
+        setSortOrder('both');
+        break;
+      default:
+        setSortOrder('both');
+    }
+  };
+
+
+  const renderArrows = () => {
+    if (sortOrder === 'ascending') {
+      return <ArrowWrapper><Arrow>▲</Arrow> <Arrow style={{visibility: 'hidden'}}>▼</Arrow></ArrowWrapper>;
+    } else if (sortOrder === 'descending') {
+      return <ArrowWrapper><Arrow style={{visibility: 'hidden'}}>▲</Arrow> <Arrow>▼</Arrow></ArrowWrapper>;
+    } else {
+      return <ArrowWrapper><Arrow>▲</Arrow> <Arrow>▼</Arrow></ArrowWrapper>;
+    }
+  };
+
   
   if (loading) {
-    return <Spinner />; // Показываем сообщение о загрузке, пока данные загружаются
+    return <Spinner />;
   }
   return (
     <Div>
@@ -344,6 +412,7 @@ function MyComponent(props) {
               <path d="M6.75556 13.3778L13.0222 7.11111L11.7778 5.86667L6.75556 10.8889L4.22222 8.35556L2.97778 9.6L6.75556 13.3778ZM1.77778 17.7778C1.28889 17.7778 0.87037 17.6037 0.522222 17.2556C0.174074 16.9074 0 16.4889 0 16V3.55556C0 3.06667 0.174074 2.64815 0.522222 2.3C0.87037 1.95185 1.28889 1.77778 1.77778 1.77778H5.51111C5.7037 1.24444 6.02593 0.814815 6.47778 0.488889C6.92963 0.162963 7.43704 0 8 0C8.56296 0 9.07037 0.162963 9.52222 0.488889C9.97407 0.814815 10.2963 1.24444 10.4889 1.77778H14.2222C14.7111 1.77778 15.1296 1.95185 15.4778 2.3C15.8259 2.64815 16 3.06667 16 3.55556V16C16 16.4889 15.8259 16.9074 15.4778 17.2556C15.1296 17.6037 14.7111 17.7778 14.2222 17.7778H1.77778ZM1.77778 16H14.2222V3.55556H1.77778V16ZM8 2.88889C8.19259 2.88889 8.35185 2.82593 8.47778 2.7C8.6037 2.57407 8.66667 2.41481 8.66667 2.22222C8.66667 2.02963 8.6037 1.87037 8.47778 1.74444C8.35185 1.61852 8.19259 1.55556 8 1.55556C7.80741 1.55556 7.64815 1.61852 7.52222 1.74444C7.3963 1.87037 7.33333 2.02963 7.33333 2.22222C7.33333 2.41481 7.3963 2.57407 7.52222 2.7C7.64815 2.82593 7.80741 2.88889 8 2.88889Z" fill="#7D7D7D" />
             </svg>
           </Button4>
+          <Link to="/proposers">
           <Button5
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/5cad224f16a6fc23c80847beab1b9c8c6e9a264bf0234be196d73358c85e00fd?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
@@ -351,6 +420,7 @@ function MyComponent(props) {
               <path d="M13.1665 9.50004C12.5832 9.50004 12.0901 9.29865 11.6873 8.89587C11.2846 8.4931 11.0832 8.00004 11.0832 7.41671C11.0832 6.83337 11.2846 6.34032 11.6873 5.93754C12.0901 5.53476 12.5832 5.33337 13.1665 5.33337C13.7498 5.33337 14.2429 5.53476 14.6457 5.93754C15.0484 6.34032 15.2498 6.83337 15.2498 7.41671C15.2498 8.00004 15.0484 8.4931 14.6457 8.89587C14.2429 9.29865 13.7498 9.50004 13.1665 9.50004ZM8.99984 13.6667V12.5C8.99984 12.1667 9.08664 11.8577 9.26025 11.573C9.43386 11.2882 9.68039 11.0834 9.99984 10.9584C10.4998 10.75 11.0172 10.5938 11.5519 10.4896C12.0866 10.3855 12.6248 10.3334 13.1665 10.3334C13.7082 10.3334 14.2464 10.3855 14.7811 10.4896C15.3158 10.5938 15.8332 10.75 16.3332 10.9584C16.6526 11.0834 16.8991 11.2882 17.0728 11.573C17.2464 11.8577 17.3332 12.1667 17.3332 12.5V13.6667H8.99984ZM7.33317 7.00004C6.4165 7.00004 5.63178 6.67365 4.979 6.02087C4.32623 5.3681 3.99984 4.58337 3.99984 3.66671C3.99984 2.75004 4.32623 1.96532 4.979 1.31254C5.63178 0.659763 6.4165 0.333374 7.33317 0.333374C8.24984 0.333374 9.03456 0.659763 9.68734 1.31254C10.3401 1.96532 10.6665 2.75004 10.6665 3.66671C10.6665 4.58337 10.3401 5.3681 9.68734 6.02087C9.03456 6.67365 8.24984 7.00004 7.33317 7.00004ZM0.666504 13.6667V11.3334C0.666504 10.8612 0.784559 10.4271 1.02067 10.0313C1.25678 9.63546 1.58317 9.33337 1.99984 9.12504C2.83317 8.70837 3.69775 8.38893 4.59359 8.16671C5.48942 7.94448 6.40261 7.83337 7.33317 7.83337C7.81928 7.83337 8.30539 7.87504 8.7915 7.95837C9.27761 8.04171 9.76373 8.13893 10.2498 8.25004L9.5415 8.95837L8.83317 9.66671C8.58317 9.59726 8.33317 9.55212 8.08317 9.53129C7.83317 9.51046 7.58317 9.50004 7.33317 9.50004C6.52761 9.50004 5.73942 9.59726 4.96859 9.79171C4.19775 9.98615 3.45817 10.2639 2.74984 10.625C2.61095 10.6945 2.50678 10.7917 2.43734 10.9167C2.36789 11.0417 2.33317 11.1806 2.33317 11.3334V12H7.33317V13.6667H0.666504ZM7.33317 5.33337C7.7915 5.33337 8.18386 5.17018 8.51025 4.84379C8.83664 4.5174 8.99984 4.12504 8.99984 3.66671C8.99984 3.20837 8.83664 2.81601 8.51025 2.48962C8.18386 2.16324 7.7915 2.00004 7.33317 2.00004C6.87484 2.00004 6.48248 2.16324 6.15609 2.48962C5.8297 2.81601 5.6665 3.20837 5.6665 3.66671C5.6665 4.12504 5.8297 4.5174 6.15609 4.84379C6.48248 5.17018 6.87484 5.33337 7.33317 5.33337Z" fill="#7D7D7D" />
             </svg>
           </Button5>
+          </Link>
           <MenuCollapse
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/6236b84bf174b42f3ae39f588cbc1551625088c8e0016e99592ad17058d2b3a8?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
@@ -470,7 +540,8 @@ function MyComponent(props) {
                 </TableHeaderLeft>
                 <TableHeaderRight>
                   <TableHeaderLabel className="header_status">Status</TableHeaderLabel>
-                  <TableHeaderLabel className="header_date">Date</TableHeaderLabel>
+                  <TableHeaderLabel className="header_date" onClick={toggleSortOrder}> <div>Date</div> 
+                  {renderArrows()}</TableHeaderLabel>
                   <TableHeaderLabel className="header_actions">Actions</TableHeaderLabel>
                 </TableHeaderRight>
               </TableHeader>
@@ -586,7 +657,6 @@ const Button = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -609,7 +679,6 @@ const Button1 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -631,7 +700,6 @@ const Button2 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -652,7 +720,6 @@ const Button3 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     
     pointer-events: visible;
@@ -676,7 +743,6 @@ const Button4 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -698,7 +764,6 @@ const Button5 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -924,20 +989,6 @@ const SearchIcon = styled.img`
   height: 16px;
 `;
 
-const SearchText = styled.span`
-  font-family: Roboto, sans-serif;
-  font-size: 14px;
-  color: #848484;
-  font-weight: 400;
-  flex: 1;
-  
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-`;
-
-
-
 const Container = styled.div`
   display: flex;
   flex-direction: column;
@@ -947,16 +998,6 @@ const Container = styled.div`
   position: relative;
   min-height: 813px;
   padding-bottom: 8px;
-`;
-
-const BackgroundImage = styled.img`
-  position: absolute;
-  inset: 0;
-  height: 100%;
-  width: 100%;
-  object-fit: cover;
-  border-top-left-radius: 10px;
-  object-position: center;
 `;
 
 const Header = styled.header`
@@ -1081,7 +1122,7 @@ justify-content: center;
 }
 
 &.row_date {
-  padding-left: 5px;
+  padding-left: 10px;
   justify-content: start;
   min-width: 86px;
 }
@@ -1119,10 +1160,10 @@ const TableHeaderLabel = styled.div`
   font-family: Roboto, sans-serif;
   display:flex;
   align-items: center;
-  justify-content: center;
   font-weight: bold;
   &.header_number {
     min-width: 30px;
+    justify-content:center;
   }
 
   &.header_name {
@@ -1146,8 +1187,9 @@ const TableHeaderLabel = styled.div`
 
   
   &.header_date {
-    padding-left: 5px;
-    justify-content: start;
+    cursor: pointer;
+    padding-left: 10px;
+    justify-content: space-between;
     min-width: 86px;
   }
 
@@ -1163,6 +1205,14 @@ const TableHeaderLabel = styled.div`
     justify-content: start;
     min-width: 84px;
   }
+`;
+
+const ArrowWrapper = styled.div`
+  margin-right: 5px;
+  font-size: 10px;
+`;
+
+const Arrow = styled.div`
 `;
 
 const TableHeaderRight = styled.div`
@@ -1197,61 +1247,6 @@ const TableRow = styled.div`
   }
 `;
 
-
-const TableRowRightContent = styled.div`
-  display: flex;
-  width: 100%;
-  align-items: center;
-  gap: 20px;
-  justify-content: space-between;
-  padding: 0 20px;
-  
-  @media (max-width: 991px) {
-    max-width: 100%;
-    flex-wrap: wrap;
-  }
-`;
-
-const TableRowProposal = styled.div`
-  color: #2f2f2f;
-  font-size: 13px;
-  font-family: Roboto, sans-serif;
-  align-self: stretch;
-  flex-grow: 1;
-  flex-basis: auto;
-  
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-`;
-
-const TableRowPoints = styled.div`
-  font-family: Roboto, sans-serif;
-  align-self: stretch;
-  margin: auto 0;
-`;
-
-const TableRowGrade = styled.div`
-  font-family: Roboto, sans-serif;
-  align-self: stretch;
-  margin: auto 0;
-`;
-
-const TableRowRightDetails = styled.div`
-  align-self: stretch;
-  display: flex;
-  gap: 20px;
-  font-size: 12px;
-  color: #000;
-  font-weight: 300;
-  white-space: nowrap;
-  justify-content: space-between;
-  margin: auto 0;
-  
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
 
 
 const ActionIcon = styled.img`
@@ -1296,94 +1291,6 @@ const FooterPageTotal = styled.div`
 
 const FooterTotal = styled.div`
   font-family: Roboto, sans-serif;
-`;
-
-const Div11 = styled.div`
-  display: flex;
-  @media (max-width: 991px) {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0px;
-  }
-`;
-const Column = styled.div`
-  display: flex;
-  flex-direction: column;
-  line-height: normal;
-  width: 70%;
-  margin-left: 0px;
-  @media (max-width: 991px) {
-    width: 100%;
-  }
-`;
-const Div12 = styled.div`
-  border-radius: 8px;
-  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
-  background-color: #fff;
-  display: flex;
-  flex-direction: column;
-  font-size: 14px;
-  width: 100%;
-  padding: 3px 0 22px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    margin-top: 15px;
-  }
-`;
-const Div13 = styled.div`
-  display: flex;
-  width: 100%;
-  padding-right: 32px;
-  justify-content: space-between;
-  gap: 20px;
-  color: #5d5d5d;
-  font-weight: 400;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    flex-wrap: wrap;
-    padding-right: 20px;
-  }
-`;
-const Div14 = styled.div`
-  font-family: Roboto, sans-serif;
-  margin: auto 20px;
-`;
-const Div15 = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 4px;
-  white-space: nowrap;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const ArchiveButton = styled.button`
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-  border:none;
-  cursor:pointer;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px 4px 4px 8px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 13px 27px;
-  
-  @media (max-width: 991px) {
-    white-space: initial;
-    padding: 0 20px;
-  }
 `;
 
 export default MyComponent;

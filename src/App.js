@@ -9,6 +9,8 @@ import Grading from './components/graidingComponent/grading';
 import AddProposal from './components/addProposalComponent/addProposalComponent';
 import Registration from './components/registrationPage/registrationComponent';
 import ProposerMainPage from './components/proposerMainPageComponent/proposerMainPageComponent';
+import Proposers from './components/proposersComponent/proposersComponent'
+import OpenProposalGraded from './components/openProposalGradedComponent/openProposalGraded'
 import './reset.css'
 
 function App() {
@@ -27,7 +29,9 @@ function App() {
         <Route path="/proposals" element={<Proposals />} />
         <Route path="/after_grading" element={<AfterGrading />} />
         <Route path="/add_proposal" element={<AddProposal />} />
+        <Route path="/proposers" element={<Proposers />} />
         <Route path="/main" element={userRole === 'proposer' ? <ProposerMainPage /> : <MainPage />} />
+        <Route path="/open_proposal_graded" element={<OpenProposalGraded />} />
       </Routes>
     </Router>
   );
