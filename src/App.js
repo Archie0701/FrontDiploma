@@ -11,6 +11,7 @@ import Registration from './components/registrationPage/registrationComponent';
 import ProposerMainPage from './components/proposerMainPageComponent/proposerMainPageComponent';
 import Proposers from './components/proposersComponent/proposersComponent'
 import OpenProposalGraded from './components/openProposalGradedComponent/openProposalGraded'
+import Profile from './components/profile/profile';
 import './reset.css'
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
         <Route path="/proposers" element={<Proposers />} />
         <Route path="/main" element={userRole === 'proposer' ? <ProposerMainPage /> : <MainPage />} />
         <Route path="/open_proposal_graded" element={<OpenProposalGraded />} />
+        <Route path="/profile/:profileId"element={<Profile />}/>
       </Routes>
     </Router>
   );

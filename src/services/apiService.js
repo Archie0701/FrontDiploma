@@ -103,6 +103,20 @@ export const fetchNewProposalData = async () => {
   }
 };
 
+export const fetchProposalData = async () => {
+  try {
+    const response = await apiService.get('/proposals/', {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const gradeProposal = async (proposalId, grading, score ) => {
   const accessToken = localStorage.getItem('accessToken');
   if (!accessToken) {
@@ -285,7 +299,7 @@ export const acceptProposal = async (proposalId, selectedCriteriaIds) => {
 };
 
 
-export const fetchProposerData = async (id) => {
+export const fetchProposersData = async (id) => {
   try {
     const response = await apiService.get(`proposers/`, {
       headers: {

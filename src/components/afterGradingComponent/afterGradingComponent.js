@@ -4,7 +4,7 @@ import Spinner from '../Spinner/Spinner';
 import searchIconSvg from '../../images/search-icon.svg'
 import datePolygonSvg from '../../images/date-polygon.svg'
 import checkboxArrowSvg from '../../images/checkbox-arrow.svg'
-import { fetchUserData, fetchProposalData, fetchProposerData } from '../../services/apiService';
+import { fetchUserData, fetchProposalData, fetchProposersData } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
 import { DateRangePicker, Stack } from 'rsuite';
@@ -29,7 +29,7 @@ function MyComponent(props) {
   const [loading, setLoading] = useState(true); // Добавляем состояние для отслеживания загрузки данных
   const [proposalData, setProposalData] = useState(null);
   const [proposals, setProposals] = useState(null);
-  const [proposerData, setProposerData] = useState(null);
+  const [proposersData, setProposersData] = useState(null);
   const [query, setQuery] = useState('');
 
 
@@ -125,7 +125,7 @@ function MyComponent(props) {
         // Вызываем функцию fetchUserData для получения данных пользователя
         const userDataResponse = await fetchUserData();
         const proposalData = await fetchProposalData();
-        const proposerData = await fetchProposerData()
+        const proposersData = await fetchProposersData()
         setProposalData(proposalData);
         setProposals(proposalData);
         setUserData(userDataResponse);
@@ -137,11 +137,11 @@ function MyComponent(props) {
         console.log('Proposal Data:', proposalData);
         console.log('User Data:', userDataResponse);
         const transformedData = {};
-        proposerData.forEach((item) => {
+        proposersData.forEach((item) => {
           transformedData[item.id] = item;
         });
         console.log('Proposer Data:', transformedData);
-        setProposerData(transformedData)
+        setProposersData(transformedData)
       } catch (error) {
         setError(error.message);
 
@@ -163,7 +163,7 @@ function MyComponent(props) {
     } else{
     
     const filteredProposals = proposalData.filter(proposal => {
-      const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+      const fullName = `${proposersData[proposal.proposer].user.first_name} ${proposersData[proposal.proposer].user.last_name}`;
       return fullName.toLowerCase().includes(value.toLowerCase()) || proposal.text.toLowerCase().includes(value.toLowerCase());
     });
       setProposals(filteredProposals);
@@ -239,7 +239,7 @@ function MyComponent(props) {
       setProposals(proposalData);
     } else {
       const filteredProposalsBySearch = proposalData.filter(proposal => {
-      const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+      const fullName = `${proposersData[proposal.proposer].user.first_name} ${proposersData[proposal.proposer].user.last_name}`;
       return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
         });
       setProposals(filteredProposalsBySearch);
@@ -458,8 +458,8 @@ function MyComponent(props) {
                       <Checkbox />
                     </CheckboxWrapper>
                     <TableRowLabel className="row_number">{++rowNum}</TableRowLabel>
-                    <TableRowLabel className="row_name">{proposerData[item.proposer].user.first_name}</TableRowLabel>
-                    <TableRowLabel className="row_surname">{proposerData[item.proposer].user.last_name}</TableRowLabel>
+                    <TableRowLabel className="row_name">{proposersData[item.proposer].user.first_name}</TableRowLabel>
+                    <TableRowLabel className="row_surname">{proposersData[item.proposer].user.last_name}</TableRowLabel>
                     <TableRowLabel className="row_proposal">{item.text}</TableRowLabel>
                     <TableRowLabel className="row_points">{item.total_score}</TableRowLabel>
                     <TableRowLabel className="row_grade">{item.grade_percentage}</TableRowLabel>

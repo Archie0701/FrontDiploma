@@ -4,7 +4,7 @@ import Spinner from '../Spinner/Spinner';
 import searchIconSvg from '../../images/search-icon.svg'
 import datePolygonSvg from '../../images/date-polygon.svg'
 import checkboxArrowSvg from '../../images/checkbox-arrow.svg'
-import { fetchUserData, fetchProposalData, fetchProposerData } from '../../services/apiService';
+import { fetchUserData, fetchProposalData, fetchProposersData } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
 import { DateRangePicker, Stack } from 'rsuite';
@@ -25,10 +25,10 @@ export const logOut = () => {
 
 function MyComponent(props) {
   const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true); // Добавляем состояние для отслеживания загрузки данных
+  const [loading, setLoading] = useState(true);
   const [proposalData, setProposalData] = useState(null);
   const [proposals, setProposals] = useState(null);
-  const [proposerData, setProposerData] = useState(null);
+  const [proposersData, setProposersData] = useState(null);
 
 
   const [query, setQuery] = useState('');
@@ -41,108 +41,28 @@ function MyComponent(props) {
   };
 
   const [error, setError] = useState(null);
-
-  const predefinedRanges = [
-    {
-      label: 'Today',
-      value: [new Date(), new Date()],
-      placement: 'left'
-    },
-    {
-      label: 'Yesterday',
-      value: [addDays(new Date(), -1), addDays(new Date(), -1)],
-      placement: 'left'
-    },
-    {
-      label: 'This week',
-      value: [startOfWeek(new Date()), endOfWeek(new Date())],
-      placement: 'left'
-    },
-    {
-      label: 'Last 7 days',
-      value: [subDays(new Date(), 6), new Date()],
-      placement: 'left'
-    },
-    {
-      label: 'Last 30 days',
-      value: [subDays(new Date(), 29), new Date()],
-      placement: 'left'
-    },
-    {
-      label: 'This month',
-      value: [startOfMonth(new Date()), new Date()],
-      placement: 'left'
-    },
-    {
-      label: 'Last month',
-      value: [startOfMonth(addMonths(new Date(), -1)), endOfMonth(addMonths(new Date(), -1))],
-      placement: 'left'
-    },
-    {
-      label: 'This year',
-      value: [new Date(new Date().getFullYear(), 0, 1), new Date()],
-      placement: 'left'
-    },
-    {
-      label: 'Last year',
-      value: [new Date(new Date().getFullYear() - 1, 0, 1), new Date(new Date().getFullYear(), 0, 0)],
-      placement: 'left'
-    },
-    {
-      label: 'All time',
-      value: [new Date(new Date().getFullYear() - 1, 0, 1), new Date()],
-      placement: 'left'
-    },
-    {
-      label: 'Last week',
-      closeOverlay: false,
-      value: value => {
-        const [start = new Date()] = value || [];
-        return [
-          addDays(startOfWeek(start, { weekStartsOn: 0 }), -7),
-          addDays(endOfWeek(start, { weekStartsOn: 0 }), -7)
-        ];
-      },
-      appearance: 'default'
-    },
-    {
-      label: 'Next week',
-      closeOverlay: false,
-      value: value => {
-        const [start = new Date()] = value || [];
-        return [
-          addDays(startOfWeek(start, { weekStartsOn: 0 }), 7),
-          addDays(endOfWeek(start, { weekStartsOn: 0 }), 7)
-        ];
-      },
-      appearance: 'default'
-    }
-  ];
-
   
   let rowNum = 0;
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Вызываем функцию fetchUserData для получения данных пользователя
         const userDataResponse = await fetchUserData();
         const proposalData = await fetchProposalData();
-        const proposerData = await fetchProposerData()
+        const proposersData = await fetchProposersData()
         setProposalData(proposalData);
         setProposals(proposalData);
         setUserData(userDataResponse);
 
-        // Устанавливаем состояние загрузки в false, так как данные получены
 
         // Выводим данные в консоль для проверки
         console.log('Proposal Data:', proposalData);
         console.log('User Data:', userDataResponse);
         const transformedData = {};
-        proposerData.forEach((item) => {
+        proposersData.forEach((item) => {
           transformedData[item.id] = item;
         });
         console.log('Proposer Data:', transformedData);
-        setProposerData(transformedData)
+        setProposersData(transformedData)
 
         
         setLoading(false);
@@ -318,8 +238,8 @@ function MyComponent(props) {
                     <Checkbox />
                   </CheckboxWrapper>
                   <TableRowLabel className="row_number">{++rowNum}</TableRowLabel>
-                  <TableRowLabel className="row_name">{proposerData[item.proposer].user.first_name}</TableRowLabel>
-                  <TableRowLabel className="row_surname">{proposerData[item.proposer].user.last_name}</TableRowLabel>
+                  <TableRowLabel className="row_name">{proposersData[item.proposer].user.first_name}</TableRowLabel>
+                  <TableRowLabel className="row_surname">{proposersData[item.proposer].user.last_name}</TableRowLabel>
                   <TableRowLabel className="row_proposal"><Link style={{ textDecoration: 'none', color: 'black' }}>Open Profile</Link></TableRowLabel>
                 </TableRow>
               ))}

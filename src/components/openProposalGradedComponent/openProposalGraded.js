@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
-import { fetchUserData, fetchNewProposalData } from '../../services/apiService';
+import { fetchUserData, fetchNewProposalData, acceptProposal, declineProposal, criterias } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
-import './style.css'; //
+import '../sliderComponent/style.css'; //
 
 export const logOut = () => {
   // Удаляем токен из localStorage
@@ -12,35 +12,14 @@ export const logOut = () => {
   window.location.href = "../login";
 };
 
-const EmployeeScoreSlider = () => {
-  const [value, setValue] = useState(5);
-  const handleChange = (event) => {
-    setValue(event.target.value);
-  };
 
-  return (
-    <EmployeeScoreContainer>
-      <EmployeeScoreInput
-        type="range"
-        min="1"
-        max="10"
-        value={value}
-        onChange={handleChange}
-        valueLabelDisplay="auto"
-      />
-      <EmployeeScoreValue style={{ left: `calc(${(value - 1) * 10}% + 24px)` }}>
-        {value}
-      </EmployeeScoreValue>
-    </EmployeeScoreContainer>
-  );
-};
-
-function Grading(props) {
+function MyComponent(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [proposalData, setProposalData] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
- 
+  const [allCriterias, setAllCriterias] = useState([]);
+  const [selectedCriteriaIds, setSelectedCriteriaIds] = useState([]);
 
   // Обновленная функция fetchData
   // Обновленная функция fetchData
@@ -48,12 +27,25 @@ function Grading(props) {
     try {
       const userDataResponse = await fetchUserData();
       const proposalDataResponse = await fetchNewProposalData();
+      const criteriasData = await criterias();
 
+      // Обновляем состояние allCriterias с данными из API
+      setAllCriterias(criteriasData);
 
       // Продолжаем обновление других состояний и выполнение вашей логики
       if (userDataResponse) {
         setUserData(userDataResponse);
       }
+
+      proposalDataResponse.forEach(proposal => {
+        if (proposal.criteria && proposal.criteria.length > 0) {
+          updateSelectedCriteria(proposal.criteria);
+        }
+      });
+
+      // Обновляем состояние выбранных критериев
+      const selectedCriteriaIds = proposalDataResponse.flatMap(proposal => proposal.criteria.map(criterion => criterion.id));
+      setSelectedCriteriaIds(selectedCriteriaIds);
 
       setProposalData(proposalDataResponse);
       setLoading(false);
@@ -63,35 +55,69 @@ function Grading(props) {
     }
   };
 
+  const updateProposalList = async () => {
+    try {
+      const updatedProposalData = await fetchNewProposalData();
+      setProposalData(updatedProposalData);
+    } catch (error) {
+      console.error('Error updating proposal list:', error);
+    }
+  };
+  // Обновляем выбранные критерии
+  const updateSelectedCriteria = (criteriaList) => {
+    const criteriaIds = criteriaList.map(criterion => criterion.id);
+    setSelectedCriteriaIds(criteriaIds);
+  };
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  const handleChange = (e) => {
+    const { name, checked } = e.target;
+    const criteriaId = parseInt(name);
 
+    // Проверяем, что proposalData[currentIndex] существует и содержит критерии
+    if (proposalData[currentIndex]?.criteria) {
+      // Создаем копию proposalData для внесения изменений
+      const updatedProposalData = proposalData.map(proposal => {
+        // Копируем текущий объект proposal, чтобы не изменять исходные данные напрямую
+        const updatedCriteria = proposal.criteria.map(criteria => {
+          // Если id критерия совпадает с id, который был изменен, обновляем его состояние
+          if (criteria.id === criteriaId) {
+            return {
+              ...criteria,
+              selected: checked // Обновляем состояние выбранности критерия
+            };
+          }
+          return criteria;
+        });
+        return {
+          ...proposal,
+          criteria: updatedCriteria // Обновляем критерии в proposal
+        };
+      });
 
-  const employeeData = [
-    {
-      name: "Sissenov Adil",
-      id: "000000000000",
-      benefits: [
-        "Brings/Increases profit",
-        "Reduces costs",
-        "Brings/Increases profit",
-        "Brings/Increases profit",
-        "Brings/Increases profit",
-        "Brings/Increases profit",
-        "Brings/Increases profit",
-        "Brings/Increases profit",
-      ]
+      // Обновляем proposalData с обновленными критериями
+      setProposalData(updatedProposalData);
+
+      // Обновляем список выбранных критериев
+      if (checked) {
+        setSelectedCriteriaIds(prevSelectedCriteriaIds => [...prevSelectedCriteriaIds, criteriaId]);
+      } else {
+        setSelectedCriteriaIds(prevSelectedCriteriaIds => prevSelectedCriteriaIds.filter(id => id !== criteriaId));
+      }
     }
-  ];
+  };
+
 
 
 
   const handleNext = () => {
     const nextProposal = proposalData.find((data, index) => index > currentIndex && data.status === "New");
     if (nextProposal) {
+      setCurrentIndex(proposalData.indexOf(nextProposal));
+      updateSelectedCriteria(nextProposal.criteria); // Добавляем эту строку
     }
   };
 
@@ -99,10 +125,51 @@ function Grading(props) {
     const prevProposal = proposalData.slice(0, currentIndex).reverse().find(data => data.status === "New");
     if (prevProposal) {
       setCurrentIndex(proposalData.indexOf(prevProposal));
+      updateSelectedCriteria(prevProposal.criteria); // Добавляем эту строку
     }
   };
 
 
+
+  const handleAccept = async () => {
+    try {
+      const newProposal = proposalData.find(data => data.status === "New");
+
+      if (!newProposal) {
+        alert("Нет новых предложений для принятия");
+        return;
+      }
+
+      const proposalId = newProposal.id;
+      const criteriaIds = newProposal.criteria.map(criteria => criteria.id);
+
+      const response = await acceptProposal(proposalId, selectedCriteriaIds);
+      await updateProposalList();
+      // Обработка успешного принятия предложения
+    } catch (error) {
+      // Обработка ошибки
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      const newProposal = proposalData.find(data => data.status === "New");
+
+      if (!newProposal) {
+        alert("Нет новых предложений для принятия");
+        return;
+      }
+
+      const proposalId = newProposal.id;
+      const criteriaIds = newProposal.criteria.map(criteria => criteria.id);
+
+      const response = await declineProposal(proposalId, selectedCriteriaIds);
+      await updateProposalList();
+      // Обработка успешного принятия предложения
+    } catch (error) {
+      // Обработка ошибки
+    }
+  };
 
   if (loading) {
     return <Spinner />;
@@ -121,18 +188,16 @@ function Grading(props) {
             <Button
               loading="lazy"
             ><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4.16667 13.3333C3.93056 13.3333 3.73264 13.2535 3.57292 13.0937C3.41319 12.934 3.33333 12.7361 3.33333 12.5V10.8333H14.1667V3.33333H15.8333C16.0694 3.33333 16.2674 3.41319 16.4271 3.57292C16.5868 3.73264 16.6667 3.93056 16.6667 4.16667V16.6667L13.3333 13.3333H4.16667ZM0 12.5V0.833333C0 0.597222 0.0798611 0.399306 0.239583 0.239583C0.399306 0.0798611 0.597222 0 0.833333 0H11.6667C11.9028 0 12.1007 0.0798611 12.2604 0.239583C12.4201 0.399306 12.5 0.597222 12.5 0.833333V8.33333C12.5 8.56944 12.4201 8.76736 12.2604 8.92708C12.1007 9.08681 11.9028 9.16667 11.6667 9.16667H3.33333L0 12.5ZM10.8333 7.5V1.66667H1.66667V7.5H10.8333Z" fill="#7D7D7D"/>
-            </svg>
-            
+                <path d="M4.16667 13.3333C3.93056 13.3333 3.73264 13.2535 3.57292 13.0937C3.41319 12.934 3.33333 12.7361 3.33333 12.5V10.8333H14.1667V3.33333H15.8333C16.0694 3.33333 16.2674 3.41319 16.4271 3.57292C16.5868 3.73264 16.6667 3.93056 16.6667 4.16667V16.6667L13.3333 13.3333H4.16667ZM0 12.5V0.833333C0 0.597222 0.0798611 0.399306 0.239583 0.239583C0.399306 0.0798611 0.597222 0 0.833333 0H11.6667C11.9028 0 12.1007 0.0798611 12.2604 0.239583C12.4201 0.399306 12.5 0.597222 12.5 0.833333V8.33333C12.5 8.56944 12.4201 8.76736 12.2604 8.92708C12.1007 9.08681 11.9028 9.16667 11.6667 9.16667H3.33333L0 12.5ZM10.8333 7.5V1.66667H1.66667V7.5H10.8333Z" fill="#2B8DC2" />
+              </svg>
             </Button>
           </Link>
           <Link to="/grading" style={{ textDecoration: 'none' }}>
             <Button1
               loading="lazy"
             ><svg width="19" height="17" viewBox="0 0 19 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M6.39333 13.0044L9.33333 11.3377L12.2733 13.0263L11.5033 9.86842L14.0933 7.76316L10.6867 7.47807L9.33333 4.49561L7.98 7.45614L4.57333 7.74123L7.16333 9.86842L6.39333 13.0044ZM3.57 16.6667L5.08667 10.5044L0 6.35965L6.72 5.8114L9.33333 0L11.9467 5.8114L18.6667 6.35965L13.58 10.5044L15.0967 16.6667L9.33333 13.3991L3.57 16.6667Z" fill="#2B8DC2"/>
-            </svg>
-            
+                <path d="M6.39333 13.0044L9.33333 11.3377L12.2733 13.0263L11.5033 9.86842L14.0933 7.76316L10.6867 7.47807L9.33333 4.49561L7.98 7.45614L4.57333 7.74123L7.16333 9.86842L6.39333 13.0044ZM3.57 16.6667L5.08667 10.5044L0 6.35965L6.72 5.8114L9.33333 0L11.9467 5.8114L18.6667 6.35965L13.58 10.5044L15.0967 16.6667L9.33333 13.3991L3.57 16.6667Z" fill="#7D7D7D" />
+              </svg>
             </Button1>
           </Link>
           <Link to="/after_grading" style={{ textDecoration: 'none' }}>
@@ -206,7 +271,7 @@ function Grading(props) {
             {proposalData && (
               <Div11 className="slider">
                 <Column>
-                  {proposalData.filter(data => data.status === "New").map((data, index) => (
+                {proposalData.filter(data => data.status === "New").map((data, index) => (
                     <Div12
                       className={`slide ${index === currentIndex ? 'active' : ''} ${index < currentIndex ? 'slideToLeft' : index > currentIndex ? 'slideToRight' : ''}`}
                       key={data.id}
@@ -214,11 +279,13 @@ function Grading(props) {
                       <Div13>
                         <Div14>{formatDate(data.created_at)}</Div14>
                         <Div15>
+                          <SetSpecialistButton>Set a specialist</SetSpecialistButton>
                           <ArchiveButton>Archive</ArchiveButton>
                         </Div15>
                         <Div19>
-                          {currentIndex > 0 && <BackButton onClick={handleBack}>Back</BackButton>}
-                          {currentIndex < proposalData.length - 1 && <NextButton onClick={handleNext}>Next</NextButton>}
+                          {currentIndex > 0 ? <BackButton onClick={handleBack}>Back</BackButton> : <BackButton>Back</BackButton>}
+                          <PaginationText>101 / 121</PaginationText>
+                          {currentIndex < proposalData.length - 1 ? <NextButton onClick={handleNext}>Next</NextButton> : <NextButton>Next</NextButton>}
                         </Div19>
                       </Div13>
                       <Div22 />
@@ -237,28 +304,41 @@ function Grading(props) {
                         </Div28>
                       </Div23>
                     </Div12>
-                  ))}
+                  ))} 
                 </Column>
                 <Column2>
-                  <>
-                  <Container>
-  <EmployeeSection>
-    {employeeData.map((employee, index) => (
-      <EmployeeInfo key={index}>
-        <EmployeeDetails>
-          <EmployeeAvatar src="https://cdn.builder.io/api/v1/image/assets/TEMP/3e8e0fc76c3a135312bf03173b585264be24c42d6b683692201c8547563522d3?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Employee Avatar" />
-          <EmployeeText>
-            <EmployeeName>{employee.name}</EmployeeName>
-            <EmployeeId>{employee.id}</EmployeeId>
-          </EmployeeText>
-        </EmployeeDetails>
-      </EmployeeInfo>
-    ))}
-  </EmployeeSection>
-  <AcceptButton>Accept</AcceptButton>
-</Container>
-                  </>
+                <Div33>
+                      
+                      <Div37>
+                      <Div34>
+                        <Div35 />
+                        <Div36>Hidden</Div36>
+                      </Div34>
+                        <Div38>
+                          <Div41>Offers</Div41>
+                          <Div42>Total Offers</Div42>
+                        </Div38>
+                        <Div43 />
+                        {allCriterias.map((criteria, index) => ( // Используем все критерии для отображения
+
+                          <React.Fragment key={index}>
+                            <Div44>
+                              <Div45>
+                                <Div47>{criteria.name}</Div47>
+                              </Div45>
+                              <Div46>
+                              <Div48>{criteria.description}</Div48>
+
+                              </Div46>
+                            </Div44>
+                            <Div49 />
+                          </React.Fragment>
+                        ))}
+                      </Div37>
+                    </Div33>
                 </Column2>
+                  
+                
               </Div11>
             )}
 
@@ -308,6 +388,7 @@ const Div3 = styled.div`
 const Button = styled.button`
   aspect-ratio: 1;
   border:none;
+  background-color:#ECF3FF;
   &:hover {
     transform: translateY(-5px);
     color: #333;
@@ -330,7 +411,6 @@ const Button = styled.button`
   }
 `;
 const Button1 = styled.button`
-background-color:#ECF3FF;
   border:none;
   &:hover {
     transform: translateY(-5px);
@@ -580,13 +660,14 @@ const Div12 = styled.div`
   display: flex;
   flex-direction: column;
   font-size: 14px;
-  padding: 3px 0 22px;
+  padding: 0 0 22px;
   @media (max-width: 991px) {
     max-width: 100%;
     margin-top: 15px;
   }
 `;
 const Div13 = styled.div`
+  margin: 5px 0;
   display: flex;
   width: 100%;
   padding-right: 32px;
@@ -613,7 +694,7 @@ const Div15 = styled.div`
     white-space: initial;
   }
 `;
-const ArchiveButton = styled.button`
+const SetSpecialistButton = styled.button`
 &:hover {
   transform: translateY(-5px);
   color: #333;
@@ -641,6 +722,86 @@ const ArchiveButton = styled.button`
     padding: 0 20px;
   }
 `;
+const ArchiveButton = styled.button`
+&:hover {
+  transform: translateY(-5px);
+  color: #333;
+  cursor:pointer;
+  box-shadow: .0rem .2rem .4rem #777;
+  background-color:#ECF3FF;
+  pointer-events: visible;
+  position: relative;
+  z-index: 0;
+  visibility: visible;
+  float: none;
+}
+  border:none;
+  cursor:pointer;
+  font-family: Roboto, sans-serif;
+  border-radius: 4px 8px 8px 4px;
+  background-color: #e6e6e6;
+  flex-grow: 1;
+  justify-content: center;
+  padding: 13px 27px;
+  
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+const ChangeStatus = styled.button`
+&:hover {
+  transform: translateY(-5px);
+  color: #333;
+  cursor:pointer;
+  box-shadow: .0rem .2rem .4rem #777;
+  /* line I added */
+  background-color:#ECF3FF;
+  pointer-events: visible;
+  position: relative;
+  z-index: 0;
+  visibility: visible;
+  float: none;
+}
+border:none;
+  cursor:pointer;
+  font-family: Roboto, sans-serif;
+  border-radius: 4px;
+  background-color: #e6e6e6;
+  flex-grow: 1;
+  justify-content: center;
+  padding: 12px 20px;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const SpecialistButton = styled.button`
+&:hover {
+  transform: translateY(-5px);
+  color: #333;
+  cursor:pointer;
+  box-shadow: .0rem .2rem .4rem #777;
+  /* line I added */
+  background-color:#ECF3FF;
+  pointer-events: visible;
+  position: relative;
+  z-index: 0;
+  visibility: visible;
+  float: none;
+}
+border:none;
+  cursor:pointer;
+  font-family: Roboto, sans-serif;
+  border-radius: 4px 8px 8px 4px;
+  background-color: #e6e6e6;
+  flex-grow: 1;
+  justify-content: center;
+  padding: 12px 34px 12px 14px;
+  @media (max-width: 991px) {
+    padding-right: 20px;
+    white-space: initial;
+  }
+`;
 const Div19 = styled.div`
   display: flex;
   justify-content: space-between;
@@ -649,6 +810,15 @@ const Div19 = styled.div`
   @media (max-width: 991px) {
     white-space: initial;
   }
+`;
+const PaginationText = styled.div`
+  font-family: Roboto, sans-serif;
+  border-radius: 4px;
+  border: 1px solid rgba(230, 230, 230, 0.5);
+  background-color: #fff;
+  text-align: center;
+  justify-content: center;
+  padding: 13px 16px;
 `;
 const BackButton = styled.button`
 cursor:pointer;
@@ -691,6 +861,7 @@ const NextButton = styled.button`
   visibility: visible;
   float: none;
 }
+  margin-right: 20px;
   cursor:pointer;
   border:none;
   font-family: Roboto, sans-serif;
@@ -698,7 +869,7 @@ const NextButton = styled.button`
   background-color: #e6e6e6;
   flex-grow: 1;
   justify-content: center;
-  padding: 13px 38px 13px 17px;
+  padding: 13px 21px;
   @media (max-width: 991px) {
     padding-right: 20px;
     white-space: initial;
@@ -706,7 +877,6 @@ const NextButton = styled.button`
 `;
 const Div22 = styled.div`
   background-color: #e6e6e6;
-  margin-top: 10px;
   height: 1px;
   @media (max-width: 991px) {
     max-width: 100%;
@@ -796,7 +966,6 @@ const Comments = styled.input`
   background-color: #f2f2f2;
   margin-top: 24px;
   font-weight: 300;
-  width:75%;
   padding: 14px 60px 70px 10px;
   @media (max-width: 991px) {
     max-width: 100%;
@@ -813,153 +982,253 @@ const Column2 = styled.div`
     width: 100%;
   }
 `;
-
-
-const Container = styled.div`
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-  font-weight: 400;
-
+const Div33 = styled.div`
   @media (max-width: 991px) {
     max-width: 100%;
-    margin-top: 40px;
+    margin-top: 15px;
   }
 `;
-
-const EmployeeSection = styled.section`
-  gap: 20px;
+const Div34 = styled.button`
+  cursor:pointer;
+  border:none;
+  border-radius: 8px;
+  background-color: #fff;
+  display: flex;
   justify-content: space-between;
-
+  gap: 20px;
+  font-size: 15px;
+  color: #5d5d5d;
+  font-weight: 300;
+  white-space: nowrap;
   @media (max-width: 991px) {
     max-width: 100%;
     flex-wrap: wrap;
-    padding-right: 20px;
+    white-space: initial;
+    padding: 0 20px;
   }
-`;
-
-const EmployeeInfo = styled.div`
-  display: flex;
-  flex-direction: column;
-`;
-
-const EmployeeDetails = styled.div`
-  display: flex;
-  gap: 15px;
-`;
-
-const EmployeeAvatar = styled.img`
-  width: 50px;
-  height: 50px;
-  object-fit: cover;
-  border-radius: 50%;
-`;
-
-const EmployeeText = styled.div`
-  align-self: start;
-  display: flex;
-  margin-top: 4px;
-  flex-direction: column;
-`;
-
-const EmployeeName = styled.h3`
-  color: #5d5d5d;
-  font: 16px Roboto, sans-serif;
-  margin: 0;
-`;
-
-const EmployeeId = styled.p`
-  color: #8d8d8d;
-  margin: 12px 0 0;
-  font: 12px Roboto, sans-serif;
-`;
-
-const EmployeeBenefit = styled.p`
-  color: #5b5b5b;
-  margin-top: 26px;
-  font: 16px Roboto, sans-serif;
-
-  &:last-child {
-    margin-top: 52px;
-
-    @media (max-width: 991px) {
-      margin-top: 40px;
-    }
-  }
-`;
-
-const EmployeeScoreContainer = styled.div`
-  position: relative;
-  width: 100%;
-`;
-
-const EmployeeScoreInput = styled.input`
-  -webkit-appearance: none;
-  width: calc(100% - 24px); /* Рассчитываем ширину инпута так, чтобы учесть размеры кружка и текста */
-  height: 15px;
-  border-radius: 5px;
-  background: #d3d3d3;
-  outline: none;
-  opacity: 0.7;
-  -webkit-transition: 0.2s;
-  transition: opacity 0.2s;
-  margin: 0 12px; /* Устанавливаем отступы слева и справа для кружка и текста */
-
   &:hover {
-    opacity: 1;
-  }
-
-  &::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    background: #B3D2E6;
-    cursor: pointer;
+    transform: translateY(3px);
+    transition: transform 0.5s;
+    background-color: #f2f3f4;
+    cursor:pointer;
+    box-shadow: .0rem .2rem .4rem #777;
+    /* line I added */
+    pointer-events: visible;
     position: relative;
-    z-index: 2;
-  }
-
-  &::-moz-range-thumb {
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    background: #B3D2E6;
-    cursor: pointer;
-    position: relative;
-    z-index: 2;
+    z-index: 0;
+    visibility: visible;
+    float: none;
   }
 `;
-
-const EmployeeScoreValue = styled.span`
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  color: #FFFFF9;
-  font-size: 14px;
-  pointer-events: none; /* Чтобы предотвратить взаимодействие с текстом */
-  z-index: 3; /* Убедимся, что текст всегда находится поверх кружка */
+const Div35 = styled.div`
+  border-radius: 8px;
+  background-color: #a0a0a0;
+  width: 52px;
+  height: 52px;
 `;
-
-
-const AcceptButton = styled.button`
+const Div36 = styled.div`
+  font-family: Roboto, sans-serif;
+  flex-grow: 1;
+  display:flex;
+  flex-basis: auto;
+  margin: auto 0;
+`;
+const Div37 = styled.div`
+  border-radius: 8px;
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
   display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 6px;
-  background-color: #109cf1;
-  margin-top: 25px;
-  color: #fff;
-  padding: 10px;
-  font: 16px Roboto, sans-serif;
-  border: none;
-  cursor: pointer;
-
+  z-index: 1;
+  flex-direction: column;
+  padding: 17px 32px 17px 17px;
   @media (max-width: 991px) {
     max-width: 100%;
     padding: 0 20px;
   }
 `;
+const Div38 = styled.div`
+  display: flex;
+  color: #5d5d5d;
+  font-weight: 500;
+  justify-content: space-around;
+  white-space: nowrap;
+  @media (max-width: 991px) {
+    margin-left: 10px;
+    white-space: initial;
+  }
+`;
+const Div39 = styled.div`
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Div40 = styled.div`
+font-family: Roboto, sans-serif;
+font-weight: 600;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Div41 = styled.div`
+  width: 50%;
+  margin-top: 54px;
+  font-family: Roboto, sans-serif;
+  font-weight: 600;
+  @media (max-width: 991px) {
+    margin-top: 40px;
+  }
+`;
+const Div42 = styled.div`
+  margin-top: 54px;
+  font-family: Roboto, sans-serif;
+  font-weight: 600;
+  @media (max-width: 991px) {
+    margin-top: 40px;
+  }
+`;
+const Div43 = styled.div`
+  background-color: #e6e6e6;
+  margin-top: 10px;
+  height: 1px;
+  @media (max-width: 991px) {
+    max-width: 100%;
+  }
+`;
+const Div44 = styled.label`
+  display: flex;
+  justify-content: space-around;
+  font-weight: 400;
+  margin: 14px 0 0 0;
+  @media (max-width: 991px) {
+    margin-left: 10px;
+  }
+`;
+const Div46 = styled.div`
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+  color: #5d5d5d;
+  justify-content: start;
+  white-space: nowrap;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Div45 = styled.div`
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+  color: #5d5d5d;
+  white-space: nowrap;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Checkbox = styled.input`
+  border-radius: 5px;
+  border: 1px solid #d3d3d3;
+  background-color: #fff;
 
-export default Grading;
+`;
+const Div47 = styled.div`
+  font-family: Roboto, sans-serif;
+  flex-grow: 1;
+  flex-shrink: 1; /* Разрешить сжатие текста */
+  word-wrap: break-word; /* Перенос текста на новую строку при необходимости */
+  white-space: normal; /* Перенос текста на новую строку */
+  overflow: hidden; /* Скрытие излишков текста */
+  text-overflow: ellipsis; /* Отображение многоточия для обрезанного текста */
+`;
+
+const Div48 = styled.div`
+  color: #7b7b7b;
+  flex-shrink: 1; /* Разрешить сжатие текста */
+  font: 12px Roboto, sans-serif;
+  overflow: hidden; /* Скрытие излишков текста */
+  text-overflow: ellipsis; /* Отображение многоточия для обрезанного текста */
+`;
+
+const Div49 = styled.div`
+  background-color: #e6e6e6;
+  margin-top: 13px;
+  height: 1px;
+  @media (max-width: 991px) {
+    max-width: 100%;
+  }
+  `
+const Div73 = styled.div`
+  align-self: start;
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  white-space: nowrap;
+  margin: 32px 0 0 11px;
+  @media (max-width: 991px) {
+    margin-left: 10px;
+    white-space: initial;
+  }
+`;
+const AcceptButton = styled.button`
+  cursor:pointer;
+  border:none;
+  font-family: Roboto, sans-serif;
+  border-radius: 8px;
+  background-color: rgba(24, 119, 242, 1);
+  flex-grow: 1;
+  justify-content: center;
+  color: #fff;
+  &:hover {
+    transform: translateY(-5px);
+    transition: transform 0.5s;
+    background-color: blue;
+    cursor:pointer;
+    box-shadow: .0rem .2rem .4rem #777;
+    /* line I added */
+    pointer-events: visible;
+    position: relative;
+    z-index: 0;
+    visibility: visible;
+    float: none;
+  }
+  font-weight: 500;
+  padding: 12px 35px;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+const RejectButton = styled.button`
+  cursor:pointer;
+  border:none;
+  font-family: Roboto, sans-serif;
+  border-radius: 8px;
+  &:hover {
+    transform: translateY(-5px);
+    transition: transform 0.5s;
+    color: #fff;
+    cursor:pointer;
+    box-shadow: .0rem .2rem .4rem #777;
+    /* line I added */
+    background-color:red;
+    pointer-events: visible;
+    position: relative;
+    z-index: 0;
+    visibility: visible;
+    float: none;
+  }
+  background-color: rgba(230, 230, 230, 1);
+  flex-grow: 1;
+  justify-content: center;
+  color: #434343;
+  font-weight: 400;
+  padding: 12px 38px;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+
+export default MyComponent;
