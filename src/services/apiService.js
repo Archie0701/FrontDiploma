@@ -103,6 +103,20 @@ export const fetchNewProposalData = async () => {
   }
 };
 
+export const fetchProposalData = async () => {
+  try {
+    const response = await apiService.get('/proposals/', {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const gradeProposal = async (proposalId, grading, score ) => {
   const accessToken = localStorage.getItem('accessToken');
   if (!accessToken) {
@@ -285,7 +299,7 @@ export const acceptProposal = async (proposalId, selectedCriteriaIds) => {
 };
 
 
-export const fetchProposerData = async (id) => {
+export const fetchProposersData = async (id) => {
   try {
     const response = await apiService.get(`proposers/`, {
       headers: {
@@ -293,8 +307,12 @@ export const fetchProposerData = async (id) => {
         'Content-Type': 'application/json',
       }
     });
-    
-
+  
+    return response.data;
+    } catch (error) {
+      throw error;
+    }
+  };
 export const declineProposal = async (proposalId, selectedCriteriaIds) => {
   try {
     // Отправляем запрос на отклонение предложения с использованием proposalId и передачей критериев в теле запроса
@@ -315,6 +333,20 @@ export const registration = async (userData) => {
       }
     });
     
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const addProposal = async (proposalData) => {
+  try {
+
+    const response = await apiService.post('/proposals/', proposalData, {
+      'Accept': 'application/json',
+        'Content-Type': 'application/json',
+    })
+
     return response.data;
   } catch (error) {
     throw error;

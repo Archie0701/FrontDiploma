@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { login } from '../../services/apiService';
+import { login, fetchUserData } from '../../services/apiService';
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import '../CSS/PromoSection.css'; // Подключаем файл стилей для анимации
+import { useNavigate } from 'react-router-dom';
 
 
-const SignInPage = () => {
+const SignInPage = ({ setUserRole }) => {
+  const navigate = useNavigate()
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -33,9 +35,10 @@ const SignInPage = () => {
         email: formData.email,
         password: formData.password
       });
-      window.location.href = "../proposers"
-
-      // Действия после успешного входа (например, перенаправление на другую страницу)
+      const userDataResponse = await fetchUserData();
+      const role = userDataResponse.is_proposer ? 'proposer' : 'not_proposer';
+      setUserRole(role);
+      navigate("/main");
     } catch (error) {
       console.error('Login failed:', error);
       // Обработка ошибки входа (например, отображение сообщения об ошибке)

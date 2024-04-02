@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
-import { fetchUserData, fetchNewProposalData, acceptProposal, declineProposal, criterias } from '../../services/apiService';
+import { fetchUserData, addProposal, criterias } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
-import '../sliderComponent/style.css'; //
+import './style.css'; //
 
 export const logOut = () => {
   // Удаляем токен из localStorage
@@ -16,17 +16,20 @@ export const logOut = () => {
 function MyComponent(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [proposalData, setProposalData] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [proposalText, setProposalText] = useState('');
   const [allCriterias, setAllCriterias] = useState([]);
   const [selectedCriteriaIds, setSelectedCriteriaIds] = useState([]);
 
-  // Обновленная функция fetchData
+
+
+  const today = new Date();
+  const formattedDate = `${today.getDate()} ${today.toLocaleString('default', { month: 'long' })} ${today.getFullYear()}`;
+
   // Обновленная функция fetchData
   const fetchData = async () => {
     try {
       const userDataResponse = await fetchUserData();
-      const proposalDataResponse = await fetchNewProposalData();
       const criteriasData = await criterias();
 
       // Обновляем состояние allCriterias с данными из API
@@ -37,17 +40,6 @@ function MyComponent(props) {
         setUserData(userDataResponse);
       }
 
-      proposalDataResponse.forEach(proposal => {
-        if (proposal.criteria && proposal.criteria.length > 0) {
-          updateSelectedCriteria(proposal.criteria);
-        }
-      });
-
-      // Обновляем состояние выбранных критериев
-      const selectedCriteriaIds = proposalDataResponse.flatMap(proposal => proposal.criteria.map(criterion => criterion.id));
-      setSelectedCriteriaIds(selectedCriteriaIds);
-
-      setProposalData(proposalDataResponse);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -55,14 +47,24 @@ function MyComponent(props) {
     }
   };
 
-  const updateProposalList = async () => {
+  const handleSendProposal = async () => {
     try {
-      const updatedProposalData = await fetchNewProposalData();
-      setProposalData(updatedProposalData);
+      setProposalText('');
+      const response = await addProposal({ 
+        text: proposalText,
+        proposer: 2,
+        // proposer: userData.proposer,
+        criteria: []
+      });
+      console.log('Proposal sent:', response);
+
+      alert('Proposal sent successfully!');
     } catch (error) {
-      console.error('Error updating proposal list:', error);
+      // Handle error
+      console.error('Error sending proposal:', error);
     }
   };
+
   // Обновляем выбранные критерии
   const updateSelectedCriteria = (criteriaList) => {
     const criteriaIds = criteriaList.map(criterion => criterion.id);
@@ -73,103 +75,6 @@ function MyComponent(props) {
     fetchData();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, checked } = e.target;
-    const criteriaId = parseInt(name);
-
-    // Проверяем, что proposalData[currentIndex] существует и содержит критерии
-    if (proposalData[currentIndex]?.criteria) {
-      // Создаем копию proposalData для внесения изменений
-      const updatedProposalData = proposalData.map(proposal => {
-        // Копируем текущий объект proposal, чтобы не изменять исходные данные напрямую
-        const updatedCriteria = proposal.criteria.map(criteria => {
-          // Если id критерия совпадает с id, который был изменен, обновляем его состояние
-          if (criteria.id === criteriaId) {
-            return {
-              ...criteria,
-              selected: checked // Обновляем состояние выбранности критерия
-            };
-          }
-          return criteria;
-        });
-        return {
-          ...proposal,
-          criteria: updatedCriteria // Обновляем критерии в proposal
-        };
-      });
-
-      // Обновляем proposalData с обновленными критериями
-      setProposalData(updatedProposalData);
-
-      // Обновляем список выбранных критериев
-      if (checked) {
-        setSelectedCriteriaIds(prevSelectedCriteriaIds => [...prevSelectedCriteriaIds, criteriaId]);
-      } else {
-        setSelectedCriteriaIds(prevSelectedCriteriaIds => prevSelectedCriteriaIds.filter(id => id !== criteriaId));
-      }
-    }
-  };
-
-
-
-
-  const handleNext = () => {
-    const nextProposal = proposalData.find((data, index) => index > currentIndex && data.status === "New");
-    if (nextProposal) {
-      setCurrentIndex(proposalData.indexOf(nextProposal));
-      updateSelectedCriteria(nextProposal.criteria); // Добавляем эту строку
-    }
-  };
-
-  const handleBack = () => {
-    const prevProposal = proposalData.slice(0, currentIndex).reverse().find(data => data.status === "New");
-    if (prevProposal) {
-      setCurrentIndex(proposalData.indexOf(prevProposal));
-      updateSelectedCriteria(prevProposal.criteria); // Добавляем эту строку
-    }
-  };
-
-
-
-  const handleAccept = async () => {
-    try {
-      const newProposal = proposalData.find(data => data.status === "New");
-
-      if (!newProposal) {
-        alert("Нет новых предложений для принятия");
-        return;
-      }
-
-      const proposalId = newProposal.id;
-      const criteriaIds = newProposal.criteria.map(criteria => criteria.id);
-
-      const response = await acceptProposal(proposalId, selectedCriteriaIds);
-      await updateProposalList();
-      // Обработка успешного принятия предложения
-    } catch (error) {
-      // Обработка ошибки
-    }
-  };
-
-  const handleReject = async () => {
-    try {
-      const newProposal = proposalData.find(data => data.status === "New");
-
-      if (!newProposal) {
-        alert("Нет новых предложений для принятия");
-        return;
-      }
-
-      const proposalId = newProposal.id;
-      const criteriaIds = newProposal.criteria.map(criteria => criteria.id);
-
-      const response = await declineProposal(proposalId, selectedCriteriaIds);
-      await updateProposalList();
-      // Обработка успешного принятия предложения
-    } catch (error) {
-      // Обработка ошибки
-    }
-  };
 
   if (loading) {
     return <Spinner />;
@@ -184,7 +89,7 @@ function MyComponent(props) {
       <Div2>
         <Div3>
           <LogoKaizen src="https://cdn.builder.io/api/v1/image/assets/TEMP/3905e52e9c6b961ec6717c80409232f3222eab9fc52b8caf2e55d314ff83b93e?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="KaizenCloud Logo" />
-          <Link to="/slider" style={{ textDecoration: 'none', marginTop: 57}}>
+          <Link to="/slider" style={{ textDecoration: 'none' }}>
             <Button
               loading="lazy"
             ><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -268,41 +173,26 @@ function MyComponent(props) {
             </Div7>
           </Div5>
           <Div10 className="slider-container">
-            {proposalData && (
               <Div11 className="slider">
                 <Column>
-                  {proposalData.filter(data => data.status === "New").map((data, index) => (
-                    <Div12
-                      className={`slide ${index === currentIndex ? 'active' : ''} ${index < currentIndex ? 'slideToLeft' : index > currentIndex ? 'slideToRight' : ''}`}
-                      key={data.id}
-                    >
-                      <Div13>
-                        <Div14>{formatDate(data.created_at)}</Div14>
-                        <Div15>
-                          <ArchiveButton>Archive</ArchiveButton>
-                        </Div15>
-                        <Div19>
-                          {currentIndex > 0 && <BackButton onClick={handleBack}>Back</BackButton>}
-                          {currentIndex < proposalData.length - 1 && <NextButton onClick={handleNext}>Next</NextButton>}
-                        </Div19>
-                      </Div13>
+                    <Div12>
+                        <Div14>{formattedDate}</Div14>
                       <Div22 />
                       <Div23>
-                        <Div24>
-                          <Div25>New proposals</Div25>
-                          <Div26>{data.text}</Div26>
-                        </Div24>
-                        <Div27 />
-                        <Div28>
-                          <Div29>
-                            <Div30>Comments</Div30>
-                            <Div31>Great job!</Div31>
-                          </Div29>
-                          <Comments type="text" placeholder="Your comments" />
-                        </Div28>
+                        <Proposal type="text" 
+                          placeholder="Your proposal" 
+                          value={proposalText}
+                          onChange={(e) => setProposalText(e.target.value)}
+                        />
                       </Div23>
+                      <ButtonContainer>
+                        <SendButton onClick={handleSendProposal}>Send proposal</SendButton>
+                        <EraseButton onClick={() => {
+                            setProposalText('');
+                        }}> Erase All
+                        </EraseButton>
+                      </ButtonContainer>
                     </Div12>
-                  ))}
                 </Column>
                 <Column2>
                   <>
@@ -329,8 +219,8 @@ function MyComponent(props) {
                                   type="checkbox"
                                   name={criteria.id}
                                   checked={selectedCriteriaIds.includes(criteria.id)}
-                                  onChange={handleChange}// Устанавливаем состояние чекбокса на основе свойства selected критерия
-                                />
+
+                                  />
                                 <Div47>{criteria.name}</Div47>
                               </Div45>
                               <Div48>{criteria.description}</Div48>
@@ -338,17 +228,12 @@ function MyComponent(props) {
                             <Div49 />
                           </React.Fragment>
                         ))}
-                        <Div73>
-                          <AcceptButton onClick={handleAccept}>Accept</AcceptButton>
-                          <RejectButton onClick={handleReject}>Reject</RejectButton>
-                        </Div73>
+
                       </Div37>
                     </Div33>
                   </>
                 </Column2>
               </Div11>
-            )}
-
           </Div10>
 
         </Div4>
@@ -412,6 +297,7 @@ const Button = styled.button`
   object-fit: auto;
   object-position: center;
   width: 40px;
+  margin-top: 57px;
   @media (max-width: 991px) {
     margin-top: 40px;
   }
@@ -672,6 +558,49 @@ const Div12 = styled.div`
     margin-top: 15px;
   }
 `;
+
+const ButtonContainer = styled.div`
+  align-self: end;
+  display: flex;
+  gap: 20px;
+  margin: 30px 34px 0 0;
+
+  @media (max-width: 991px) {
+    margin: 40px 10px 0 0;
+  }
+`;
+
+const SendButton = styled.button`
+  font-family: Roboto, sans-serif;
+  border-radius: 8px;
+  background-color: rgba(24, 119, 242, 1);
+  color: #fff;
+  font-weight: 500;
+  justify-content: center;
+  padding: 12px 27px;
+  border: none;
+  cursor: pointer;
+
+  @media (max-width: 991px) {
+    padding: 12px 20px;
+  }
+`;
+
+const EraseButton = styled.button`
+  font-family: Roboto, sans-serif;
+  border-radius: 8px;
+  background-color: rgba(230, 230, 230, 1);
+  color: #434343;
+  font-weight: 400;
+  justify-content: center;
+  padding: 13px 46px;
+  border: none;
+  cursor: pointer;
+
+  @media (max-width: 991px) {
+    padding: 13px 20px;
+  }
+`;
 const Div13 = styled.div`
   display: flex;
   width: 100%;
@@ -687,8 +616,11 @@ const Div13 = styled.div`
   }
 `;
 const Div14 = styled.div`
+  display: flex;
+  height: 35px;
+  align-items: center;
   font-family: Roboto, sans-serif;
-  margin: auto 20px;
+  margin: 5px 20px;
 `;
 const Div15 = styled.div`
   display: flex;
@@ -845,16 +777,14 @@ const NextButton = styled.button`
 `;
 const Div22 = styled.div`
   background-color: #e6e6e6;
-  margin-top: 10px;
   height: 1px;
   @media (max-width: 991px) {
     max-width: 100%;
   }
 `;
 const Div23 = styled.div`
-  margin-left:20px;
+  margin: 20px 34px 0 34px;
   display: flex;
-  margin-top: 18px;
   z-index:0;
   align-items: start;
   justify-content: space-between;
@@ -928,12 +858,12 @@ const Div31 = styled.div`
     white-space: initial;
   }
 `;
-const Comments = styled.input`
+const Proposal = styled.input`
   border:none;
+  width: 100%;
   font-family: Roboto, sans-serif;
   border-radius: 8px;
   background-color: #f2f2f2;
-  margin-top: 24px;
   font-weight: 300;
   padding: 14px 60px 70px 10px;
   @media (max-width: 991px) {

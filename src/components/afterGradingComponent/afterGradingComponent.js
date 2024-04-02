@@ -4,9 +4,17 @@ import Spinner from '../Spinner/Spinner';
 import searchIconSvg from '../../images/search-icon.svg'
 import datePolygonSvg from '../../images/date-polygon.svg'
 import checkboxArrowSvg from '../../images/checkbox-arrow.svg'
-import { fetchUserData, fetchProposalData, fetchProposerData } from '../../services/apiService';
+import { fetchUserData, fetchProposalData, fetchProposersData } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
+import { DateRangePicker, Stack } from 'rsuite';
+import subDays from 'date-fns/subDays';
+import startOfWeek from 'date-fns/startOfWeek';
+import endOfWeek from 'date-fns/endOfWeek';
+import addDays from 'date-fns/addDays';
+import startOfMonth from 'date-fns/startOfMonth';
+import endOfMonth from 'date-fns/endOfMonth';
+import addMonths from 'date-fns/addMonths';
 import './style.css';
 
 export const logOut = () => {
@@ -21,11 +29,89 @@ function MyComponent(props) {
   const [loading, setLoading] = useState(true); // Добавляем состояние для отслеживания загрузки данных
   const [proposalData, setProposalData] = useState(null);
   const [proposals, setProposals] = useState(null);
-  const [proposerData, setProposerData] = useState(null);
+  const [proposersData, setProposersData] = useState(null);
   const [query, setQuery] = useState('');
 
 
   const [isChecked, setIsChecked] = useState(false);
+
+
+  const predefinedRanges = [
+    {
+      label: 'Today',
+      value: [new Date(), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Yesterday',
+      value: [addDays(new Date(), -1), addDays(new Date(), -1)],
+      placement: 'left'
+    },
+    {
+      label: 'This week',
+      value: [startOfWeek(new Date()), endOfWeek(new Date())],
+      placement: 'left'
+    },
+    {
+      label: 'Last 7 days',
+      value: [subDays(new Date(), 6), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Last 30 days',
+      value: [subDays(new Date(), 29), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'This month',
+      value: [startOfMonth(new Date()), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Last month',
+      value: [startOfMonth(addMonths(new Date(), -1)), endOfMonth(addMonths(new Date(), -1))],
+      placement: 'left'
+    },
+    {
+      label: 'This year',
+      value: [new Date(new Date().getFullYear(), 0, 1), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Last year',
+      value: [new Date(new Date().getFullYear() - 1, 0, 1), new Date(new Date().getFullYear(), 0, 0)],
+      placement: 'left'
+    },
+    {
+      label: 'All time',
+      value: [new Date(new Date().getFullYear() - 1, 0, 1), new Date()],
+      placement: 'left'
+    },
+    {
+      label: 'Last week',
+      closeOverlay: false,
+      value: value => {
+        const [start = new Date()] = value || [];
+        return [
+          addDays(startOfWeek(start, { weekStartsOn: 0 }), -7),
+          addDays(endOfWeek(start, { weekStartsOn: 0 }), -7)
+        ];
+      },
+      appearance: 'default'
+    },
+    {
+      label: 'Next week',
+      closeOverlay: false,
+      value: value => {
+        const [start = new Date()] = value || [];
+        return [
+          addDays(startOfWeek(start, { weekStartsOn: 0 }), 7),
+          addDays(endOfWeek(start, { weekStartsOn: 0 }), 7)
+        ];
+      },
+      appearance: 'default'
+    }
+  ];
 
   const checkbox = (event) => {
     setIsChecked(event.target.checked);
@@ -39,7 +125,7 @@ function MyComponent(props) {
         // Вызываем функцию fetchUserData для получения данных пользователя
         const userDataResponse = await fetchUserData();
         const proposalData = await fetchProposalData();
-        const proposerData = await fetchProposerData()
+        const proposersData = await fetchProposersData()
         setProposalData(proposalData);
         setProposals(proposalData);
         setUserData(userDataResponse);
@@ -51,11 +137,11 @@ function MyComponent(props) {
         console.log('Proposal Data:', proposalData);
         console.log('User Data:', userDataResponse);
         const transformedData = {};
-        proposerData.forEach((item) => {
+        proposersData.forEach((item) => {
           transformedData[item.id] = item;
         });
         console.log('Proposer Data:', transformedData);
-        setProposerData(transformedData)
+        setProposersData(transformedData)
       } catch (error) {
         setError(error.message);
 
@@ -77,16 +163,88 @@ function MyComponent(props) {
     } else{
     
     const filteredProposals = proposalData.filter(proposal => {
-      const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
-      console.log("Query:", value.toLowerCase());
-      console.log("Full name:", fullName);
-      console.log("Text:", proposal.text);
-      console.log("Full name logic", fullName.toLowerCase().includes(value.toLowerCase()));
-      console.log("Text logic: ", proposal.text.toLowerCase().includes(value.toLowerCase()));
+      const fullName = `${proposersData[proposal.proposer].user.first_name} ${proposersData[proposal.proposer].user.last_name}`;
       return fullName.toLowerCase().includes(value.toLowerCase()) || proposal.text.toLowerCase().includes(value.toLowerCase());
     });
       setProposals(filteredProposals);
     }
+  };
+
+  const [dateData, setdateData] = useState([]);
+
+  const dateSelected = (selectedDate) => {
+    const date1 = new Date(selectedDate[0]).setHours(0, 0, 0, 0);
+    const date2 = new Date(selectedDate[1]).setHours(0, 0, 0, 0);
+
+    setdateData([date1, date2]);
+
+    // const filteredProposals = proposals.filter(proposal => {
+    //   const created_date = new Date(proposal.created_at).setHours(0, 0, 0, 0);
+    //   if (created_date >= date1 && created_date <= date2 ) {
+    //   return true;
+    //   }
+    //   return false;
+    // });
+    //   setProposals(filteredProposals);
+  };
+
+  const dateClean = () => {
+    // if(query != ''){
+    //   const filteredProposalsBySearch = proposalData.filter(proposal => {
+    //     const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
+    //     return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+    //   });
+
+    //   if(selectedOption != 'filter by'){
+    //     const filteredProposalsByStatus = filteredProposalsBySearch.filter(proposal => {
+    //       return proposal.status == selectedOption;
+    //     });
+    //     setProposals(filteredProposalsByStatus);
+    //   } else {
+    //   }
+    // }
+    // else {
+    //   if(selectedOption != 'filter by'){
+    //     const filteredProposalsByStatus = proposalData.filter(proposal => {
+    //       return proposal.status == selectedOption;
+    //     });
+    //     setProposals(filteredProposalsByStatus);
+    //   } else {
+    //     setProposals(proposalData);
+      
+    // } 
+  }
+
+  const [isDrop, setIsDrop] = useState(false);
+  const [selectedOption, setSelectedOption] = useState("Filter By");
+
+  const options = [
+    "Date Graded",
+    "Date Accepted",
+  ];
+
+  const handleOptionSelect = (option) => {
+    setSelectedOption(option);
+    const filteredProposals = proposals.filter(proposal => {
+      return proposal.status == option;
+    });
+    setIsOpen(false);
+    setProposals(filteredProposals);
+      
+  };
+
+  const clearSelection = () => {
+    setSelectedOption("Filter By");
+    if(query == '') {
+      setProposals(proposalData);
+    } else {
+      const filteredProposalsBySearch = proposalData.filter(proposal => {
+      const fullName = `${proposersData[proposal.proposer].user.first_name} ${proposersData[proposal.proposer].user.last_name}`;
+      return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+        });
+      setProposals(filteredProposalsBySearch);
+    }
+    setIsOpen(false);
   };
 
   const [isOpen, setIsOpen] = React.useState(false);
@@ -119,6 +277,7 @@ function MyComponent(props) {
 
           </Button>
           </Link>
+          <Link to="/grading">
           <Button1
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/be1e262c51b781adefde1ed54a742d841941ec89f676a85721792f38bc9ac061?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
@@ -126,6 +285,7 @@ function MyComponent(props) {
               <path d="M6.39333 13.0044L9.33333 11.3377L12.2733 13.0263L11.5033 9.86842L14.0933 7.76316L10.6867 7.47807L9.33333 4.49561L7.98 7.45614L4.57333 7.74123L7.16333 9.86842L6.39333 13.0044ZM3.57 16.6667L5.08667 10.5044L0 6.35965L6.72 5.8114L9.33333 0L11.9467 5.8114L18.6667 6.35965L13.58 10.5044L15.0967 16.6667L9.33333 13.3991L3.57 16.6667Z" fill="#7D7D7D" />
             </svg>
           </Button1>
+          </Link>
           <Link to="/after_grading">
           <Button2
             loading="lazy"
@@ -154,7 +314,8 @@ function MyComponent(props) {
           ><svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M6.75556 13.3778L13.0222 7.11111L11.7778 5.86667L6.75556 10.8889L4.22222 8.35556L2.97778 9.6L6.75556 13.3778ZM1.77778 17.7778C1.28889 17.7778 0.87037 17.6037 0.522222 17.2556C0.174074 16.9074 0 16.4889 0 16V3.55556C0 3.06667 0.174074 2.64815 0.522222 2.3C0.87037 1.95185 1.28889 1.77778 1.77778 1.77778H5.51111C5.7037 1.24444 6.02593 0.814815 6.47778 0.488889C6.92963 0.162963 7.43704 0 8 0C8.56296 0 9.07037 0.162963 9.52222 0.488889C9.97407 0.814815 10.2963 1.24444 10.4889 1.77778H14.2222C14.7111 1.77778 15.1296 1.95185 15.4778 2.3C15.8259 2.64815 16 3.06667 16 3.55556V16C16 16.4889 15.8259 16.9074 15.4778 17.2556C15.1296 17.6037 14.7111 17.7778 14.2222 17.7778H1.77778ZM1.77778 16H14.2222V3.55556H1.77778V16ZM8 2.88889C8.19259 2.88889 8.35185 2.82593 8.47778 2.7C8.6037 2.57407 8.66667 2.41481 8.66667 2.22222C8.66667 2.02963 8.6037 1.87037 8.47778 1.74444C8.35185 1.61852 8.19259 1.55556 8 1.55556C7.80741 1.55556 7.64815 1.61852 7.52222 1.74444C7.3963 1.87037 7.33333 2.02963 7.33333 2.22222C7.33333 2.41481 7.3963 2.57407 7.52222 2.7C7.64815 2.82593 7.80741 2.88889 8 2.88889Z" fill="#7D7D7D" />
             </svg>
-          </Button4>
+          </Button4>        
+          <Link to="/proposers">
           <Button5
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/5cad224f16a6fc23c80847beab1b9c8c6e9a264bf0234be196d73358c85e00fd?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
@@ -162,6 +323,7 @@ function MyComponent(props) {
               <path d="M13.1665 9.50004C12.5832 9.50004 12.0901 9.29865 11.6873 8.89587C11.2846 8.4931 11.0832 8.00004 11.0832 7.41671C11.0832 6.83337 11.2846 6.34032 11.6873 5.93754C12.0901 5.53476 12.5832 5.33337 13.1665 5.33337C13.7498 5.33337 14.2429 5.53476 14.6457 5.93754C15.0484 6.34032 15.2498 6.83337 15.2498 7.41671C15.2498 8.00004 15.0484 8.4931 14.6457 8.89587C14.2429 9.29865 13.7498 9.50004 13.1665 9.50004ZM8.99984 13.6667V12.5C8.99984 12.1667 9.08664 11.8577 9.26025 11.573C9.43386 11.2882 9.68039 11.0834 9.99984 10.9584C10.4998 10.75 11.0172 10.5938 11.5519 10.4896C12.0866 10.3855 12.6248 10.3334 13.1665 10.3334C13.7082 10.3334 14.2464 10.3855 14.7811 10.4896C15.3158 10.5938 15.8332 10.75 16.3332 10.9584C16.6526 11.0834 16.8991 11.2882 17.0728 11.573C17.2464 11.8577 17.3332 12.1667 17.3332 12.5V13.6667H8.99984ZM7.33317 7.00004C6.4165 7.00004 5.63178 6.67365 4.979 6.02087C4.32623 5.3681 3.99984 4.58337 3.99984 3.66671C3.99984 2.75004 4.32623 1.96532 4.979 1.31254C5.63178 0.659763 6.4165 0.333374 7.33317 0.333374C8.24984 0.333374 9.03456 0.659763 9.68734 1.31254C10.3401 1.96532 10.6665 2.75004 10.6665 3.66671C10.6665 4.58337 10.3401 5.3681 9.68734 6.02087C9.03456 6.67365 8.24984 7.00004 7.33317 7.00004ZM0.666504 13.6667V11.3334C0.666504 10.8612 0.784559 10.4271 1.02067 10.0313C1.25678 9.63546 1.58317 9.33337 1.99984 9.12504C2.83317 8.70837 3.69775 8.38893 4.59359 8.16671C5.48942 7.94448 6.40261 7.83337 7.33317 7.83337C7.81928 7.83337 8.30539 7.87504 8.7915 7.95837C9.27761 8.04171 9.76373 8.13893 10.2498 8.25004L9.5415 8.95837L8.83317 9.66671C8.58317 9.59726 8.33317 9.55212 8.08317 9.53129C7.83317 9.51046 7.58317 9.50004 7.33317 9.50004C6.52761 9.50004 5.73942 9.59726 4.96859 9.79171C4.19775 9.98615 3.45817 10.2639 2.74984 10.625C2.61095 10.6945 2.50678 10.7917 2.43734 10.9167C2.36789 11.0417 2.33317 11.1806 2.33317 11.3334V12H7.33317V13.6667H0.666504ZM7.33317 5.33337C7.7915 5.33337 8.18386 5.17018 8.51025 4.84379C8.83664 4.5174 8.99984 4.12504 8.99984 3.66671C8.99984 3.20837 8.83664 2.81601 8.51025 2.48962C8.18386 2.16324 7.7915 2.00004 7.33317 2.00004C6.87484 2.00004 6.48248 2.16324 6.15609 2.48962C5.8297 2.81601 5.6665 3.20837 5.6665 3.66671C5.6665 4.12504 5.8297 4.5174 6.15609 4.84379C6.48248 5.17018 6.87484 5.33337 7.33317 5.33337Z" fill="#7D7D7D" />
             </svg>
           </Button5>
+          </Link>
           <Button6
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/6236b84bf174b42f3ae39f588cbc1551625088c8e0016e99592ad17058d2b3a8?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
@@ -221,29 +383,46 @@ function MyComponent(props) {
           </Div5>
           <Div10>
             <Div50>
-              <SearchBarWrapper>
+              <FilterWrapper>
               <SearchInput>
                 <SearchIcon src={searchIconSvg} alt="Search icon" />
                 <input
                   type="text"
                   value={query}
+                  className='input_search'
                   onChange={handleInputChange}
                   placeholder="Search"
                 />
               </SearchInput>
-                <DateRange>
-                  <DateRangeText>Last 7 days: Sep 12, 2023 - Sep 13, 2023</DateRangeText>
-                  <CalendarIcon src={datePolygonSvg} alt="Calendar icon" />
-                </DateRange>
-              </SearchBarWrapper>
+              <Stack>
+                <DateRangePicker
+                  onOk={dateSelected}
+                  onClean={dateClean}
+                  className='dateRangePicker'
+                  size="lg"
+                  ranges={predefinedRanges}
+                  placeholder="Proposals date range"
+                  style={{ width: 300 }}
+                  onShortcutClick={(range) => {
+                    dateSelected(range.value);
+                  }}
+                />
+              </Stack>
+              <div className="dropdown">
+                <button className="dropbtn" onClick={() => setIsDrop(!isOpen)}>{selectedOption} {selectedOption !== "filter by" && <span className="clear" onClick={(e) => {e.stopPropagation(); clearSelection()}}>x</span>}</button>
+                {isDrop && (
+                  <div className="dropdown-content">
+                    {options.map((option, index) => (
+                      <button key={index} onClick={() => handleOptionSelect(option)}>{option}</button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              </FilterWrapper>
             </Div50>
             <Container>
               <Header>
                 <HeaderWrapper className='RatedText'>Rated</HeaderWrapper>
-                <HeaderWrapper className='telegram'>
-                  <TelegramIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/4d484e66da61470f3184485f746290ccbf90e558c80901f62078f59458779b8b?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Telegram Icon" />
-                  <TelegramOffersText>Telegram offers</TelegramOffersText>
-                </HeaderWrapper>
               </Header>
               <Table>
                 <Divider />
@@ -272,26 +451,28 @@ function MyComponent(props) {
                 </TableHeaderRight>
               </TableHeader>
               <TableBody>
-                {proposals.map((item) => (
+              {proposals.map((item) => (
+                (item.total_score || item.grade_percentage && item.status == 'GRADED') ? (
                   <TableRow>
-                      <CheckboxWrapper>
-                      <Checkbox/>
-                      </CheckboxWrapper>
-                      <TableRowLabel className="row_number">{++rowNum}</TableRowLabel>
-                      <TableRowLabel className="row_name">{proposerData[item.proposer].user.first_name}</TableRowLabel>
-                      <TableRowLabel className="row_surname">{proposerData[item.proposer].user.last_name}</TableRowLabel>
-                        <TableRowLabel className="row_proposal">{item.text}</TableRowLabel>
-                        <TableRowLabel className="row_points">{item.points}</TableRowLabel>
-                        <TableRowLabel className="row_grade">{item.grade}</TableRowLabel>
-                        <TableRowLabel className="row_date_graded">{item.graded_at.split('T')[0]}</TableRowLabel>
-                        <TableRowLabel className="row_date_accepted">{item.accepted_at.split('T')[0]}</TableRowLabel>
-                        <TableRowLabel className="row_status">{item.status}</TableRowLabel>
-                      <TableRowLabel className='row_actions'>
-                        <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/45ba6e34c4feb0d1b52792ce057608876be231e17318d83a73a051445a2210ec?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
-                        <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/0539ef010e404541cac233bb9e81504535f80b90b240f64a9e5f8bd27bf3a7a1?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
-                      </TableRowLabel>
+                    <CheckboxWrapper>
+                      <Checkbox />
+                    </CheckboxWrapper>
+                    <TableRowLabel className="row_number">{++rowNum}</TableRowLabel>
+                    <TableRowLabel className="row_name">{proposersData[item.proposer].user.first_name}</TableRowLabel>
+                    <TableRowLabel className="row_surname">{proposersData[item.proposer].user.last_name}</TableRowLabel>
+                    <TableRowLabel className="row_proposal">{item.text}</TableRowLabel>
+                    <TableRowLabel className="row_points">{item.total_score}</TableRowLabel>
+                    <TableRowLabel className="row_grade">{item.grade_percentage}</TableRowLabel>
+                    <TableRowLabel className="row_date_graded">{item.graded_at.split('T')[0]}</TableRowLabel>
+                    <TableRowLabel className="row_date_accepted">{item.accepted_at.split('T')[0]}</TableRowLabel>
+                    <TableRowLabel className="row_status" status={item.status}>{item.status}</TableRowLabel>
+                    <TableRowLabel className='row_actions'>
+                      <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/45ba6e34c4feb0d1b52792ce057608876be231e17318d83a73a051445a2210ec?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
+                      <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/0539ef010e404541cac233bb9e81504535f80b90b240f64a9e5f8bd27bf3a7a1?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
+                    </TableRowLabel>
                   </TableRow>
-                ))}
+                ) : null
+              ))}
               </TableBody>
               </Table>
               
@@ -310,6 +491,19 @@ function MyComponent(props) {
     </Div>
   );
 }
+
+const getStatusColor = (status) => {
+  switch(status) {
+    case 'New':
+      return '#1871ED';
+    case 'Accepted':
+      return '#63BE09';
+    case 'Declined':
+      return '#BE2A09';
+    default:
+      return '';
+  }
+};
 
 const LogoKaizen = styled.img`
   aspect-ratio: 1.12;
@@ -662,10 +856,11 @@ const Div10 = styled.div`
   }
 `;
 
-const SearchBarWrapper = styled.div`
+const FilterWrapper = styled.div`
   display: flex;
   gap: 5px;
-  
+  height: 40px;
+
   @media (max-width: 991px) {
     flex-wrap: wrap;
   }
@@ -679,7 +874,6 @@ const SearchInput = styled.div`
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.1);
-  flex: 1;
   
   @media (max-width: 991px) {
     flex-wrap: wrap;
@@ -759,40 +953,14 @@ const HeaderWrapper = styled.div`
   color: #6c6c6c;
   
   &.RatedText {
+    font-size: 20px;
     padding: 11px 450px 12px 30px;
     color: #1871ed;
     font-family: Roboto, sans-serif;
     margin: auto 0;
   }
-  &.telegram {
-    background-color: rgba(250, 250, 250, 0.6);
-    padding: 11px 450px 11px 13px;
-    gap: 10px;
-  }
-  &.telegram:hover {
-    background-color: rgba(250, 250, 250, 0.8);
-    cursor: pointer;
-  }
   @media (max-width: 991px) {
     flex-wrap: wrap;
-  }
-`;
-
-const TelegramIcon = styled.img`
-  aspect-ratio: 1.11;
-  object-fit: auto;
-  object-position: center;
-  width: 21px;
-  fill: #6c6c6c;
-`;
-
-const TelegramOffersText = styled.div`
-  font-family: Roboto, sans-serif;
-  flex-grow: 1;
-  flex-basis: auto;
-  
-  @media (max-width: 991px) {
-    max-width: 100%;
   }
 `;
 
@@ -879,7 +1047,7 @@ justify-content: center;
 &.row_proposal {
   padding: 7px 0 7px 17px;
   justify-content: start;
-  width: 683px;
+  width: 645px;
   line-height: 1.5;
 }
 
@@ -911,6 +1079,7 @@ justify-content: center;
   padding-left: 16px;
   justify-content: start;
   min-width: 84px;
+  color: ${props => getStatusColor(props.status)};
 }
 
 &.row_actions {
@@ -959,7 +1128,7 @@ const TableHeaderLabel = styled.div`
   &.header_proposals {
     padding: 7px 0 7px 17px;
     justify-content: start;
-    width: 683px;
+    width: 645px;
     line-height: 1.5;
   }
 
@@ -991,6 +1160,7 @@ const TableHeaderLabel = styled.div`
     padding-left: 16px;
     justify-content: start;
     min-width: 84px;
+    color: ${props => getStatusColor(props.status)};
   }
 
   &.header_actions {
