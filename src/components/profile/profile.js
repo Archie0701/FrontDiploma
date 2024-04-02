@@ -228,12 +228,23 @@ const Div3 = styled.div`
 `;
 
 
+const Container = styled.div`
+`;
+
 const JournalText = styled.div`
+  width: 90%;
+
 `;
 const JournalDescription = styled.div`
+overflow-x: hidden;
+overflow-y: auto;
+max-height: 75px;
 `;
 
 const JournalDate = styled.div`
+display: flex;
+margin-top: 5%;
+margin-left: 70%;
 `;
 
 const JournalIcon = styled.div`
@@ -246,6 +257,81 @@ const JournalIconBackground = styled.div`
 `;
 
 
+
+const Div5 = styled.div`
+  display: flex;
+  width: 100%;
+  align-items: start;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 16px;
+  color: #5d5d5d;
+  font-weight: 400;
+  white-space: nowrap;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    flex-wrap: wrap;
+    white-space: initial;
+  }
+`;
+const Div6 = styled.div`
+  font-family: Roboto, sans-serif;
+  border-radius: 8px;
+  border: 1px solid #d7d7d7;
+  background-color: #fff;
+  justify-content: center;
+  padding: 13px 49px;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+const Div7 = styled.div`
+  border-radius: 8px;
+  border: 1px solid #d7d7d7;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 8px 13px;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Div8 = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Img8 = styled.img`
+  aspect-ratio: 1;
+  object-fit: auto;
+  object-position: center;
+  width: 24px;
+`;
+const Div9 = styled.div`
+  font-family: Roboto, sans-serif;
+  flex-grow: 1;
+  margin: auto 0;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Img9 = styled.button`
+aspect-ratio: 1.15;
+object-fit: auto;
+object-position: center;
+width: 15px;
+
+cursor:pointer;
+background: transparent;
+border: none !important;
+font-size:0;
+margin: auto 0;
+`;
 
 const Button = styled.button`
   aspect-ratio: 1;
@@ -266,7 +352,6 @@ const Button = styled.button`
   object-fit: auto;
   object-position: center;
   width: 40px;
-  margin-top: 57px;
   @media (max-width: 991px) {
     margin-top: 40px;
   }
@@ -412,13 +497,13 @@ const LogoKaizen = styled.img`
   width: 43px;
 `;
 
-const HeaderWrapper = styled.header`
+const Main = styled.div`
   display: flex;
   width: 100%;
   gap: 20px;
   font-size: 16px;
   font-weight: 400;
-  justify-content: space-between;
+  background-color: #f2f2f2;
   @media (max-width: 991px) {
     max-width: 100%;
     flex-wrap: wrap;
@@ -427,9 +512,9 @@ const HeaderWrapper = styled.header`
 
 const ProfileWrapper = styled.div`
   border-radius: 6px;
-  background-color: #fff;
-  margin-top: 35px;
-  padding: 0 80px 0 15px;
+  width: 95%;
+  height: 830px;
+  margin-top: 5px;
 
   @media (max-width: 991px) {
     max-width: 100%;
@@ -438,9 +523,12 @@ const ProfileWrapper = styled.div`
 `;
 
 const ProfileContent = styled.div`
+margin-top: 20px;
+
+border-radius: 10px;
+background-color: #fff;
   display: flex;
   gap: 20px;
-
   @media (max-width: 991px) {
     flex-direction: column;
     align-items: stretch;
@@ -452,7 +540,6 @@ const ProfileColumn = styled.div`
   display: flex;
   flex-direction: column;
   line-height: normal;
-  width: 38%;
   margin-left: 0;
 
   @media (max-width: 991px) {
@@ -461,7 +548,6 @@ const ProfileColumn = styled.div`
 `;
 
 const ProfileInfo = styled.div`
-  display: flex;
   flex-grow: 1;
   gap: 20px;
 
@@ -480,8 +566,9 @@ const ProposerProfile = styled.div`
   align-items: start;
   flex-grow: 1;
   flex-basis: 0;
+  
   width: fit-content;
-
+ 
   @media (max-width: 991px) {
     max-width: 100%;
   }
@@ -489,16 +576,18 @@ const ProposerProfile = styled.div`
 
 const ProposerTitle = styled.h2`
   color: #1871ed;
+  margin-left: 60px;
   font-family: Roboto, sans-serif;
+  justify-content: center;
   font-size: 25px;
-  font-weight: 500;
+  font-weight: 700;
 `;
 
 const ProposerImage = styled.img`
   aspect-ratio: 1.02;
   object-fit: cover;
-  width: 100%;
-  align-self: center;
+  width: 50%;
+  margin-left: 50px;
   margin-top: 23px;
 `;
 
@@ -509,7 +598,7 @@ const ProposerName = styled.p`
   font-weight: 500;
   align-self: start;
   margin: 20px 0 0 14px;
-
+  margin-left: 60px;
   @media (max-width: 991px) {
     margin-left: 10px;
   }
@@ -597,6 +686,13 @@ const VerticalDivider = styled.div`
   height: 28px;
 `;
 
+const MainVerticalDivider = styled.div`
+  border: 1px solid rgba(211, 211, 211, 1);
+  background-color: #d3d3d3;
+  width: 1px;
+  height: 777px;
+`;
+
 const AwardsTitle = styled.h3`
   font-family: Roboto, sans-serif;
   flex-grow: 1;
@@ -638,19 +734,21 @@ const LastProposalsGraph = styled.section`
   display: flex;
   flex-direction: column;
   align-self: stretch;
-  margin: auto 0;
-
+  margin-top: 45px;
+  width: 75%;
   @media (max-width: 991px) {
     max-width: 100%;
     margin-top: 40px;
   }
 `;
 
+
+
 const GraphTitle = styled.div`
   align-self: start;
   display: flex;
   gap: 10px;
-  font-size: 19px;
+  font-size: 15px;
   color: #8e8e8e;
   font-weight: 500;
 `;
@@ -776,7 +874,7 @@ const JournalTitle = styled.div`
   display: flex;
   margin-top: 36px;
   gap: 10px;
-  font-size: 19px;
+  font-size: 15px;
   color: #8e8e8e;
   font-weight: 500;
 `;
@@ -793,8 +891,11 @@ const JournalContent = styled.div`
   width: 505px;
   max-width: 100%;
   gap: 20px;
+  color: #666666;
+  font-size: 13px;
+  font-family: Roboto, sans-serif;
   margin: 28px 0 0 23px;
-
+  
   @media (max-width: 991px) {
     flex-wrap: wrap;
   }

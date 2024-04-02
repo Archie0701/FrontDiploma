@@ -184,7 +184,7 @@ function MyComponent(props) {
       <Div2>
         <Div3>
           <LogoKaizen src="https://cdn.builder.io/api/v1/image/assets/TEMP/3905e52e9c6b961ec6717c80409232f3222eab9fc52b8caf2e55d314ff83b93e?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="KaizenCloud Logo" />
-          <Link to="/slider" style={{ textDecoration: 'none' }}>
+          <Link to="/slider" style={{ textDecoration: 'none', marginTop: 57}}>
             <Button
               loading="lazy"
             ><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -412,7 +412,6 @@ const Button = styled.button`
   object-fit: auto;
   object-position: center;
   width: 40px;
-  margin-top: 57px;
   @media (max-width: 991px) {
     margin-top: 40px;
   }
