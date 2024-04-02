@@ -87,7 +87,7 @@ export const criterias = async () => {
 export const fetchNewProposalData = async () => {
   try {
     // Получаем access token из localStorage
-    const response = await apiService.get('proposals/', {
+    const response = await apiService.get('/proposals/', {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
@@ -103,17 +103,172 @@ export const fetchNewProposalData = async () => {
   }
 };
 
+export const gradeProposal = async (proposalId, grading, score ) => {
+  const accessToken = localStorage.getItem('accessToken');
+  if (!accessToken) {
+    throw new Error('Access token not available');
+  }
+  console.log(proposalId);
+  try {
+    const response = await apiService.post(`/proposals/${proposalId}/gradings/`, 
+      { grading, score },
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`, // Добавляем access token в заголовок
+        }
+      }
+    );
+    
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};  
 
-export const fetchProposalData = async () => {
+export const addComment = async (proposalId, text ) => {
+  const accessToken = localStorage.getItem('accessToken');
+  if (!accessToken) {
+    throw new Error('Access token not available');
+  }
+  console.log(proposalId);
+  try {
+    const response = await apiService.post(`/proposals/${proposalId}/add_comments/`, 
+      { text },
+      {
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${accessToken}`, // Добавляем access token в заголовок
+        }
+      }
+    );
+    
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};  
+
+export const getComments = async (proposalId) => {
+  
+  const accessToken = localStorage.getItem('accessToken');
+  if (!accessToken) {
+    throw new Error('Access token not available');
+  }
   try {
     // Получаем access token из localStorage
-    const response = await apiService.get('proposals/', {
+    const response = await apiService.get(`/proposals/${proposalId}/get_comments/`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`, // Добавляем access token в заголовок
+      }
+    });
+    
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+export const fetchAcceptedProposalData = async () => {
+  try {
+    // Получаем access token из localStorage
+    const response = await apiService.get('/proposals/', {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
       }
     });
-    return response.data;
+
+    const newProposals = response.data.filter(proposal => proposal.status === 'Accepted');
+    
+    return newProposals;
+  } catch (error) {
+    throw error;
+  }
+};
+
+
+
+  // Функция для обновления статуса предложения
+ export const updateProposalStatusGraded = async (proposalId, status) => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        throw new Error('Access token not available');
+      }
+  
+      const response = await apiService.put(`/proposals/${proposalId}/change_status/`, 
+        { status },
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          }
+        }
+      );
+      
+      console.log("Proposal status updated successfully:", response.data);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  export const updateProposalStatusArchive = async (proposalId) => {
+    try {
+      const accessToken = localStorage.getItem('accessToken');
+      if (!accessToken) {
+        throw new Error('Access token not available');
+      }
+  
+      const response = await apiService.put(`/proposals/${proposalId}/archive/`,
+        {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          }
+        }
+      );
+      
+      console.log("Proposal status updated successfully:", response.data);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+export const fetchGradingsData = async () => {
+  try {
+    // Получаем access token из localStorage
+    const response = await apiService.get('proposals/grading_score/', {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    });
+
+    return response;
+  } catch (error) {
+    throw error;
+  }
+}
+
+export const fetchProposersId = async (id) => {
+  try {
+    // Получаем access token из localStorage
+    const response = await apiService.get(`/proposers/${id}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    });
+
+    return response;
   } catch (error) {
     throw error;
   }
