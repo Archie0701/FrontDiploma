@@ -3,34 +3,55 @@ import styled from "styled-components";
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
 
+export const logOut = () => {
+  // Удаляем токен из localStorage
+  localStorage.removeItem('accessToken');
+  window.location.href = "../login";
+};
 
 
 const data = [
-    {
-      id: 1,
-      name: "Adil Sissenov",
-      image: "https://cdn.builder.io/api/v1/image/assets/TEMP/c2a3a5c7a159d00f3f76413741945156f0dbc1cf972b7d109ae5a439fb4fafe9?apiKey=76bc4e76ba824cf091e9566ff1ae9339&",
-      awards: [
-        { id: 1, image: "https://cdn.builder.io/api/v1/image/assets/TEMP/219d0239c213b406c20cf50b504208c4f7a16c3d5b20364f128e47f3dc5552a1?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" },
-        { id: 2, image: "https://cdn.builder.io/api/v1/image/assets/TEMP/2288abf5fb06b34a2001bee518e5d8f6b1dd83efec16ead3e887fd58ee253be9?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" },
-      ],
-    },
-  ];
+  {
+    id: 1,
+    name: "Adil Sissenov",
+    image: "https://cdn.builder.io/api/v1/image/assets/TEMP/c2a3a5c7a159d00f3f76413741945156f0dbc1cf972b7d109ae5a439fb4fafe9?apiKey=76bc4e76ba824cf091e9566ff1ae9339&",
+    awards: [
+      { id: 1, image: "https://cdn.builder.io/api/v1/image/assets/TEMP/219d0239c213b406c20cf50b504208c4f7a16c3d5b20364f128e47f3dc5552a1?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" },
+      { id: 2, image: "https://cdn.builder.io/api/v1/image/assets/TEMP/2288abf5fb06b34a2001bee518e5d8f6b1dd83efec16ead3e887fd58ee253be9?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" },
+    ],
+  },
+];
 
+const companyData = [
+  {
+    name: "Company name",
+    icon: "https://cdn.builder.io/api/v1/image/assets/TEMP/69cb4c3f10bd0f7645f561142580659d248d57013fd8dbb5c0398dc17e52ffff?apiKey=76bc4e76ba824cf091e9566ff1ae9339&",
+  },
+];
 
+const userData = [
+  {
+    name: "Sissenov Adil",
+    avatar: "https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&",
+  },
+];
 
 function Header() {
   return (
-    <HeaderWrapper>
-         <Div3>
+    <Container>
+
+
+      <Main>
+
+        <Div3>
           <LogoKaizen src="https://cdn.builder.io/api/v1/image/assets/TEMP/3905e52e9c6b961ec6717c80409232f3222eab9fc52b8caf2e55d314ff83b93e?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="KaizenCloud Logo" />
-          <Link to="/slider" style={{ textDecoration: 'none' }}>
+          <Link to="/slider" style={{ textDecoration: 'none', marginTop: 57}}>
             <Button
               loading="lazy"
             ><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M4.16667 13.3333C3.93056 13.3333 3.73264 13.2535 3.57292 13.0937C3.41319 12.934 3.33333 12.7361 3.33333 12.5V10.8333H14.1667V3.33333H15.8333C16.0694 3.33333 16.2674 3.41319 16.4271 3.57292C16.5868 3.73264 16.6667 3.93056 16.6667 4.16667V16.6667L13.3333 13.3333H4.16667ZM0 12.5V0.833333C0 0.597222 0.0798611 0.399306 0.239583 0.239583C0.399306 0.0798611 0.597222 0 0.833333 0H11.6667C11.9028 0 12.1007 0.0798611 12.2604 0.239583C12.4201 0.399306 12.5 0.597222 12.5 0.833333V8.33333C12.5 8.56944 12.4201 8.76736 12.2604 8.92708C12.1007 9.08681 11.9028 9.16667 11.6667 9.16667H3.33333L0 12.5ZM10.8333 7.5V1.66667H1.66667V7.5H10.8333Z" fill="#7D7D7D"/>
-            </svg>
-            
+                <path d="M4.16667 13.3333C3.93056 13.3333 3.73264 13.2535 3.57292 13.0937C3.41319 12.934 3.33333 12.7361 3.33333 12.5V10.8333H14.1667V3.33333H15.8333C16.0694 3.33333 16.2674 3.41319 16.4271 3.57292C16.5868 3.73264 16.6667 3.93056 16.6667 4.16667V16.6667L13.3333 13.3333H4.16667ZM0 12.5V0.833333C0 0.597222 0.0798611 0.399306 0.239583 0.239583C0.399306 0.0798611 0.597222 0 0.833333 0H11.6667C11.9028 0 12.1007 0.0798611 12.2604 0.239583C12.4201 0.399306 12.5 0.597222 12.5 0.833333V8.33333C12.5 8.56944 12.4201 8.76736 12.2604 8.92708C12.1007 9.08681 11.9028 9.16667 11.6667 9.16667H3.33333L0 12.5ZM10.8333 7.5V1.66667H1.66667V7.5H10.8333Z" fill="#7D7D7D" />
+              </svg>
+
             </Button>
           </Link>
           <Link to="/grading" style={{ textDecoration: 'none' }}>
@@ -83,109 +104,138 @@ function Header() {
             </svg>
           </Button6>
         </Div3>
+
         <ProfileWrapper>
-      <ProfileContent>
-        <ProfileColumn>
-          <ProfileInfo>
-            <ProposerProfile>
-              <ProposerTitle>Proposer's profile</ProposerTitle>
-              <ProposerImage src={data[0].image} alt="Proposer" />
-              <ProposerName>{data[0].name}</ProposerName>
-            </ProposerProfile>
-            <Divider />
-            <ProposerStats>
-              <StatIcons>
-                <StatIcon src="https://cdn.builder.io/api/v1/image/assets/TEMP/48f02eb6f2e80808819e0fff01696b38bef5f88910e8b2bccfd10f5ab061d718?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Stat 1" />
-                <StatIcon src="https://cdn.builder.io/api/v1/image/assets/TEMP/f5d6927b0edbfdd58a5aee8b073eb73f97b0b77500c82cba1f16c962ba60a808?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Stat 2" />
-                <StatIcon src="https://cdn.builder.io/api/v1/image/assets/TEMP/b0c1ca8636cd7411382d0f5e42d8c0ee10d3036aded511b137f01153e5b08d8f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Stat 3" />
-                <StatIcon src="https://cdn.builder.io/api/v1/image/assets/TEMP/e612e4df7331a1a77a9321ec00348235972053f7f1d63da36fc207c8b095475d?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Stat 4" />
-              </StatIcons>
-              <StatValues>
-                <StatValue>1</StatValue>
-                <StatValue>1</StatValue>
-                <StatValue>1</StatValue>
-                <StatValue>1</StatValue>
-              </StatValues>
-              <AwardsSection>
-                <VerticalDivider />
-                <AwardsTitle>Awards</AwardsTitle>
-              </AwardsSection>
-              <AwardsIcons>
-                {data[0].awards.map((award) => (
-                  <AwardIcon key={award.id} src={award.image} alt={`Award ${award.id}`} />
-                ))}
-              </AwardsIcons>
-            </ProposerStats>
-          </ProfileInfo>
-          <VerticalDivider />
-        </ProfileColumn>
-        <GraphColumn>
-          <LastProposalsGraph>
-            <GraphTitle>
-              <VerticalDivider />
-              <GraphTitleText>Last proposals graph</GraphTitleText>
-            </GraphTitle>
-            <MonthLabels>
-              <MonthLabel>Jan</MonthLabel>
-              <MonthLabel>Feb</MonthLabel>
-              <MonthLabel>Mar</MonthLabel>
-              <MonthLabel>Apr</MonthLabel>
-              <MonthLabel>May</MonthLabel>
-              <MonthLabel>Jun</MonthLabel>
-              <MonthLabel>Jul</MonthLabel>
-              <MonthLabel>Aug</MonthLabel>
-              <MonthLabel>Sep</MonthLabel>
-              <MonthLabel>Oct</MonthLabel>
-              <MonthLabel>Nov</MonthLabel>
-              <MonthLabel>Dec</MonthLabel>
-            </MonthLabels>
-            <GraphContent>
-              <DayLabels>
-                <DayLabel>Mon</DayLabel>
-                <DayLabel>Tue</DayLabel>
-                <DayLabel>Wed</DayLabel>
-                <DayLabel>Thr</DayLabel>
-                <DayLabel>Fri</DayLabel>
-                <DayLabel>Sat</DayLabel>
-                <DayLabel>Sun</DayLabel>
-              </DayLabels>
-              <GraphImage src="https://cdn.builder.io/api/v1/image/assets/TEMP/7b13759f61ac0a61af4ad9fede5e00cfada3f8e439367cfc21d901e0740122f3?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Graph" />
-            </GraphContent>
-            <GraphLegend>
-              <LegendLabel>Less</LegendLabel>
-              <LegendColors>
-                <LegendColor color="#d0e1eb" />
-                <LegendColor color="#b6ddf4" />
-                <LegendColor color="#74a0ca" />
-                <LegendColor color="#0161a6" />
-                <LegendColor color="#154373" />
-              </LegendColors>
-              <LegendLabel>More</LegendLabel>
-            </GraphLegend>
-          </LastProposalsGraph>
-          <Divider />
-          <LastProposalsJournal>
-            <JournalTitle>
-              <VerticalDivider />
-              <JournalTitleText>Last proposals journal</JournalTitleText>
-            </JournalTitle>
-            <JournalContent>
-              <JournalText>
-                <JournalDescription>
-                  Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer. Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer
-                </JournalDescription>
-                <JournalDate>29.03.2024, 12:03</JournalDate>
-              </JournalText>
-              <JournalIcon>
-                <JournalIconImage src="https://cdn.builder.io/api/v1/image/assets/TEMP/59ec102d7837fee5a2a5c1e6f1168c560a21aaa8d15f67d9d81cdc7e11cc3173?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Journal Icon" />
-                <JournalIconBackground />
-              </JournalIcon>
-            </JournalContent>
-          </LastProposalsJournal>
-        </GraphColumn>
-      </ProfileContent>
-    </ProfileWrapper>
-    </HeaderWrapper>
+          <Div5>
+            <Div6>Company name</Div6>
+            <Div7>
+              <Div8>
+                <Img8
+                  loading="lazy"
+                  srcSet={userData.avatar || Logo}
+                  alt="Person Image"
+                  width="24"
+                  height="24"
+                />
+                <Div9>{userData.last_name} {userData.first_name}</Div9>
+              </Div8>
+              <Img9
+                loading="lazy"
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/86686b16897beeac74304533d5bb958a4d1e0106aa55fd71c28f706a5b838225?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
+                onClick={logOut}>
+                <svg width="17" height="15" viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10.0037 4.25V2.625C10.0037 2.19402 9.83123 1.7807 9.52423 1.47595C9.21722 1.1712 8.80084 1 8.36667 1H2.63704C2.20287 1 1.78648 1.1712 1.47948 1.47595C1.17247 1.7807 1 2.19402 1 2.625V12.375C1 12.806 1.17247 13.2193 1.47948 13.524C1.78648 13.8288 2.20287 14 2.63704 14H8.36667C8.80084 14 9.21722 13.8288 9.52423 13.524C9.83123 13.2193 10.0037 12.806 10.0037 12.375V10.75" stroke="#C4C4C4" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M4.27408 7.5H15.7333L13.2778 5.0625M13.2778 9.9375L15.7333 7.5" stroke="#C4C4C4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Img9>
+            </Div7>
+          </Div5>
+          <ProfileContent>
+
+            <ProfileColumn>
+
+              <ProfileInfo>
+                <ProposerProfile>
+                  <ProposerTitle>Proposer's profile</ProposerTitle>
+                  <ProposerImage src={data[0].image} alt="Proposer" />
+                  <ProposerName>{data[0].name}</ProposerName>
+                </ProposerProfile>
+                <Divider />
+                <ProposerStats>
+                  <StatIcons>
+                    <StatIcon src="https://cdn.builder.io/api/v1/image/assets/TEMP/48f02eb6f2e80808819e0fff01696b38bef5f88910e8b2bccfd10f5ab061d718?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Stat 1" />
+                    <StatIcon src="https://cdn.builder.io/api/v1/image/assets/TEMP/f5d6927b0edbfdd58a5aee8b073eb73f97b0b77500c82cba1f16c962ba60a808?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Stat 2" />
+                    <StatIcon src="https://cdn.builder.io/api/v1/image/assets/TEMP/b0c1ca8636cd7411382d0f5e42d8c0ee10d3036aded511b137f01153e5b08d8f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Stat 3" />
+                    <StatIcon src="https://cdn.builder.io/api/v1/image/assets/TEMP/e612e4df7331a1a77a9321ec00348235972053f7f1d63da36fc207c8b095475d?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Stat 4" />
+                  </StatIcons>
+                  <StatValues>
+                    <StatValue>1</StatValue>
+                    <StatValue>1</StatValue>
+                    <StatValue>1</StatValue>
+                    <StatValue>1</StatValue>
+                  </StatValues>
+                  <AwardsSection>
+                    <VerticalDivider />
+                    <AwardsTitle>Awards</AwardsTitle>
+                  </AwardsSection>
+                  <AwardsIcons>
+                    {data[0].awards.map((award) => (
+                      <AwardIcon key={award.id} src={award.image} alt={`Award ${award.id}`} />
+                    ))}
+                  </AwardsIcons>
+                </ProposerStats>
+              </ProfileInfo>
+            </ProfileColumn>
+            <MainVerticalDivider />
+            <GraphColumn>
+              <LastProposalsGraph>
+                <GraphTitle>
+                  <VerticalDivider />
+                  <GraphTitleText>Last proposals graph</GraphTitleText>
+                </GraphTitle>
+                <MonthLabels>
+                  <MonthLabel>Jan</MonthLabel>
+                  <MonthLabel>Feb</MonthLabel>
+                  <MonthLabel>Mar</MonthLabel>
+                  <MonthLabel>Apr</MonthLabel>
+                  <MonthLabel>May</MonthLabel>
+                  <MonthLabel>Jun</MonthLabel>
+                  <MonthLabel>Jul</MonthLabel>
+                  <MonthLabel>Aug</MonthLabel>
+                  <MonthLabel>Sep</MonthLabel>
+                  <MonthLabel>Oct</MonthLabel>
+                  <MonthLabel>Nov</MonthLabel>
+                  <MonthLabel>Dec</MonthLabel>
+                </MonthLabels>
+                <GraphContent>
+                  <DayLabels>
+                    <DayLabel>Mon</DayLabel>
+                    <DayLabel>Tue</DayLabel>
+                    <DayLabel>Wed</DayLabel>
+                    <DayLabel>Thr</DayLabel>
+                    <DayLabel>Fri</DayLabel>
+                    <DayLabel>Sat</DayLabel>
+                    <DayLabel>Sun</DayLabel>
+                  </DayLabels>
+                  <GraphImage src="https://cdn.builder.io/api/v1/image/assets/TEMP/7b13759f61ac0a61af4ad9fede5e00cfada3f8e439367cfc21d901e0740122f3?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Graph" />
+                </GraphContent>
+                <GraphLegend>
+                  <LegendLabel>Less</LegendLabel>
+                  <LegendColors>
+                    <LegendColor color="#d0e1eb" />
+                    <LegendColor color="#b6ddf4" />
+                    <LegendColor color="#74a0ca" />
+                    <LegendColor color="#0161a6" />
+                    <LegendColor color="#154373" />
+                  </LegendColors>
+                  <LegendLabel>More</LegendLabel>
+                </GraphLegend>
+              </LastProposalsGraph>
+              <Divider />
+              <LastProposalsJournal>
+                <JournalTitle>
+                  <VerticalDivider />
+                  <JournalTitleText>Last proposals journal</JournalTitleText>
+                </JournalTitle>
+                <JournalContent>
+                  <JournalText>
+                    <JournalDescription>
+                      Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer. Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer
+                    </JournalDescription>
+                    <JournalDate>29.03.2024, 12:03</JournalDate>
+                  </JournalText>
+                  <JournalIcon>
+                    <JournalIconImage src="https://cdn.builder.io/api/v1/image/assets/TEMP/59ec102d7837fee5a2a5c1e6f1168c560a21aaa8d15f67d9d81cdc7e11cc3173?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Journal Icon" />
+                    <JournalIconBackground />
+                  </JournalIcon>
+                </JournalContent>
+              </LastProposalsJournal>
+            </GraphColumn>
+          </ProfileContent>
+        </ProfileWrapper>
+
+      </Main>
+    </Container>
   );
 }
 
@@ -202,12 +252,23 @@ const Div3 = styled.div`
 `;
 
 
+const Container = styled.div`
+`;
+
 const JournalText = styled.div`
+  width: 90%;
+
 `;
 const JournalDescription = styled.div`
+overflow-x: hidden;
+overflow-y: auto;
+max-height: 75px;
 `;
 
 const JournalDate = styled.div`
+display: flex;
+margin-top: 5%;
+margin-left: 70%;
 `;
 
 const JournalIcon = styled.div`
@@ -220,6 +281,81 @@ const JournalIconBackground = styled.div`
 `;
 
 
+
+const Div5 = styled.div`
+  display: flex;
+  width: 100%;
+  align-items: start;
+  justify-content: space-between;
+  gap: 20px;
+  font-size: 16px;
+  color: #5d5d5d;
+  font-weight: 400;
+  white-space: nowrap;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    flex-wrap: wrap;
+    white-space: initial;
+  }
+`;
+const Div6 = styled.div`
+  font-family: Roboto, sans-serif;
+  border-radius: 8px;
+  border: 1px solid #d7d7d7;
+  background-color: #fff;
+  justify-content: center;
+  padding: 13px 49px;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+const Div7 = styled.div`
+  border-radius: 8px;
+  border: 1px solid #d7d7d7;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 8px 13px;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Div8 = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Img8 = styled.img`
+  aspect-ratio: 1;
+  object-fit: auto;
+  object-position: center;
+  width: 24px;
+`;
+const Div9 = styled.div`
+  font-family: Roboto, sans-serif;
+  flex-grow: 1;
+  margin: auto 0;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Img9 = styled.button`
+aspect-ratio: 1.15;
+object-fit: auto;
+object-position: center;
+width: 15px;
+
+cursor:pointer;
+background: transparent;
+border: none !important;
+font-size:0;
+margin: auto 0;
+`;
 
 const Button = styled.button`
   aspect-ratio: 1;
@@ -240,7 +376,6 @@ const Button = styled.button`
   object-fit: auto;
   object-position: center;
   width: 40px;
-  margin-top: 57px;
   @media (max-width: 991px) {
     margin-top: 40px;
   }
@@ -386,13 +521,13 @@ const LogoKaizen = styled.img`
   width: 43px;
 `;
 
-const HeaderWrapper = styled.header`
+const Main = styled.div`
   display: flex;
   width: 100%;
   gap: 20px;
   font-size: 16px;
   font-weight: 400;
-  justify-content: space-between;
+  background-color: #f2f2f2;
   @media (max-width: 991px) {
     max-width: 100%;
     flex-wrap: wrap;
@@ -401,9 +536,9 @@ const HeaderWrapper = styled.header`
 
 const ProfileWrapper = styled.div`
   border-radius: 6px;
-  background-color: #fff;
-  margin-top: 35px;
-  padding: 0 80px 0 15px;
+  width: 95%;
+  height: 830px;
+  margin-top: 5px;
 
   @media (max-width: 991px) {
     max-width: 100%;
@@ -412,9 +547,12 @@ const ProfileWrapper = styled.div`
 `;
 
 const ProfileContent = styled.div`
+margin-top: 20px;
+
+border-radius: 10px;
+background-color: #fff;
   display: flex;
   gap: 20px;
-
   @media (max-width: 991px) {
     flex-direction: column;
     align-items: stretch;
@@ -426,7 +564,6 @@ const ProfileColumn = styled.div`
   display: flex;
   flex-direction: column;
   line-height: normal;
-  width: 38%;
   margin-left: 0;
 
   @media (max-width: 991px) {
@@ -435,7 +572,6 @@ const ProfileColumn = styled.div`
 `;
 
 const ProfileInfo = styled.div`
-  display: flex;
   flex-grow: 1;
   gap: 20px;
 
@@ -454,8 +590,9 @@ const ProposerProfile = styled.div`
   align-items: start;
   flex-grow: 1;
   flex-basis: 0;
+  
   width: fit-content;
-
+ 
   @media (max-width: 991px) {
     max-width: 100%;
   }
@@ -463,16 +600,18 @@ const ProposerProfile = styled.div`
 
 const ProposerTitle = styled.h2`
   color: #1871ed;
+  margin-left: 60px;
   font-family: Roboto, sans-serif;
+  justify-content: center;
   font-size: 25px;
-  font-weight: 500;
+  font-weight: 700;
 `;
 
 const ProposerImage = styled.img`
   aspect-ratio: 1.02;
   object-fit: cover;
-  width: 100%;
-  align-self: center;
+  width: 50%;
+  margin-left: 50px;
   margin-top: 23px;
 `;
 
@@ -483,7 +622,7 @@ const ProposerName = styled.p`
   font-weight: 500;
   align-self: start;
   margin: 20px 0 0 14px;
-
+  margin-left: 60px;
   @media (max-width: 991px) {
     margin-left: 10px;
   }
@@ -571,6 +710,13 @@ const VerticalDivider = styled.div`
   height: 28px;
 `;
 
+const MainVerticalDivider = styled.div`
+  border: 1px solid rgba(211, 211, 211, 1);
+  background-color: #d3d3d3;
+  width: 1px;
+  height: 777px;
+`;
+
 const AwardsTitle = styled.h3`
   font-family: Roboto, sans-serif;
   flex-grow: 1;
@@ -612,19 +758,21 @@ const LastProposalsGraph = styled.section`
   display: flex;
   flex-direction: column;
   align-self: stretch;
-  margin: auto 0;
-
+  margin-top: 45px;
+  width: 75%;
   @media (max-width: 991px) {
     max-width: 100%;
     margin-top: 40px;
   }
 `;
 
+
+
 const GraphTitle = styled.div`
   align-self: start;
   display: flex;
   gap: 10px;
-  font-size: 19px;
+  font-size: 15px;
   color: #8e8e8e;
   font-weight: 500;
 `;
@@ -750,7 +898,7 @@ const JournalTitle = styled.div`
   display: flex;
   margin-top: 36px;
   gap: 10px;
-  font-size: 19px;
+  font-size: 15px;
   color: #8e8e8e;
   font-weight: 500;
 `;
@@ -767,11 +915,16 @@ const JournalContent = styled.div`
   width: 505px;
   max-width: 100%;
   gap: 20px;
+  color: #666666;
+  font-size: 13px;
+  font-family: Roboto, sans-serif;
   margin: 28px 0 0 23px;
-
+  
   @media (max-width: 991px) {
     flex-wrap: wrap;
   }
 `;
+
+
 
 export default Header;
