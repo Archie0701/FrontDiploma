@@ -184,7 +184,7 @@ function MyComponent(props) {
       <Div2>
         <Div3>
           <LogoKaizen src="https://cdn.builder.io/api/v1/image/assets/TEMP/3905e52e9c6b961ec6717c80409232f3222eab9fc52b8caf2e55d314ff83b93e?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="KaizenCloud Logo" />
-          <Link to="/slider" style={{ textDecoration: 'none', marginTop: 57}}>
+          <Link to="/slider" style={{ textDecoration: 'none' }}>
             <Button
               loading="lazy"
             ><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -271,7 +271,7 @@ function MyComponent(props) {
             {proposalData && (
               <Div11 className="slider">
                 <Column>
-                  {proposalData.filter(data => data.status === "New").map((data, index) => (
+                {proposalData.filter(data => data.status === "New").map((data, index) => (
                     <Div12
                       className={`slide ${index === currentIndex ? 'active' : ''} ${index < currentIndex ? 'slideToLeft' : index > currentIndex ? 'slideToRight' : ''}`}
                       key={data.id}
@@ -279,11 +279,13 @@ function MyComponent(props) {
                       <Div13>
                         <Div14>{formatDate(data.created_at)}</Div14>
                         <Div15>
+                          <SetSpecialistButton>Set a specialist</SetSpecialistButton>
                           <ArchiveButton>Archive</ArchiveButton>
                         </Div15>
                         <Div19>
-                          {currentIndex > 0 && <BackButton onClick={handleBack}>Back</BackButton>}
-                          {currentIndex < proposalData.length - 1 && <NextButton onClick={handleNext}>Next</NextButton>}
+                          {currentIndex > 0 ? <BackButton onClick={handleBack}>Back</BackButton> : <BackButton>Back</BackButton>}
+                          <PaginationText>101 / 121</PaginationText>
+                          {currentIndex < proposalData.length - 1 ? <NextButton onClick={handleNext}>Next</NextButton> : <NextButton>Next</NextButton>}
                         </Div19>
                       </Div13>
                       <Div22 />
@@ -302,22 +304,19 @@ function MyComponent(props) {
                         </Div28>
                       </Div23>
                     </Div12>
-                  ))}
+                  ))} 
                 </Column>
                 <Column2>
-                  <>
-                    <Div33>
+                <Div33>
+                      
+                      <Div37>
                       <Div34>
                         <Div35 />
                         <Div36>Hidden</Div36>
                       </Div34>
-                      <Div37>
                         <Div38>
-                          <Div39>
-                            <Div40>Acceptance criteria</Div40>
-                            <Div41>Criteria</Div41>
-                          </Div39>
-                          <Div42>Description</Div42>
+                          <Div41>Offers</Div41>
+                          <Div42>Total Offers</Div42>
                         </Div38>
                         <Div43 />
                         {allCriterias.map((criteria, index) => ( // Используем все критерии для отображения
@@ -325,27 +324,21 @@ function MyComponent(props) {
                           <React.Fragment key={index}>
                             <Div44>
                               <Div45>
-                                <Checkbox
-                                  type="checkbox"
-                                  name={criteria.id}
-                                  checked={selectedCriteriaIds.includes(criteria.id)}
-                                  onChange={handleChange}// Устанавливаем состояние чекбокса на основе свойства selected критерия
-                                />
                                 <Div47>{criteria.name}</Div47>
                               </Div45>
+                              <Div46>
                               <Div48>{criteria.description}</Div48>
+
+                              </Div46>
                             </Div44>
                             <Div49 />
                           </React.Fragment>
                         ))}
-                        <Div73>
-                          <AcceptButton onClick={handleAccept}>Accept</AcceptButton>
-                          <RejectButton onClick={handleReject}>Reject</RejectButton>
-                        </Div73>
                       </Div37>
                     </Div33>
-                  </>
                 </Column2>
+                  
+                
               </Div11>
             )}
 
@@ -412,6 +405,7 @@ const Button = styled.button`
   object-fit: auto;
   object-position: center;
   width: 40px;
+  margin-top: 57px;
   @media (max-width: 991px) {
     margin-top: 40px;
   }
@@ -666,13 +660,14 @@ const Div12 = styled.div`
   display: flex;
   flex-direction: column;
   font-size: 14px;
-  padding: 3px 0 22px;
+  padding: 0 0 22px;
   @media (max-width: 991px) {
     max-width: 100%;
     margin-top: 15px;
   }
 `;
 const Div13 = styled.div`
+  margin: 5px 0;
   display: flex;
   width: 100%;
   padding-right: 32px;
@@ -699,7 +694,7 @@ const Div15 = styled.div`
     white-space: initial;
   }
 `;
-const ArchiveButton = styled.button`
+const SetSpecialistButton = styled.button`
 &:hover {
   transform: translateY(-5px);
   color: #333;
@@ -717,6 +712,33 @@ const ArchiveButton = styled.button`
   cursor:pointer;
   font-family: Roboto, sans-serif;
   border-radius: 8px 4px 4px 8px;
+  background-color: #e6e6e6;
+  flex-grow: 1;
+  justify-content: center;
+  padding: 13px 27px;
+  
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+const ArchiveButton = styled.button`
+&:hover {
+  transform: translateY(-5px);
+  color: #333;
+  cursor:pointer;
+  box-shadow: .0rem .2rem .4rem #777;
+  background-color:#ECF3FF;
+  pointer-events: visible;
+  position: relative;
+  z-index: 0;
+  visibility: visible;
+  float: none;
+}
+  border:none;
+  cursor:pointer;
+  font-family: Roboto, sans-serif;
+  border-radius: 4px 8px 8px 4px;
   background-color: #e6e6e6;
   flex-grow: 1;
   justify-content: center;
@@ -789,6 +811,15 @@ const Div19 = styled.div`
     white-space: initial;
   }
 `;
+const PaginationText = styled.div`
+  font-family: Roboto, sans-serif;
+  border-radius: 4px;
+  border: 1px solid rgba(230, 230, 230, 0.5);
+  background-color: #fff;
+  text-align: center;
+  justify-content: center;
+  padding: 13px 16px;
+`;
 const BackButton = styled.button`
 cursor:pointer;
 &:hover {
@@ -830,6 +861,7 @@ const NextButton = styled.button`
   visibility: visible;
   float: none;
 }
+  margin-right: 20px;
   cursor:pointer;
   border:none;
   font-family: Roboto, sans-serif;
@@ -837,7 +869,7 @@ const NextButton = styled.button`
   background-color: #e6e6e6;
   flex-grow: 1;
   justify-content: center;
-  padding: 13px 38px 13px 17px;
+  padding: 13px 21px;
   @media (max-width: 991px) {
     padding-right: 20px;
     white-space: initial;
@@ -845,7 +877,6 @@ const NextButton = styled.button`
 `;
 const Div22 = styled.div`
   background-color: #e6e6e6;
-  margin-top: 10px;
   height: 1px;
   @media (max-width: 991px) {
     max-width: 100%;
@@ -952,9 +983,6 @@ const Column2 = styled.div`
   }
 `;
 const Div33 = styled.div`
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
   @media (max-width: 991px) {
     max-width: 100%;
     margin-top: 15px;
@@ -964,7 +992,6 @@ const Div34 = styled.button`
   cursor:pointer;
   border:none;
   border-radius: 8px;
-  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
   background-color: #fff;
   display: flex;
   justify-content: space-between;
@@ -973,7 +1000,6 @@ const Div34 = styled.button`
   color: #5d5d5d;
   font-weight: 300;
   white-space: nowrap;
-  padding: 20px 27px;
   @media (max-width: 991px) {
     max-width: 100%;
     flex-wrap: wrap;
@@ -1013,9 +1039,8 @@ const Div37 = styled.div`
   background-color: #fff;
   display: flex;
   z-index: 1;
-  margin-top: 10px;
   flex-direction: column;
-  padding: 33px 30px;
+  padding: 17px 32px 17px 17px;
   @media (max-width: 991px) {
     max-width: 100%;
     padding: 0 20px;
@@ -1023,13 +1048,9 @@ const Div37 = styled.div`
 `;
 const Div38 = styled.div`
   display: flex;
-  margin-left: 41px;
-  width: 301px;
-  max-width: 100%;
-  align-items: flex-start;
-  gap: 20px;
   color: #5d5d5d;
   font-weight: 500;
+  justify-content: space-around;
   white-space: nowrap;
   @media (max-width: 991px) {
     margin-left: 10px;
@@ -1052,12 +1073,15 @@ font-weight: 600;
   }
 `;
 const Div41 = styled.div`
-  margin-top: 37px;
+  width: 50%;
+  margin-top: 54px;
   font-family: Roboto, sans-serif;
   font-weight: 600;
+  @media (max-width: 991px) {
+    margin-top: 40px;
+  }
 `;
 const Div42 = styled.div`
-  align-self: end;
   margin-top: 54px;
   font-family: Roboto, sans-serif;
   font-weight: 600;
@@ -1075,12 +1099,22 @@ const Div43 = styled.div`
 `;
 const Div44 = styled.label`
   display: flex;
-  max-width: 57%;
-  justify-content: space-between;
+  justify-content: space-around;
   font-weight: 400;
-  margin: 14px 0 0 11px;
+  margin: 14px 0 0 0;
   @media (max-width: 991px) {
     margin-left: 10px;
+  }
+`;
+const Div46 = styled.div`
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+  color: #5d5d5d;
+  justify-content: start;
+  white-space: nowrap;
+  @media (max-width: 991px) {
+    white-space: initial;
   }
 `;
 const Div45 = styled.div`
@@ -1107,7 +1141,6 @@ const Div47 = styled.div`
   white-space: normal; /* Перенос текста на новую строку */
   overflow: hidden; /* Скрытие излишков текста */
   text-overflow: ellipsis; /* Отображение многоточия для обрезанного текста */
-  max-width: 80%; /* Максимальная ширина для текста */
 `;
 
 const Div48 = styled.div`
