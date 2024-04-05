@@ -16,10 +16,12 @@ import './reset.css'
 
 function App() {
   const [userRole, setUserRole] = useState(null);
-
+  const accessToken = localStorage.getItem('accessToken');
+  
   return (
     <Router>
       <Routes>
+      {!accessToken && <Route path="*" element={<Navigate to="/login" replace />} />}
         <Route
           path="*"
           element={<Navigate to="/login" replace />}/>
