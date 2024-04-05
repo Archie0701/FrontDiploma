@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import SignInComponent from './components/signInComponents/SignInComponent';
 import MainPage from './components/mainPage/mainPage';
@@ -16,7 +16,18 @@ import './reset.css'
 
 function App() {
   const [userRole, setUserRole] = useState(null);
+  useEffect(() => {
+    const storedUserRole = localStorage.getItem('userRole');
+    if (storedUserRole) {
+      setUserRole(storedUserRole);
+    }
+  }, []);
 
+  useEffect(() => {
+    if (userRole) {
+      localStorage.setItem('userRole', userRole);
+    }
+  }, [userRole]);
   return (
     <Router>
       <Routes>

@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
-import { fetchUserData, addProposal, criterias } from '../../services/apiService';
+import { addProposal, criterias, fetchUserData } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
 import './style.css'; //
 
 export const logOut = () => {
-  // Удаляем токен из localStorage
   localStorage.removeItem('accessToken');
   window.location.href = "../login";
 };
@@ -18,10 +17,30 @@ function MyComponent(props) {
   const [loading, setLoading] = useState(true);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [proposalText, setProposalText] = useState('');
+  const [proposalTitle, setProposalTitle] = useState('');
   const [allCriterias, setAllCriterias] = useState([]);
+  const [proposersData, setProposersData] = useState(null);
   const [selectedCriteriaIds, setSelectedCriteriaIds] = useState([]);
+  const [checkboxCriteria, setCheckboxCriteria] = useState([]);
 
+  const uncheckAllCheckboxes = () => {
+    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+    checkboxes.forEach((checkbox) => {
+      checkbox.checked = false;
+    });
+  };
 
+  const handleCheckboxChange = (checked, id) => {
+    if(!checked && checkboxCriteria.includes(id)){
+      const updatedCriterias = checkboxCriteria.filter(item => item !== id);
+      setCheckboxCriteria(updatedCriterias);
+    }
+    else if(checked && !checkboxCriteria.includes(id)){
+      const updatedCriterias = [...checkboxCriteria];
+      updatedCriterias.push(id);
+      setCheckboxCriteria(updatedCriterias);
+    }
+  };
 
   const today = new Date();
   const formattedDate = `${today.getDate()} ${today.toLocaleString('default', { month: 'long' })} ${today.getFullYear()}`;
@@ -32,44 +51,44 @@ function MyComponent(props) {
       const userDataResponse = await fetchUserData();
       const criteriasData = await criterias();
 
-      // Обновляем состояние allCriterias с данными из API
       setAllCriterias(criteriasData);
-
-      // Продолжаем обновление других состояний и выполнение вашей логики
-      if (userDataResponse) {
-        setUserData(userDataResponse);
-      }
-
+      setUserData(userDataResponse);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user data:', error);
-      window.location.href = "../login";
     }
   };
 
   const handleSendProposal = async () => {
     try {
-      setProposalText('');
-      const response = await addProposal({ 
+      if(proposalTitle == ''){
+        alert('Write a proposal title');
+        return;
+      } else if(proposalText == ''){
+        alert('Write a proposal text');
+        return;
+      } else if(checkboxCriteria.length == 0){
+        alert('Please select at least 1 criteria');
+        return;
+      } 
+      const response = await addProposal({
+        title: proposalTitle,
         text: proposalText,
-        proposer: 2,
-        // proposer: userData.proposer,
-        criteria: []
+        proposer: userData.proposer.id,
+        criteria: checkboxCriteria
       });
       console.log('Proposal sent:', response);
-
+      setProposalTitle('');
+      setProposalText('');
+      setCheckboxCriteria([]);
+      uncheckAllCheckboxes();
       alert('Proposal sent successfully!');
     } catch (error) {
-      // Handle error
       console.error('Error sending proposal:', error);
     }
   };
 
   // Обновляем выбранные критерии
-  const updateSelectedCriteria = (criteriaList) => {
-    const criteriaIds = criteriaList.map(criterion => criterion.id);
-    setSelectedCriteriaIds(criteriaIds);
-  };
 
   useEffect(() => {
     fetchData();
@@ -179,16 +198,23 @@ function MyComponent(props) {
                         <Div14>{formattedDate}</Div14>
                       <Div22 />
                       <Div23>
+                        <ProposalTitle type="text" 
+                          placeholder="Title" 
+                          value={proposalTitle}
+                          onChange={(e) => setProposalTitle(e.target.value)}
+                        />
                         <Proposal type="text" 
                           placeholder="Your proposal" 
                           value={proposalText}
                           onChange={(e) => setProposalText(e.target.value)}
                         />
                       </Div23>
+                      
                       <ButtonContainer>
                         <SendButton onClick={handleSendProposal}>Send proposal</SendButton>
                         <EraseButton onClick={() => {
                             setProposalText('');
+                            setProposalTitle('');
                         }}> Erase All
                         </EraseButton>
                       </ButtonContainer>
@@ -210,7 +236,7 @@ function MyComponent(props) {
                           <Div42>Description</Div42>
                         </Div38>
                         <Div43 />
-                        {allCriterias.map((criteria, index) => ( // Используем все критерии для отображения
+                        {allCriterias.map((criteria, index) => (
 
                           <React.Fragment key={index}>
                             <Div44>
@@ -218,8 +244,7 @@ function MyComponent(props) {
                                 <Checkbox
                                   type="checkbox"
                                   name={criteria.id}
-                                  checked={selectedCriteriaIds.includes(criteria.id)}
-
+                                  onChange={(event) => handleCheckboxChange(event.target.checked, criteria.id)}
                                   />
                                 <Div47>{criteria.name}</Div47>
                               </Div45>
@@ -309,7 +334,6 @@ const Button1 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -331,7 +355,6 @@ const Button2 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -351,7 +374,6 @@ const Button3 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     
     pointer-events: visible;
@@ -375,7 +397,6 @@ const Button4 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -601,179 +622,12 @@ const EraseButton = styled.button`
     padding: 13px 20px;
   }
 `;
-const Div13 = styled.div`
-  display: flex;
-  width: 100%;
-  padding-right: 32px;
-  justify-content: space-between;
-  gap: 20px;
-  color: #5d5d5d;
-  font-weight: 400;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    flex-wrap: wrap;
-    padding-right: 20px;
-  }
-`;
 const Div14 = styled.div`
   display: flex;
   height: 35px;
   align-items: center;
   font-family: Roboto, sans-serif;
   margin: 5px 20px;
-`;
-const Div15 = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 4px;
-  white-space: nowrap;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const ArchiveButton = styled.button`
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-  border:none;
-  cursor:pointer;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px 4px 4px 8px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 13px 27px;
-  
-  @media (max-width: 991px) {
-    white-space: initial;
-    padding: 0 20px;
-  }
-`;
-const ChangeStatus = styled.button`
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-border:none;
-  cursor:pointer;
-  font-family: Roboto, sans-serif;
-  border-radius: 4px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 12px 20px;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const SpecialistButton = styled.button`
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-border:none;
-  cursor:pointer;
-  font-family: Roboto, sans-serif;
-  border-radius: 4px 8px 8px 4px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 12px 34px 12px 14px;
-  @media (max-width: 991px) {
-    padding-right: 20px;
-    white-space: initial;
-  }
-`;
-const Div19 = styled.div`
-  display: flex;
-  justify-content: space-between;
-  gap: 4px;
-  white-space: nowrap;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const BackButton = styled.button`
-cursor:pointer;
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-border:none;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px 4px 4px 8px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 13px 21px;
-  @media (max-width: 991px) {
-    white-space: initial;
-    padding: 0 20px;
-  }
-`;
-const NextButton = styled.button`
-&:hover {
-  transform: translateY(-5px);
-  color: #333;
-  cursor:pointer;
-  box-shadow: .0rem .2rem .4rem #777;
-  /* line I added */
-  background-color:#ECF3FF;
-  pointer-events: visible;
-  position: relative;
-  z-index: 0;
-  visibility: visible;
-  float: none;
-}
-  cursor:pointer;
-  border:none;
-  font-family: Roboto, sans-serif;
-  border-radius: 4px 8px 8px 4px;
-  background-color: #e6e6e6;
-  flex-grow: 1;
-  justify-content: center;
-  padding: 13px 38px 13px 17px;
-  @media (max-width: 991px) {
-    padding-right: 20px;
-    white-space: initial;
-  }
 `;
 const Div22 = styled.div`
   background-color: #e6e6e6;
@@ -784,78 +638,25 @@ const Div22 = styled.div`
 `;
 const Div23 = styled.div`
   margin: 20px 34px 0 34px;
-  display: flex;
   z-index:0;
   align-items: start;
-  justify-content: space-between;
   gap: 35px;
   @media (max-width: 991px) {
     max-width: 100%;
     flex-wrap: wrap;
   }
 `;
-const Div24 = styled.div`
-  display: flex;
-  flex-grow: 1;
-  flex-basis: 0%;
-  flex-direction: column;
+const ProposalTitle = styled.input`
+  border:none;
+  font-family: Roboto, sans-serif;
+  border-radius: 8px;
+  background-color: #f2f2f2;
+  font-weight: 300;
+  padding: 12px;
+  margin-bottom: 7px;
   @media (max-width: 991px) {
     max-width: 100%;
-  }
-`;
-const Div25 = styled.div`
-  color: #3fc86e;
-  font-family: Roboto, sans-serif;
-  font-weight: 600;
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-`;
-const Div26 = styled.div`
-  color: #5d5d5d;
-  font-family: Roboto, sans-serif;
-  font-weight: 400;
-  margin-top: 17px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-`;
-const Div27 = styled.div`
-  background-color: #e6e6e6;
-  align-self: stretch;
-  width: 1px;
-  height: 174px;
-`;
-const Div28 = styled.div`
-  display: flex;
-  flex-grow: 1;
-  flex-basis: 0%;
-  flex-direction: column;
-  color: #5d5d5d;
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-`;
-const Div29 = styled.div`
-  align-self: start;
-  display: flex;
-  margin-left: 10px;
-  flex-direction: column;
-  white-space: nowrap;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const Div30 = styled.div`
-  font-family: Roboto, sans-serif;
-  font-weight: 600;
-`;
-const Div31 = styled.div`
-  font-family: Roboto, sans-serif;
-  font-weight: 400;
-  margin-top: 26px;
-  @media (max-width: 991px) {
-    white-space: initial;
+    padding-right: 20px;
   }
 `;
 const Proposal = styled.input`
@@ -865,7 +666,7 @@ const Proposal = styled.input`
   border-radius: 8px;
   background-color: #f2f2f2;
   font-weight: 300;
-  padding: 14px 60px 70px 10px;
+  padding: 14px 0 70px 10px;
   @media (max-width: 991px) {
     max-width: 100%;
     padding-right: 20px;
@@ -1005,8 +806,6 @@ const Div43 = styled.div`
 `;
 const Div44 = styled.label`
   display: flex;
-  max-width: 57%;
-  justify-content: space-between;
   font-weight: 400;
   margin: 14px 0 0 11px;
   @media (max-width: 991px) {
@@ -1030,18 +829,22 @@ const Checkbox = styled.input`
 
 `;
 const Div47 = styled.div`
+  display: flex;
   font-family: Roboto, sans-serif;
+  line-height: 1.5;
+  align-items: center;
   flex-grow: 1;
   flex-shrink: 1; /* Разрешить сжатие текста */
   word-wrap: break-word; /* Перенос текста на новую строку при необходимости */
   white-space: normal; /* Перенос текста на новую строку */
   overflow: hidden; /* Скрытие излишков текста */
   text-overflow: ellipsis; /* Отображение многоточия для обрезанного текста */
-  max-width: 80%; /* Максимальная ширина для текста */
+  width: 150px; /* Максимальная ширина для текста */
 `;
 
 const Div48 = styled.div`
   color: #7b7b7b;
+  flex:start;
   flex-shrink: 1; /* Разрешить сжатие текста */
   font: 12px Roboto, sans-serif;
   overflow: hidden; /* Скрытие излишков текста */
@@ -1056,76 +859,5 @@ const Div49 = styled.div`
     max-width: 100%;
   }
   `
-const Div73 = styled.div`
-  align-self: start;
-  display: flex;
-  gap: 10px;
-  font-size: 14px;
-  white-space: nowrap;
-  margin: 32px 0 0 11px;
-  @media (max-width: 991px) {
-    margin-left: 10px;
-    white-space: initial;
-  }
-`;
-const AcceptButton = styled.button`
-  cursor:pointer;
-  border:none;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  background-color: rgba(24, 119, 242, 1);
-  flex-grow: 1;
-  justify-content: center;
-  color: #fff;
-  &:hover {
-    transform: translateY(-5px);
-    transition: transform 0.5s;
-    background-color: blue;
-    cursor:pointer;
-    box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
-    pointer-events: visible;
-    position: relative;
-    z-index: 0;
-    visibility: visible;
-    float: none;
-  }
-  font-weight: 500;
-  padding: 12px 35px;
-  @media (max-width: 991px) {
-    white-space: initial;
-    padding: 0 20px;
-  }
-`;
-const RejectButton = styled.button`
-  cursor:pointer;
-  border:none;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  &:hover {
-    transform: translateY(-5px);
-    transition: transform 0.5s;
-    color: #fff;
-    cursor:pointer;
-    box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
-    background-color:red;
-    pointer-events: visible;
-    position: relative;
-    z-index: 0;
-    visibility: visible;
-    float: none;
-  }
-  background-color: rgba(230, 230, 230, 1);
-  flex-grow: 1;
-  justify-content: center;
-  color: #434343;
-  font-weight: 400;
-  padding: 12px 38px;
-  @media (max-width: 991px) {
-    white-space: initial;
-    padding: 0 20px;
-  }
-`;
 
 export default MyComponent;

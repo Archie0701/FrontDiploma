@@ -232,18 +232,17 @@ function MyComponent(props) {
                   <TableHeaderLabel className="header_proposals"></TableHeaderLabel>
               </TableHeader>
               <TableBody>
-                {proposals.map((item) => (
-                <TableRow>
+              {Object.values(proposersData).map((item) => (
+                <TableRow key={item.id}>
                   <CheckboxWrapper>
                     <Checkbox />
                   </CheckboxWrapper>
                   <TableRowLabel className="row_number">{++rowNum}</TableRowLabel>
-                  <TableRowLabel className="row_name">{proposersData[item.proposer].user.first_name}</TableRowLabel>
-                  <TableRowLabel className="row_surname">{proposersData[item.proposer].user.last_name}</TableRowLabel>
-                  <TableRowLabel className="row_proposal"><Link style={{ textDecoration: 'none', color: 'black' }}>Open Profile</Link></TableRowLabel>
+                  <TableRowLabel className="row_name">{item.user.first_name}</TableRowLabel>
+                  <TableRowLabel className="row_surname">{item.user.last_name}</TableRowLabel>
+                  <TableRowLabel className="row_proposal"><Link to={"/profile/" + item.id} style={{ textDecoration: 'none', color: 'black' }}>Open Profile</Link></TableRowLabel>
                 </TableRow>
               ))}
-              
               </TableBody>
               </Table>
               

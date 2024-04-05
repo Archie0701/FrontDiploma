@@ -77,28 +77,23 @@ function MyComponent(props) {
     const { name, checked } = e.target;
     const criteriaId = parseInt(name);
 
-    // Проверяем, что proposalData[currentIndex] существует и содержит критерии
     if (proposalData[currentIndex]?.criteria) {
-      // Создаем копию proposalData для внесения изменений
       const updatedProposalData = proposalData.map(proposal => {
-        // Копируем текущий объект proposal, чтобы не изменять исходные данные напрямую
         const updatedCriteria = proposal.criteria.map(criteria => {
-          // Если id критерия совпадает с id, который был изменен, обновляем его состояние
           if (criteria.id === criteriaId) {
             return {
               ...criteria,
-              selected: checked // Обновляем состояние выбранности критерия
+              selected: checked
             };
           }
           return criteria;
         });
         return {
           ...proposal,
-          criteria: updatedCriteria // Обновляем критерии в proposal
+          criteria: updatedCriteria
         };
       });
 
-      // Обновляем proposalData с обновленными критериями
       setProposalData(updatedProposalData);
 
       // Обновляем список выбранных критериев
@@ -1075,8 +1070,6 @@ const Div43 = styled.div`
 `;
 const Div44 = styled.label`
   display: flex;
-  max-width: 57%;
-  justify-content: space-between;
   font-weight: 400;
   margin: 14px 0 0 11px;
   @media (max-width: 991px) {
@@ -1100,14 +1093,17 @@ const Checkbox = styled.input`
 
 `;
 const Div47 = styled.div`
+  display: flex;
   font-family: Roboto, sans-serif;
+  line-height: 1.5;
+  align-items: center;
   flex-grow: 1;
   flex-shrink: 1; /* Разрешить сжатие текста */
   word-wrap: break-word; /* Перенос текста на новую строку при необходимости */
   white-space: normal; /* Перенос текста на новую строку */
   overflow: hidden; /* Скрытие излишков текста */
   text-overflow: ellipsis; /* Отображение многоточия для обрезанного текста */
-  max-width: 80%; /* Максимальная ширина для текста */
+  width: 150px; /* Максимальная ширина для текста */
 `;
 
 const Div48 = styled.div`

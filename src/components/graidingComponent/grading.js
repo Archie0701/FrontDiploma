@@ -321,7 +321,7 @@ function Grading(props) {
             </Div7>
           </Div5>
           <Div10 className="slider-container">
-            {proposalData && (
+            {(proposalData.length != 0) && (
               <Div11 className="slider">
                 <Column>
                   {proposalData.filter(data => data.status === "Accepted").map((data, index) => (
@@ -342,7 +342,7 @@ function Grading(props) {
                       <Div22 />
                       <Div23>
                         <Div24>
-                          <Div25>Accepted</Div25>
+                          <Div25>{data.title} (Accepted)</Div25>
                           <Div26>{data.text}</Div26>
                         </Div24>
                         <Div27 />

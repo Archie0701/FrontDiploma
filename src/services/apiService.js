@@ -70,7 +70,6 @@ export const fetchProposalCountData = async () => {
 
 export const criterias = async () => {
   try {
-    // Получаем access token из localStorage
     const response = await apiService.get('criterias/', {
       headers: {
         'Accept': 'application/json',
@@ -86,7 +85,6 @@ export const criterias = async () => {
 
 export const fetchNewProposalData = async () => {
   try {
-    // Получаем access token из localStorage
     const response = await apiService.get('/proposals/', {
       headers: {
         'Accept': 'application/json',
@@ -94,7 +92,6 @@ export const fetchNewProposalData = async () => {
       }
     });
 
-    // Фильтруем только предложения со статусом "New"
     const newProposals = response.data.filter(proposal => proposal.status === 'New');
     
     return newProposals;

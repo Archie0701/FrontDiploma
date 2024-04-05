@@ -215,6 +215,19 @@ function MyComponent(props) {
  </HeaderWrapper>)
 }
 
+const HeaderWrapper = styled.header`
+  display: flex;
+  width: 100%;
+  gap: 20px;
+  font-size: 16px;
+  font-weight: 400;
+  justify-content: space-between;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+`;
+
 const Div3 = styled.div`
   align-items: center;
   background-color: #fff;
@@ -647,7 +660,6 @@ const StatIcon = styled.img`
 const StatValues = styled.div`
   display: flex;
   margin-top: 32px;
-  gap: 20px;
   font-size: 20px;
   color: #8e8e8e;
   font-weight: 500;
@@ -660,6 +672,9 @@ const StatValues = styled.div`
 `;
 
 const StatValue = styled.span`
+  display: flex;
+  justify-content: center;
+  width: 30px;
   font-family: Roboto, sans-serif;
 `;
 
