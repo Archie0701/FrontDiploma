@@ -68,6 +68,22 @@ export const fetchProposalCountData = async () => {
   }
 };
 
+export const fetchProposalCountDataByDays = async () => {
+  try {
+    // Получаем access token из localStorage
+    const response = await apiService.get('proposals/proposals_count_by_days/', {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const criterias = async () => {
   try {
     // Получаем access token из localStorage

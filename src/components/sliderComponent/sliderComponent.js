@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
-import { fetchUserData, fetchNewProposalData, acceptProposal, declineProposal, criterias } from '../../services/apiService';
+import { fetchUserData, fetchNewProposalData, acceptProposal, declineProposal, criterias, addComment } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
 import '../sliderComponent/style.css'; //
@@ -20,7 +20,8 @@ function MyComponent(props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [allCriterias, setAllCriterias] = useState([]);
   const [selectedCriteriaIds, setSelectedCriteriaIds] = useState([]);
-
+  const [comments, setComments] = useState([]);
+  const [commentText, setCommentText] = useState('');
   // Обновленная функция fetchData
   // Обновленная функция fetchData
   const fetchData = async () => {
@@ -40,6 +41,7 @@ function MyComponent(props) {
       proposalDataResponse.forEach(proposal => {
         if (proposal.criteria && proposal.criteria.length > 0) {
           updateSelectedCriteria(proposal.criteria);
+          fetchCommentsData(proposalDataResponse[0].id);
         }
       });
 
@@ -52,6 +54,24 @@ function MyComponent(props) {
     } catch (error) {
       console.error('Error fetching user data:', error);
       window.location.href = "../login";
+    }
+  };
+
+  const handleAddComment = async () => {
+    try {
+      await addComment(proposalData[currentIndex].id, commentText);
+      // Обновляем список комментариев после добавления нового комментария
+      await fetchCommentsData(proposalData[currentIndex].id);
+      // Очищаем поле ввода после отправки комментария
+      setCommentText('');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  };
+
+  const handleKeyPress = (event) => {
+    if (event.key === 'Enter') {
+      handleAddComment();
     }
   };
 
@@ -71,7 +91,23 @@ function MyComponent(props) {
 
   useEffect(() => {
     fetchData();
+    fetchCommentsData();
   }, []);
+
+
+  const fetchCommentsData = async (id) => {
+    try {
+      if (id) {
+        // Запрашиваем данные о комментариях для данного предложения по его id
+        const response = await fetch(`http://3.71.200.223:8000/api/proposals/${id}/get_comments/`);
+        const data = await response.json();
+        // Обработка полученных данных о комментариях
+        setComments(data.comments); // Убедитесь, что comments - это массив комментариев
+      }
+    } catch (error) {
+      console.error('Error fetching comments data:', error);
+    }
+  };
 
   const handleChange = (e) => {
     const { name, checked } = e.target;
@@ -118,6 +154,7 @@ function MyComponent(props) {
     if (nextProposal) {
       setCurrentIndex(proposalData.indexOf(nextProposal));
       updateSelectedCriteria(nextProposal.criteria); // Добавляем эту строку
+      fetchCommentsData(nextProposal.id);
     }
   };
 
@@ -126,6 +163,7 @@ function MyComponent(props) {
     if (prevProposal) {
       setCurrentIndex(proposalData.indexOf(prevProposal));
       updateSelectedCriteria(prevProposal.criteria); // Добавляем эту строку
+      fetchCommentsData(prevProposal.id);
     }
   };
 
@@ -183,7 +221,9 @@ function MyComponent(props) {
     <Div>
       <Div2>
         <Div3>
+          <Link to={"/main"}>
           <LogoKaizen src="https://cdn.builder.io/api/v1/image/assets/TEMP/3905e52e9c6b961ec6717c80409232f3222eab9fc52b8caf2e55d314ff83b93e?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="KaizenCloud Logo" />
+          </Link>
           <Link to="/slider" style={{ textDecoration: 'none', marginTop: 57}}>
             <Button
               loading="lazy"
@@ -296,9 +336,15 @@ function MyComponent(props) {
                         <Div28>
                           <Div29>
                             <Div30>Comments</Div30>
-                            <Div31>Great job!</Div31>
+                            <Div31>    {comments.length > 0 && (
+    <div key={comments[comments.length - 1].id}>{comments[comments.length - 1].text}</div>
+  )}</Div31>
                           </Div29>
-                          <Comments type="text" placeholder="Your comments" />
+                          <Comments  type="text" 
+        placeholder="Your comments" 
+        value={commentText}
+        onChange={(e) => setCommentText(e.target.value)}
+        onKeyPress={handleKeyPress}/>
                         </Div28>
                       </Div23>
                     </Div12>

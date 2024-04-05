@@ -3,9 +3,10 @@ import styled from "styled-components";
 import { Link } from 'react-router-dom';
 import { LineChart } from '@mui/x-charts';
 import Spinner from '../Spinner/Spinner'; 
-import { fetchUserData, fetchProposalCountData } from '../../services/apiService';
+import { fetchUserData, fetchProposalCountData, fetchProposalCountDataByDays } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { useNavigate  } from 'react-router-dom';
+import dayjs from "dayjs";
 
 export const logOut = (navigate) => {
   localStorage.removeItem('accessToken');
@@ -15,12 +16,13 @@ export const logOut = (navigate) => {
 
 
 function MainPage(props) {
-
-
   const [userData, setUserData] = useState(null);
   const [proposalData, setProposalData] = useState(null);
   const [loading, setLoading] = useState(true); // Добавляем состояние для отслеживания загрузки данных
   const [error, setError] = useState(null);
+  const [proposalDataByDays, setProposalDataByDays] = useState(null);
+  let xAxisData;
+  let yAxisData;
   const navigate = useNavigate();
   useEffect(() => {
     const fetchData = async () => {
@@ -28,8 +30,10 @@ function MainPage(props) {
         // Вызываем функцию fetchUserData для получения данных пользователя
         const userDataResponse = await fetchUserData();
         const proposalDataResponse = await fetchProposalCountData();
+        const proposalDataByDaysResponse = await fetchProposalCountDataByDays();
         setProposalData(proposalDataResponse);
         setUserData(userDataResponse);
+        setProposalDataByDays(proposalDataByDaysResponse);
   
         // Устанавливаем состояние загрузки в false, так как данные получены
         setLoading(false);
@@ -48,6 +52,20 @@ function MainPage(props) {
   
     fetchData(); // Вызываем функцию при монтировании компонента
   }, []);
+
+
+
+if (proposalDataByDays !== null) {
+  xAxisData = proposalDataByDays.map(data => {
+    const date = new Date(data.date);
+    return date.getTime();
+});
+yAxisData = proposalDataByDays.map(data => {
+  const count = data.count;
+  return count;
+});
+}
+
 if (loading) {
   return <Spinner/> ; // Показываем сообщение о загрузке, пока данные загружаются
 }
@@ -211,13 +229,27 @@ if (loading) {
                 </Div43>
               </Div33>
               <Div46>Proposals received</Div46>
-              <LineChart
-                xAxis={[{ data: [proposalData.proposal_count] }]}
-                series={[
-                  { curve: "linear", data: [2] }
-                ]}
-                height={300}
-              />
+      <LineChart
+        xAxis={[
+          {
+            label: "Date",
+            data: xAxisData,
+            tickInterval: xAxisData,
+            scaleType: "time",
+            valueFormatter: (timestamp) => {
+              const date = new Date(timestamp);
+              return dayjs(date).format("MMM D");
+            },
+          },
+        ]}
+        yAxis={[{ label: "Proposals count",
+
+      }]}
+        series={[
+          {label: 'Proposals: ', data: yAxisData },
+        ]}
+        height={300}
+      />
             </Div32>
           </Div25>
         </Column4>
