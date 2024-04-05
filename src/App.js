@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import SignInComponent from './components/signInComponents/SignInComponent';
 import MainPage from './components/mainPage/mainPage';
 import Slider from './components/sliderComponent/sliderComponent';
+import SetSpecialist from './components/setSpecialistComponent/setSpecialist';
 import Proposals from './components/proposalsComponent/proposalsComponent';
 import AfterGrading from './components/afterGradingComponent/afterGradingComponent';
 import Grading from './components/graidingComponent/grading';
@@ -36,6 +37,7 @@ function App() {
           element={<Navigate to="/login" replace />}/>
         <Route path="/login" element={<SignInComponent setUserRole={setUserRole} />} />
         <Route path="/slider" element={<Slider />} />
+        <Route path="/set_specialist" element={<SetSpecialist />} />
         <Route path="/grading" element={<Grading />} />
         <Route path="/registration" element={<Registration />} />
         <Route path="/proposals" element={<Proposals />} />
