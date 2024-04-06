@@ -107,7 +107,15 @@ function MyComponent(props) {
   const [proposersData, setProposersData] = useState(null);
   const [query, setQuery] = useState('');
   const [isChecked, setIsChecked] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
 
   const checkbox = (event) => {
     setIsChecked(event.target.checked);
@@ -446,28 +454,53 @@ function MyComponent(props) {
                 )}
               </LanguageSelectorWrapper>
 
-              <Div7>
-              
+              <DropdownWrapper onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}>
+            <Div7>
               <Div8>
                 <Img8
                   loading="lazy"
-                  srcSet={userData.avatar || Logo}
+                  srcSet={"https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" || Logo}
                   alt="Person Image"
                   width="24"
                   height="24"
                 />
-                <Div9>{userData.last_name} {userData.first_name}</Div9>
+                <Div9>{userData.first_name}</Div9>
+              </Div8>
+            </Div7>
+            {isHovered && (    
+                <DropdownMenu>
+                  <DropdownItem>
+                  <Div8>
+                  <Link to="/edit_profile" style={{textDecoration: 'none', color: '#333'}}>
+                  <Div9>Edit Profile</Div9>
+                  </Link>
               </Div8>
               <Img9
                 loading="lazy"
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/86686b16897beeac74304533d5bb958a4d1e0106aa55fd71c28f706a5b838225?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
                 onClick={logOut}>
-                <svg width="17" height="15" viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M10.0037 4.25V2.625C10.0037 2.19402 9.83123 1.7807 9.52423 1.47595C9.21722 1.1712 8.80084 1 8.36667 1H2.63704C2.20287 1 1.78648 1.1712 1.47948 1.47595C1.17247 1.7807 1 2.19402 1 2.625V12.375C1 12.806 1.17247 13.2193 1.47948 13.524C1.78648 13.8288 2.20287 14 2.63704 14H8.36667C8.80084 14 9.21722 13.8288 9.52423 13.524C9.83123 13.2193 10.0037 12.806 10.0037 12.375V10.75" stroke="#C4C4C4" stroke-linecap="round" stroke-linejoin="round" />
-                  <path d="M4.27408 7.5H15.7333L13.2778 5.0625M13.2778 9.9375L15.7333 7.5" stroke="#C4C4C4" stroke-linecap="round" stroke-linejoin="round" />
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6.5 6.5C5.60625 6.5 4.84115 6.18177 4.20469 5.54531C3.56823 4.90885 3.25 4.14375 3.25 3.25C3.25 2.35625 3.56823 1.59115 4.20469 0.954687C4.84115 0.318229 5.60625 0 6.5 0C7.39375 0 8.15885 0.318229 8.79531 0.954687C9.43177 1.59115 9.75 2.35625 9.75 3.25C9.75 4.14375 9.43177 4.90885 8.79531 5.54531C8.15885 6.18177 7.39375 6.5 6.5 6.5ZM0 13V10.725C0 10.2646 0.11849 9.84141 0.355469 9.45547C0.592448 9.06953 0.907292 8.775 1.3 8.57187C2.13958 8.15208 2.99271 7.83724 3.85937 7.62734C4.72604 7.41745 5.60625 7.3125 6.5 7.3125C7.39375 7.3125 8.27396 7.41745 9.14062 7.62734C10.0073 7.83724 10.8604 8.15208 11.7 8.57187C12.0927 8.775 12.4076 9.06953 12.6445 9.45547C12.8815 9.84141 13 10.2646 13 10.725V13H0ZM1.625 11.375H11.375V10.725C11.375 10.576 11.3378 10.4406 11.2633 10.3187C11.1888 10.1969 11.0906 10.1021 10.9688 10.0344C10.2375 9.66875 9.49948 9.39453 8.75469 9.21172C8.0099 9.02891 7.25833 8.9375 6.5 8.9375C5.74167 8.9375 4.9901 9.02891 4.24531 9.21172C3.50052 9.39453 2.7625 9.66875 2.03125 10.0344C1.90937 10.1021 1.8112 10.1969 1.73672 10.3187C1.66224 10.4406 1.625 10.576 1.625 10.725V11.375ZM6.5 4.875C6.94687 4.875 7.32943 4.71589 7.64766 4.39766C7.96589 4.07943 8.125 3.69687 8.125 3.25C8.125 2.80312 7.96589 2.42057 7.64766 2.10234C7.32943 1.78411 6.94687 1.625 6.5 1.625C6.05312 1.625 5.67057 1.78411 5.35234 2.10234C5.03411 2.42057 4.875 2.80312 4.875 3.25C4.875 3.69687 5.03411 4.07943 5.35234 4.39766C5.67057 4.71589 6.05312 4.875 6.5 4.875Z" fill="#C4C4C4"/>
                 </svg>
               </Img9>
-              </Div7>
+                  </DropdownItem>
+                  <DropdownItem onClick={logOut}>
+                  <Div8>
+                <Div9>Logout</Div9>
+              </Div8>
+              <Img9
+                loading="lazy"
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/86686b16897beeac74304533d5bb958a4d1e0106aa55fd71c28f706a5b838225?apiKey=76bc4e76ba824cf091e9566ff1ae9339&">
+                <svg width="17" height="15" viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M10.0037 4.25V2.625C10.0037 2.19402 9.83123 1.7807 9.52423 1.47595C9.21722 1.1712 8.80084 1 8.36667 1H2.63704C2.20287 1 1.78648 1.1712 1.47948 1.47595C1.17247 1.7807 1 2.19402 1 2.625V12.375C1 12.806 1.17247 13.2193 1.47948 13.524C1.78648 13.8288 2.20287 14 2.63704 14H8.36667C8.80084 14 9.21722 13.8288 9.52423 13.524C9.83123 13.2193 10.0037 12.806 10.0037 12.375V10.75" stroke="#C4C4C4" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M4.27408 7.5H15.7333L13.2778 5.0625M13.2778 9.9375L15.7333 7.5" stroke="#C4C4C4" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Img9>
+                  </DropdownItem>
+                  </DropdownMenu>   
+                      )}
+            </DropdownWrapper>     
             </Div51>
             
           </Div5>
@@ -803,7 +836,7 @@ const Div4 = styled.div`
   margin-left: 60px;
   align-self: start;
   display: flex;
-  margin-top: 10px;
+  margin-top: 5px;
   flex-grow: 1;
   flex-basis: 0%;
   flex-direction: column;
@@ -896,7 +929,9 @@ const LanguageOption = styled.div`
     color: #000;
   }
 `;
-
+const DropdownWrapper = styled.div`
+  width: 160px;
+`;
 const Div7 = styled.div`
   border-radius: 8px;
   border: 1px solid #d7d7d7;
@@ -929,6 +964,35 @@ const Div9 = styled.div`
   margin: auto 0;
   @media (max-width: 991px) {
     white-space: initial;
+  }
+`;
+
+const DropdownMenu = styled.div`
+  width: 160px;
+  position: absolute;
+  top: 45px;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+`;
+
+const DropdownItem = styled.div`
+  border: 1px solid #d7d7d7;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+  padding: 8px 12px;
+  color: #333;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f0f0f0;
   }
 `;
 const Img9 = styled.button`
