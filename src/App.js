@@ -28,10 +28,12 @@ function App() {
     if (userRole) {
       localStorage.setItem('userRole', userRole);
     }
-  }, [userRole]);
+  }, [userRole]);  const accessToken = localStorage.getItem('accessToken');
+  
   return (
     <Router>
       <Routes>
+      {!accessToken && <Route path="*" element={<Navigate to="/login" replace />} />}
         <Route
           path="*"
           element={<Navigate to="/login" replace />}/>

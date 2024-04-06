@@ -107,7 +107,9 @@ function MyComponent(props) {
     <Div>
       <Div2>
         <Div3>
+        <Link to={"/main"}>
           <LogoKaizen src="https://cdn.builder.io/api/v1/image/assets/TEMP/3905e52e9c6b961ec6717c80409232f3222eab9fc52b8caf2e55d314ff83b93e?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="KaizenCloud Logo" />
+         </Link>
           <Link to="/slider" style={{ textDecoration: 'none' }}>
             <Button
               loading="lazy"
