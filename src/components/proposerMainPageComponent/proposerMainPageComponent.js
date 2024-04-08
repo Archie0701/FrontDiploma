@@ -106,7 +106,7 @@ if (loading) {
                           </Button>
                           <Text style={{ textDecoration: 'none', color: 'black' }}>Suggest</Text>
                         </Link>
-                      <Link to="/identify_problem" style={{ textDecoration: 'none', maxWidth: '120px' }}>
+                      <Link to="/add_proposal" style={{ textDecoration: 'none', maxWidth: '120px' }}>
                         <Button
                           loading="lazy"
                           src="https://cdn.builder.io/api/v1/image/assets/TEMP/baf4c644000a2ca7444ec44e15c20fa1c9dd044a60681bc1057ac431dac9c544?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"

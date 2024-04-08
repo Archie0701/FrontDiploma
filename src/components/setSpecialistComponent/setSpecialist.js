@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
-import { addProposal, criterias, fetchUserData } from '../../services/apiService';
+import { fetchUserData, fetchNewProposalData, acceptProposal, declineProposal, criterias } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
-import './style.css';
+import '../sliderComponent/style.css'; //
 
 export const logOut = () => {
+  // Удаляем токен из localStorage
   localStorage.removeItem('accessToken');
   window.location.href = "../login";
 };
@@ -15,94 +16,150 @@ export const logOut = () => {
 function MyComponent(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [proposalData, setProposalData] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [proposalText, setProposalText] = useState('');
-  const [proposalTitle, setProposalTitle] = useState('');
   const [allCriterias, setAllCriterias] = useState([]);
-  const [isHovered, setIsHovered] = useState(false);
-  const [proposersData, setProposersData] = useState(null);
   const [selectedCriteriaIds, setSelectedCriteriaIds] = useState([]);
-  const [checkboxCriteria, setCheckboxCriteria] = useState([]);
 
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-  };
-
-
-  const uncheckAllCheckboxes = () => {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach((checkbox) => {
-      checkbox.checked = false;
-    });
-  };
-
-  const handleCheckboxChange = (checked, id) => {
-    if(!checked && checkboxCriteria.includes(id)){
-      const updatedCriterias = checkboxCriteria.filter(item => item !== id);
-      setCheckboxCriteria(updatedCriterias);
-    }
-    else if(checked && !checkboxCriteria.includes(id)){
-      const updatedCriterias = [...checkboxCriteria];
-      updatedCriterias.push(id);
-      setCheckboxCriteria(updatedCriterias);
-    }
-  };
-
-  const today = new Date();
-  const formattedDate = `${today.getDate()} ${today.toLocaleString('default', { month: 'long' })} ${today.getFullYear()}`;
-
-  // Обновленная функция fetchData
   const fetchData = async () => {
     try {
       const userDataResponse = await fetchUserData();
+      const proposalDataResponse = await fetchNewProposalData();
       const criteriasData = await criterias();
 
       setAllCriterias(criteriasData);
-      setUserData(userDataResponse);
+
+      if (userDataResponse) {
+        setUserData(userDataResponse);
+      }
+
+      proposalDataResponse.forEach(proposal => {
+        if (proposal.criteria && proposal.criteria.length > 0) {
+          updateSelectedCriteria(proposal.criteria);
+        }
+      });
+
+      const selectedCriteriaIds = proposalDataResponse.flatMap(proposal => proposal.criteria.map(criterion => criterion.id));
+      setSelectedCriteriaIds(selectedCriteriaIds);
+
+      setProposalData(proposalDataResponse);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user data:', error);
+      window.location.href = "../login";
     }
   };
 
-  const handleSendProposal = async () => {
+  const updateProposalList = async () => {
     try {
-      if(proposalTitle == ''){
-        alert('Write a proposal title');
-        return;
-      } else if(proposalText == ''){
-        alert('Write a proposal text');
-        return;
-      } else if(checkboxCriteria.length == 0){
-        alert('Please select at least 1 criteria');
-        return;
-      } 
-      const response = await addProposal({
-        title: proposalTitle,
-        text: proposalText,
-        proposer: userData.proposer.id,
-        criteria: checkboxCriteria
-      });
-      console.log('Proposal sent:', response);
-      setProposalTitle('');
-      setProposalText('');
-      setCheckboxCriteria([]);
-      uncheckAllCheckboxes();
-      alert('Proposal sent successfully!');
+      const updatedProposalData = await fetchNewProposalData();
+      setProposalData(updatedProposalData);
     } catch (error) {
-      console.error('Error sending proposal:', error);
+      console.error('Error updating proposal list:', error);
     }
   };
-
+  // Обновляем выбранные критерии
+  const updateSelectedCriteria = (criteriaList) => {
+    const criteriaIds = criteriaList.map(criterion => criterion.id);
+    setSelectedCriteriaIds(criteriaIds);
+  };
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  const handleChange = (e) => {
+    const { name, checked } = e.target;
+    const criteriaId = parseInt(name);
+
+    if (proposalData[currentIndex]?.criteria) {
+      const updatedProposalData = proposalData.map(proposal => {
+        const updatedCriteria = proposal.criteria.map(criteria => {
+          if (criteria.id === criteriaId) {
+            return {
+              ...criteria,
+              selected: checked
+            };
+          }
+          return criteria;
+        });
+        return {
+          ...proposal,
+          criteria: updatedCriteria
+        };
+      });
+
+      setProposalData(updatedProposalData);
+
+      // Обновляем список выбранных критериев
+      if (checked) {
+        setSelectedCriteriaIds(prevSelectedCriteriaIds => [...prevSelectedCriteriaIds, criteriaId]);
+      } else {
+        setSelectedCriteriaIds(prevSelectedCriteriaIds => prevSelectedCriteriaIds.filter(id => id !== criteriaId));
+      }
+    }
+  };
+
+
+
+
+  const handleNext = () => {
+    const nextProposal = proposalData.find((data, index) => index > currentIndex && data.status === "New");
+    if (nextProposal) {
+      setCurrentIndex(proposalData.indexOf(nextProposal));
+      updateSelectedCriteria(nextProposal.criteria); // Добавляем эту строку
+    }
+  };
+
+  const handleBack = () => {
+    const prevProposal = proposalData.slice(0, currentIndex).reverse().find(data => data.status === "New");
+    if (prevProposal) {
+      setCurrentIndex(proposalData.indexOf(prevProposal));
+      updateSelectedCriteria(prevProposal.criteria); // Добавляем эту строку
+    }
+  };
+
+
+
+  const handleAccept = async () => {
+    try {
+      const newProposal = proposalData.find(data => data.status === "New");
+
+      if (!newProposal) {
+        alert("Нет новых предложений для принятия");
+        return;
+      }
+
+      const proposalId = newProposal.id;
+      const criteriaIds = newProposal.criteria.map(criteria => criteria.id);
+
+      const response = await acceptProposal(proposalId, selectedCriteriaIds);
+      await updateProposalList();
+      // Обработка успешного принятия предложения
+    } catch (error) {
+      // Обработка ошибки
+    }
+  };
+
+  const handleReject = async () => {
+    try {
+      const newProposal = proposalData.find(data => data.status === "New");
+
+      if (!newProposal) {
+        alert("Нет новых предложений для принятия");
+        return;
+      }
+
+      const proposalId = newProposal.id;
+      const criteriaIds = newProposal.criteria.map(criteria => criteria.id);
+
+      const response = await declineProposal(proposalId, selectedCriteriaIds);
+      await updateProposalList();
+      // Обработка успешного принятия предложения
+    } catch (error) {
+      // Обработка ошибки
+    }
+  };
 
   if (loading) {
     return <Spinner />;
@@ -116,10 +173,8 @@ function MyComponent(props) {
     <Div>
       <Div2>
         <Div3>
-        <Link to={"/main"}>
           <LogoKaizen src="https://cdn.builder.io/api/v1/image/assets/TEMP/3905e52e9c6b961ec6717c80409232f3222eab9fc52b8caf2e55d314ff83b93e?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="KaizenCloud Logo" />
-         </Link>
-          <Link to="/slider" style={{ textDecoration: 'none' }}>
+          <Link to="/slider" style={{ textDecoration: 'none', marginTop: 57}}>
             <Button
               loading="lazy"
             ><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -170,86 +225,74 @@ function MyComponent(props) {
               </svg>
             </Button5>
           </Link>
+          <Button6
+            loading="lazy"
+          ><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7.55556 11.5556L7.55556 4.44444L4 8L7.55556 11.5556ZM16 14.2222C16 14.7111 15.8259 15.1296 15.4778 15.4778C15.1296 15.8259 14.7111 16 14.2222 16H1.77778C1.28889 16 0.87037 15.8259 0.522222 15.4778C0.174074 15.1296 0 14.7111 0 14.2222L0 1.77778C0 1.28889 0.174074 0.87037 0.522222 0.522222C0.87037 0.174073 1.28889 0 1.77778 0H14.2222C14.7111 0 15.1296 0.174073 15.4778 0.522222C15.8259 0.87037 16 1.28889 16 1.77778V14.2222ZM11.5556 14.2222H14.2222V1.77778H11.5556V14.2222ZM9.77778 14.2222V1.77778H1.77778L1.77778 14.2222H9.77778Z" fill="#5A5A5A" />
+            </svg>
+          </Button6>
         </Div3>
         <Div4>
           <Div5>
             <Div6>Company name</Div6>
-            <DropdownWrapper onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}>
             <Div7>
               <Div8>
                 <Img8
                   loading="lazy"
-                  srcSet={"https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" || Logo}
+                  srcSet={userData.avatar || Logo}
                   alt="Person Image"
                   width="24"
                   height="24"
                 />
-                <Div9>{userData.first_name}</Div9>
-              </Div8>
-            </Div7>
-            {isHovered && (    
-                <DropdownMenu>
-                  <Link to={`/profile/${userData.proposer.id}`} style={{textDecoration: 'none', color: '#333'}}> 
-                  <DropdownItem>
-                  <Div8>
-                  <Div9>Profile</Div9>
+                <Div9>{userData.last_name} {userData.first_name}</Div9>
               </Div8>
               <Img9
                 loading="lazy"
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/86686b16897beeac74304533d5bb958a4d1e0106aa55fd71c28f706a5b838225?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
                 onClick={logOut}>
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6.5 6.5C5.60625 6.5 4.84115 6.18177 4.20469 5.54531C3.56823 4.90885 3.25 4.14375 3.25 3.25C3.25 2.35625 3.56823 1.59115 4.20469 0.954687C4.84115 0.318229 5.60625 0 6.5 0C7.39375 0 8.15885 0.318229 8.79531 0.954687C9.43177 1.59115 9.75 2.35625 9.75 3.25C9.75 4.14375 9.43177 4.90885 8.79531 5.54531C8.15885 6.18177 7.39375 6.5 6.5 6.5ZM0 13V10.725C0 10.2646 0.11849 9.84141 0.355469 9.45547C0.592448 9.06953 0.907292 8.775 1.3 8.57187C2.13958 8.15208 2.99271 7.83724 3.85937 7.62734C4.72604 7.41745 5.60625 7.3125 6.5 7.3125C7.39375 7.3125 8.27396 7.41745 9.14062 7.62734C10.0073 7.83724 10.8604 8.15208 11.7 8.57187C12.0927 8.775 12.4076 9.06953 12.6445 9.45547C12.8815 9.84141 13 10.2646 13 10.725V13H0ZM1.625 11.375H11.375V10.725C11.375 10.576 11.3378 10.4406 11.2633 10.3187C11.1888 10.1969 11.0906 10.1021 10.9688 10.0344C10.2375 9.66875 9.49948 9.39453 8.75469 9.21172C8.0099 9.02891 7.25833 8.9375 6.5 8.9375C5.74167 8.9375 4.9901 9.02891 4.24531 9.21172C3.50052 9.39453 2.7625 9.66875 2.03125 10.0344C1.90937 10.1021 1.8112 10.1969 1.73672 10.3187C1.66224 10.4406 1.625 10.576 1.625 10.725V11.375ZM6.5 4.875C6.94687 4.875 7.32943 4.71589 7.64766 4.39766C7.96589 4.07943 8.125 3.69687 8.125 3.25C8.125 2.80312 7.96589 2.42057 7.64766 2.10234C7.32943 1.78411 6.94687 1.625 6.5 1.625C6.05312 1.625 5.67057 1.78411 5.35234 2.10234C5.03411 2.42057 4.875 2.80312 4.875 3.25C4.875 3.69687 5.03411 4.07943 5.35234 4.39766C5.67057 4.71589 6.05312 4.875 6.5 4.875Z" fill="#C4C4C4"/>
-                </svg>
-              </Img9>
-                  </DropdownItem>
-                  </Link>
-                  <DropdownItem onClick={logOut}>
-                  <Div8>
-                <Div9>Logout</Div9>
-              </Div8>
-              <Img9
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/86686b16897beeac74304533d5bb958a4d1e0106aa55fd71c28f706a5b838225?apiKey=76bc4e76ba824cf091e9566ff1ae9339&">
                 <svg width="17" height="15" viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M10.0037 4.25V2.625C10.0037 2.19402 9.83123 1.7807 9.52423 1.47595C9.21722 1.1712 8.80084 1 8.36667 1H2.63704C2.20287 1 1.78648 1.1712 1.47948 1.47595C1.17247 1.7807 1 2.19402 1 2.625V12.375C1 12.806 1.17247 13.2193 1.47948 13.524C1.78648 13.8288 2.20287 14 2.63704 14H8.36667C8.80084 14 9.21722 13.8288 9.52423 13.524C9.83123 13.2193 10.0037 12.806 10.0037 12.375V10.75" stroke="#C4C4C4" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M4.27408 7.5H15.7333L13.2778 5.0625M13.2778 9.9375L15.7333 7.5" stroke="#C4C4C4" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </Img9>
-                  </DropdownItem>
-                  </DropdownMenu>   
-                      )}
-            </DropdownWrapper>  
+            </Div7>
           </Div5>
           <Div10 className="slider-container">
+            {proposalData && (
               <Div11 className="slider">
                 <Column>
-                    <Div12>
-                        <Div14>{formattedDate}</Div14>
+                  {proposalData.filter(data => data.status === "Graded").map((data, index) => (
+                    <Div12
+                      className={`slide ${index === currentIndex ? 'active' : ''} ${index < currentIndex ? 'slideToLeft' : index > currentIndex ? 'slideToRight' : ''}`}
+                      key={data.id}
+                    >
+                      <Div13>
+                        <Div14>{formatDate(data.created_at)}</Div14>
+                        <Div15>
+                          <ArchiveButton>Archive</ArchiveButton>
+                        </Div15>
+                        <Div19>
+                          {currentIndex > 0 && <BackButton onClick={handleBack}>Back</BackButton>}
+                          {currentIndex < proposalData.length - 1 && <NextButton onClick={handleNext}>Next</NextButton>}
+                        </Div19>
+                      </Div13>
                       <Div22 />
                       <Div23>
-                        <ProposalTitle type="text" 
-                          placeholder="Title" 
-                          value={proposalTitle}
-                          onChange={(e) => setProposalTitle(e.target.value)}
-                        />
-                        <Proposal type="text" 
-                          placeholder="Your proposal" 
-                          value={proposalText}
-                          onChange={(e) => setProposalText(e.target.value)}
-                        />
+                        <Div24>
+                          <Div25>New proposals</Div25>
+                          <Div26>{data.text}</Div26>
+                        </Div24>
+                        <Div27 />
+                        <Div28>
+                          <Div29>
+                            <Div30>Comments</Div30>
+                            <Div31>Great job!</Div31>
+                          </Div29>
+                          <Comments type="text" placeholder="Your comments" />
+                        </Div28>
                       </Div23>
-                      
-                      <ButtonContainer>
-                        <SendButton onClick={handleSendProposal}>Send proposal</SendButton>
-                        <EraseButton onClick={() => {
-                            setProposalText('');
-                            setProposalTitle('');
-                        }}> Erase All
-                        </EraseButton>
-                      </ButtonContainer>
                     </Div12>
+                  ))}
                 </Column>
                 <Column2>
                   <>
@@ -267,7 +310,7 @@ function MyComponent(props) {
                           <Div42>Description</Div42>
                         </Div38>
                         <Div43 />
-                        {allCriterias.map((criteria, index) => (
+                        {allCriterias.map((criteria, index) => ( // Используем все критерии для отображения
 
                           <React.Fragment key={index}>
                             <Div44>
@@ -275,8 +318,9 @@ function MyComponent(props) {
                                 <Checkbox
                                   type="checkbox"
                                   name={criteria.id}
-                                  onChange={(event) => handleCheckboxChange(event.target.checked, criteria.id)}
-                                  />
+                                  checked={selectedCriteriaIds.includes(criteria.id)}
+                                  onChange={handleChange}// Устанавливаем состояние чекбокса на основе свойства selected критерия
+                                />
                                 <Div47>{criteria.name}</Div47>
                               </Div45>
                               <Div48>{criteria.description}</Div48>
@@ -284,12 +328,17 @@ function MyComponent(props) {
                             <Div49 />
                           </React.Fragment>
                         ))}
-
+                        <Div73>
+                          <AcceptButton onClick={handleAccept}>Accept</AcceptButton>
+                          <RejectButton onClick={handleReject}>Reject</RejectButton>
+                        </Div73>
                       </Div37>
                     </Div33>
                   </>
                 </Column2>
               </Div11>
+            )}
+
           </Div10>
 
         </Div4>
@@ -323,9 +372,6 @@ const Div2 = styled.div`
   }
 `;
 const Div3 = styled.div`
-  position: fixed;
-  height: 100%;
-  z-index: 1;
   align-items: center;
   background-color: #fff;
   display: flex;
@@ -356,7 +402,6 @@ const Button = styled.button`
   object-fit: auto;
   object-position: center;
   width: 40px;
-  margin-top: 57px;
   @media (max-width: 991px) {
     margin-top: 40px;
   }
@@ -368,6 +413,7 @@ const Button1 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
+    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -389,6 +435,7 @@ const Button2 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
+    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -408,6 +455,7 @@ const Button3 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
+    /* line I added */
     background-color:#ECF3FF;
     
     pointer-events: visible;
@@ -431,6 +479,7 @@ const Button4 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
+    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -491,7 +540,6 @@ const Button6 = styled.button`
   }
 `;
 const Div4 = styled.div`
-  margin-left: 60px;
   align-self: start;
   display: flex;
   margin-top: 10px;
@@ -530,11 +578,6 @@ const Div6 = styled.div`
     padding: 0 20px;
   }
 `;
-
-const DropdownWrapper = styled.div`
-  width: 160px;
-`;
-
 const Div7 = styled.div`
   border-radius: 8px;
   border: 1px solid #d7d7d7;
@@ -567,35 +610,6 @@ const Div9 = styled.div`
   margin: auto 0;
   @media (max-width: 991px) {
     white-space: initial;
-  }
-`;
-const DropdownMenu = styled.div`
-  z-index: 11;
-  width: 160px;
-  position: absolute;
-  top: 45px;
-  display: flex;
-  flex-direction: column;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-`;
-
-const DropdownItem = styled.div`
-  border: 1px solid #d7d7d7;
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-  padding: 8px 12px;
-  color: #333;
-  cursor: pointer;
-
-  &:hover {
-    background-color: #f0f0f0;
   }
 `;
 const Img9 = styled.button`
@@ -648,94 +662,270 @@ const Div12 = styled.div`
     margin-top: 15px;
   }
 `;
-
-const ButtonContainer = styled.div`
-  align-self: end;
+const Div13 = styled.div`
   display: flex;
+  width: 100%;
+  padding-right: 32px;
+  justify-content: space-between;
   gap: 20px;
-  margin: 30px 34px 0 0;
-
-  @media (max-width: 991px) {
-    margin: 40px 10px 0 0;
-  }
-`;
-
-const SendButton = styled.button`
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  background-color: rgba(24, 119, 242, 1);
-  color: #fff;
-  font-weight: 500;
-  justify-content: center;
-  padding: 12px 27px;
-  border: none;
-  cursor: pointer;
-
-  @media (max-width: 991px) {
-    padding: 12px 20px;
-  }
-`;
-
-const EraseButton = styled.button`
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  background-color: rgba(230, 230, 230, 1);
-  color: #434343;
+  color: #5d5d5d;
   font-weight: 400;
-  justify-content: center;
-  padding: 13px 46px;
-  border: none;
-  cursor: pointer;
-
   @media (max-width: 991px) {
-    padding: 13px 20px;
+    max-width: 100%;
+    flex-wrap: wrap;
+    padding-right: 20px;
   }
 `;
 const Div14 = styled.div`
-  display: flex;
-  height: 35px;
-  align-items: center;
   font-family: Roboto, sans-serif;
-  margin: 5px 20px;
+  margin: auto 20px;
+`;
+const Div15 = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  white-space: nowrap;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const ArchiveButton = styled.button`
+&:hover {
+  transform: translateY(-5px);
+  color: #333;
+  cursor:pointer;
+  box-shadow: .0rem .2rem .4rem #777;
+  /* line I added */
+  background-color:#ECF3FF;
+  pointer-events: visible;
+  position: relative;
+  z-index: 0;
+  visibility: visible;
+  float: none;
+}
+  border:none;
+  cursor:pointer;
+  font-family: Roboto, sans-serif;
+  border-radius: 8px 4px 4px 8px;
+  background-color: #e6e6e6;
+  flex-grow: 1;
+  justify-content: center;
+  padding: 13px 27px;
+  
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+const ChangeStatus = styled.button`
+&:hover {
+  transform: translateY(-5px);
+  color: #333;
+  cursor:pointer;
+  box-shadow: .0rem .2rem .4rem #777;
+  /* line I added */
+  background-color:#ECF3FF;
+  pointer-events: visible;
+  position: relative;
+  z-index: 0;
+  visibility: visible;
+  float: none;
+}
+border:none;
+  cursor:pointer;
+  font-family: Roboto, sans-serif;
+  border-radius: 4px;
+  background-color: #e6e6e6;
+  flex-grow: 1;
+  justify-content: center;
+  padding: 12px 20px;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const SpecialistButton = styled.button`
+&:hover {
+  transform: translateY(-5px);
+  color: #333;
+  cursor:pointer;
+  box-shadow: .0rem .2rem .4rem #777;
+  /* line I added */
+  background-color:#ECF3FF;
+  pointer-events: visible;
+  position: relative;
+  z-index: 0;
+  visibility: visible;
+  float: none;
+}
+border:none;
+  cursor:pointer;
+  font-family: Roboto, sans-serif;
+  border-radius: 4px 8px 8px 4px;
+  background-color: #e6e6e6;
+  flex-grow: 1;
+  justify-content: center;
+  padding: 12px 34px 12px 14px;
+  @media (max-width: 991px) {
+    padding-right: 20px;
+    white-space: initial;
+  }
+`;
+const Div19 = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  white-space: nowrap;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const BackButton = styled.button`
+cursor:pointer;
+&:hover {
+  transform: translateY(-5px);
+  color: #333;
+  cursor:pointer;
+  box-shadow: .0rem .2rem .4rem #777;
+  /* line I added */
+  background-color:#ECF3FF;
+  pointer-events: visible;
+  position: relative;
+  z-index: 0;
+  visibility: visible;
+  float: none;
+}
+border:none;
+  font-family: Roboto, sans-serif;
+  border-radius: 8px 4px 4px 8px;
+  background-color: #e6e6e6;
+  flex-grow: 1;
+  justify-content: center;
+  padding: 13px 21px;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+const NextButton = styled.button`
+&:hover {
+  transform: translateY(-5px);
+  color: #333;
+  cursor:pointer;
+  box-shadow: .0rem .2rem .4rem #777;
+  /* line I added */
+  background-color:#ECF3FF;
+  pointer-events: visible;
+  position: relative;
+  z-index: 0;
+  visibility: visible;
+  float: none;
+}
+  cursor:pointer;
+  border:none;
+  font-family: Roboto, sans-serif;
+  border-radius: 4px 8px 8px 4px;
+  background-color: #e6e6e6;
+  flex-grow: 1;
+  justify-content: center;
+  padding: 13px 38px 13px 17px;
+  @media (max-width: 991px) {
+    padding-right: 20px;
+    white-space: initial;
+  }
 `;
 const Div22 = styled.div`
   background-color: #e6e6e6;
+  margin-top: 10px;
   height: 1px;
   @media (max-width: 991px) {
     max-width: 100%;
   }
 `;
 const Div23 = styled.div`
-  margin: 20px 34px 0 34px;
+  margin-left:20px;
+  display: flex;
+  margin-top: 18px;
   z-index:0;
   align-items: start;
+  justify-content: space-between;
   gap: 35px;
   @media (max-width: 991px) {
     max-width: 100%;
     flex-wrap: wrap;
   }
 `;
-const ProposalTitle = styled.input`
-  border:none;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  background-color: #f2f2f2;
-  font-weight: 300;
-  padding: 12px;
-  margin-bottom: 7px;
+const Div24 = styled.div`
+  display: flex;
+  flex-grow: 1;
+  flex-basis: 0%;
+  flex-direction: column;
   @media (max-width: 991px) {
     max-width: 100%;
-    padding-right: 20px;
   }
 `;
-const Proposal = styled.input`
+const Div25 = styled.div`
+  color: #3fc86e;
+  font-family: Roboto, sans-serif;
+  font-weight: 600;
+  @media (max-width: 991px) {
+    max-width: 100%;
+  }
+`;
+const Div26 = styled.div`
+  color: #5d5d5d;
+  font-family: Roboto, sans-serif;
+  font-weight: 400;
+  margin-top: 17px;
+  @media (max-width: 991px) {
+    max-width: 100%;
+  }
+`;
+const Div27 = styled.div`
+  background-color: #e6e6e6;
+  align-self: stretch;
+  width: 1px;
+  height: 174px;
+`;
+const Div28 = styled.div`
+  display: flex;
+  flex-grow: 1;
+  flex-basis: 0%;
+  flex-direction: column;
+  color: #5d5d5d;
+  @media (max-width: 991px) {
+    max-width: 100%;
+  }
+`;
+const Div29 = styled.div`
+  align-self: start;
+  display: flex;
+  margin-left: 10px;
+  flex-direction: column;
+  white-space: nowrap;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Div30 = styled.div`
+  font-family: Roboto, sans-serif;
+  font-weight: 600;
+`;
+const Div31 = styled.div`
+  font-family: Roboto, sans-serif;
+  font-weight: 400;
+  margin-top: 26px;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const Comments = styled.input`
   border:none;
-  width: 100%;
   font-family: Roboto, sans-serif;
   border-radius: 8px;
   background-color: #f2f2f2;
+  margin-top: 24px;
   font-weight: 300;
-  padding: 14px 0 70px 10px;
+  padding: 14px 60px 70px 10px;
   @media (max-width: 991px) {
     max-width: 100%;
     padding-right: 20px;
@@ -913,7 +1103,6 @@ const Div47 = styled.div`
 
 const Div48 = styled.div`
   color: #7b7b7b;
-  flex:start;
   flex-shrink: 1; /* Разрешить сжатие текста */
   font: 12px Roboto, sans-serif;
   overflow: hidden; /* Скрытие излишков текста */
@@ -928,5 +1117,76 @@ const Div49 = styled.div`
     max-width: 100%;
   }
   `
+const Div73 = styled.div`
+  align-self: start;
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
+  white-space: nowrap;
+  margin: 32px 0 0 11px;
+  @media (max-width: 991px) {
+    margin-left: 10px;
+    white-space: initial;
+  }
+`;
+const AcceptButton = styled.button`
+  cursor:pointer;
+  border:none;
+  font-family: Roboto, sans-serif;
+  border-radius: 8px;
+  background-color: rgba(24, 119, 242, 1);
+  flex-grow: 1;
+  justify-content: center;
+  color: #fff;
+  &:hover {
+    transform: translateY(-5px);
+    transition: transform 0.5s;
+    background-color: blue;
+    cursor:pointer;
+    box-shadow: .0rem .2rem .4rem #777;
+    /* line I added */
+    pointer-events: visible;
+    position: relative;
+    z-index: 0;
+    visibility: visible;
+    float: none;
+  }
+  font-weight: 500;
+  padding: 12px 35px;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+const RejectButton = styled.button`
+  cursor:pointer;
+  border:none;
+  font-family: Roboto, sans-serif;
+  border-radius: 8px;
+  &:hover {
+    transform: translateY(-5px);
+    transition: transform 0.5s;
+    color: #fff;
+    cursor:pointer;
+    box-shadow: .0rem .2rem .4rem #777;
+    /* line I added */
+    background-color:red;
+    pointer-events: visible;
+    position: relative;
+    z-index: 0;
+    visibility: visible;
+    float: none;
+  }
+  background-color: rgba(230, 230, 230, 1);
+  flex-grow: 1;
+  justify-content: center;
+  color: #434343;
+  font-weight: 400;
+  padding: 12px 38px;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
 
 export default MyComponent;

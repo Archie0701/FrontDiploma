@@ -2,10 +2,12 @@ import React, {useState, useEffect} from "react";
 import styled from "styled-components";
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
-import { fetchUsersId, fetchUserData, fetchProposalsId } from "../../services/apiService";
+import { fetchUsersId, fetchUserData, fetchProposalsId, fetchProposersData} from "../../services/apiService";
 import { ContributionCalendar, createTheme } from "react-contribution-calendar";
 import Spinner from '../Spinner/Spinner';
-import Select from 'react-select'
+import Select from 'react-select';
+import { useParams } from 'react-router-dom';
+
 
 export const logOut = () => {
   // Удаляем токен из localStorage
@@ -51,16 +53,42 @@ const data = [
 function Header() {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hoveredDate, setHoveredDate] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const { profileId } = useParams();
+  const [proposersData, setProposersData] = useState(null);
   const [selectedYear, setSelectedYear] = useState('2024');
   const [proposalsDataById, setProposalsData] = useState(null);
+  const [error, setError] = useState(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
 
   const fetchData = async () => {
     try {
+      const proposersData = await fetchProposersData();
       const profileDataResponse = await fetchUsersId();
       const userDataResponse = await fetchUserData();
       const proposalsDataByIdResponse = await fetchProposalsId();
+      
+      const transformedData = {};
+      proposersData.forEach((item) => {
+        transformedData[item.id] = item;
+      });
 
+      if(userDataResponse.is_proposer && userDataResponse.proposer.id === parseInt(profileId)){
+        setIsOwner(true);
+      }
+      const foundUserProfile = proposersData.find(user => user.id === parseInt(profileId));
+      setUserProfile(foundUserProfile);
       if (proposalsDataByIdResponse) {
         setProposalsData(proposalsDataByIdResponse);
       }
@@ -224,38 +252,70 @@ function Header() {
               </svg>
             </Button5>
           </Link>
-          <Button6
-            loading="lazy"
-          ><svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M7.55556 11.5556L7.55556 4.44444L4 8L7.55556 11.5556ZM16 14.2222C16 14.7111 15.8259 15.1296 15.4778 15.4778C15.1296 15.8259 14.7111 16 14.2222 16H1.77778C1.28889 16 0.87037 15.8259 0.522222 15.4778C0.174074 15.1296 0 14.7111 0 14.2222L0 1.77778C0 1.28889 0.174074 0.87037 0.522222 0.522222C0.87037 0.174073 1.28889 0 1.77778 0H14.2222C14.7111 0 15.1296 0.174073 15.4778 0.522222C15.8259 0.87037 16 1.28889 16 1.77778V14.2222ZM11.5556 14.2222H14.2222V1.77778H11.5556V14.2222ZM9.77778 14.2222V1.77778H1.77778L1.77778 14.2222H9.77778Z" fill="#5A5A5A" />
-            </svg>
-          </Button6>
         </Div3>
 
         <ProfileWrapper>
           <Div5>
             <Div6>Company name</Div6>
+            <EditAndDropdown>
+              {isOwner && (
+                <Link to='/edit_profile'>
+                <EditButton>
+                <svg width="32" height="28" viewBox="0 0 32 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.8967 13.1938C11.1234 13.1938 9.60537 12.5624 8.34257 11.2996C7.07976 10.0368 6.44836 8.51878 6.44836 6.74548C6.44836 4.97218 7.07976 3.45413 8.34257 2.19133C9.60537 0.928521 11.1234 0.297119 12.8967 0.297119C14.67 0.297119 16.1881 0.928521 17.4509 2.19133C18.7137 3.45413 19.3451 4.97218 19.3451 6.74548C19.3451 8.51878 18.7137 10.0368 17.4509 11.2996C16.1881 12.5624 14.67 13.1938 12.8967 13.1938ZM0 26.0906V21.5767C0 20.6901 0.22838 19.8572 0.685139 19.078C1.1419 18.2988 1.7733 17.7077 2.57934 17.3047C3.94962 16.6061 5.49454 16.015 7.21411 15.5314C8.93367 15.0477 10.8279 14.8059 12.8967 14.8059H13.461C13.6222 14.8059 13.7834 14.8328 13.9446 14.8865C13.7296 15.3702 13.5483 15.8739 13.4005 16.3979C13.2527 16.9218 13.1385 17.4659 13.0579 18.0301H12.8967C10.9891 18.0301 9.27624 18.2719 7.75819 18.7556C6.24013 19.2392 4.99748 19.7228 4.03023 20.2064C3.78841 20.3408 3.59362 20.5289 3.44584 20.7707C3.29807 21.0125 3.22418 21.2812 3.22418 21.5767V22.8664H13.3804C13.5416 23.4306 13.7565 23.9881 14.0252 24.5389C14.2939 25.0897 14.5894 25.6069 14.9118 26.0906H0ZM22.5693 27.7027L22.0856 25.2845C21.7632 25.1502 21.461 25.0091 21.1788 24.8614C20.8967 24.7136 20.6079 24.5322 20.3123 24.3173L17.9748 25.0427L16.3627 22.3022L18.2166 20.6901C18.1629 20.3139 18.136 19.9646 18.136 19.6422C18.136 19.3198 18.1629 18.9705 18.2166 18.5943L16.3627 16.9823L17.9748 14.2417L20.3123 14.9671C20.6079 14.7522 20.8967 14.5708 21.1788 14.4231C21.461 14.2753 21.7632 14.1342 22.0856 13.9999L22.5693 11.5818H25.7934L26.2771 13.9999C26.5995 14.1342 26.9018 14.282 27.1839 14.4432C27.466 14.6044 27.7548 14.8059 28.0504 15.0477L30.3879 14.2417L32 17.0629L30.1461 18.675C30.1998 18.9974 30.2267 19.3332 30.2267 19.6825C30.2267 20.0318 30.1998 20.3676 30.1461 20.6901L32 22.3022L30.3879 25.0427L28.0504 24.3173C27.7548 24.5322 27.466 24.7136 27.1839 24.8614C26.9018 25.0091 26.5995 25.1502 26.2771 25.2845L25.7934 27.7027H22.5693ZM24.1814 22.8664C25.068 22.8664 25.827 22.5507 26.4584 21.9193C27.0898 21.2879 27.4055 20.5289 27.4055 19.6422C27.4055 18.7556 27.0898 17.9965 26.4584 17.3651C25.827 16.7337 25.068 16.418 24.1814 16.418C23.2947 16.418 22.5357 16.7337 21.9043 17.3651C21.2729 17.9965 20.9572 18.7556 20.9572 19.6422C20.9572 20.5289 21.2729 21.2879 21.9043 21.9193C22.5357 22.5507 23.2947 22.8664 24.1814 22.8664ZM12.8967 9.96966C13.7834 9.96966 14.5424 9.65396 15.1738 9.02256C15.8052 8.39116 16.1209 7.63213 16.1209 6.74548C16.1209 5.85883 15.8052 5.09981 15.1738 4.4684C14.5424 3.837 13.7834 3.5213 12.8967 3.5213C12.0101 3.5213 11.251 3.837 10.6196 4.4684C9.98825 5.09981 9.67254 5.85883 9.67254 6.74548C9.67254 7.63213 9.98825 8.39116 10.6196 9.02256C11.251 9.65396 12.0101 9.96966 12.8967 9.96966Z" fill="#939393"/>
+                </svg>
+                </EditButton>
+                </Link>
+              )}
+              <DropdownWrapper onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}>
             <Div7>
               <Div8>
                 <Img8
                   loading="lazy"
-                  srcSet={userData.avatar || Logo}
+                  srcSet={"https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" || Logo}
                   alt="Person Image"
                   width="24"
                   height="24"
                 />
-                <Div9>{userData.last_name} {userData.first_name}</Div9>
+                <Div9>{userData.first_name}</Div9>
+              </Div8>
+            </Div7>
+            {isHovered && (    
+                <DropdownMenu>
+                  <Link to={`/profile/${userData.proposer.id}`} style={{textDecoration: 'none', color: '#333'}}> 
+                  <DropdownItem>
+                  <Div8>
+                  <Div9>Profile</Div9>
               </Div8>
               <Img9
                 loading="lazy"
                 src="https://cdn.builder.io/api/v1/image/assets/TEMP/86686b16897beeac74304533d5bb958a4d1e0106aa55fd71c28f706a5b838225?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
                 onClick={logOut}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6.5 6.5C5.60625 6.5 4.84115 6.18177 4.20469 5.54531C3.56823 4.90885 3.25 4.14375 3.25 3.25C3.25 2.35625 3.56823 1.59115 4.20469 0.954687C4.84115 0.318229 5.60625 0 6.5 0C7.39375 0 8.15885 0.318229 8.79531 0.954687C9.43177 1.59115 9.75 2.35625 9.75 3.25C9.75 4.14375 9.43177 4.90885 8.79531 5.54531C8.15885 6.18177 7.39375 6.5 6.5 6.5ZM0 13V10.725C0 10.2646 0.11849 9.84141 0.355469 9.45547C0.592448 9.06953 0.907292 8.775 1.3 8.57187C2.13958 8.15208 2.99271 7.83724 3.85937 7.62734C4.72604 7.41745 5.60625 7.3125 6.5 7.3125C7.39375 7.3125 8.27396 7.41745 9.14062 7.62734C10.0073 7.83724 10.8604 8.15208 11.7 8.57187C12.0927 8.775 12.4076 9.06953 12.6445 9.45547C12.8815 9.84141 13 10.2646 13 10.725V13H0ZM1.625 11.375H11.375V10.725C11.375 10.576 11.3378 10.4406 11.2633 10.3187C11.1888 10.1969 11.0906 10.1021 10.9688 10.0344C10.2375 9.66875 9.49948 9.39453 8.75469 9.21172C8.0099 9.02891 7.25833 8.9375 6.5 8.9375C5.74167 8.9375 4.9901 9.02891 4.24531 9.21172C3.50052 9.39453 2.7625 9.66875 2.03125 10.0344C1.90937 10.1021 1.8112 10.1969 1.73672 10.3187C1.66224 10.4406 1.625 10.576 1.625 10.725V11.375ZM6.5 4.875C6.94687 4.875 7.32943 4.71589 7.64766 4.39766C7.96589 4.07943 8.125 3.69687 8.125 3.25C8.125 2.80312 7.96589 2.42057 7.64766 2.10234C7.32943 1.78411 6.94687 1.625 6.5 1.625C6.05312 1.625 5.67057 1.78411 5.35234 2.10234C5.03411 2.42057 4.875 2.80312 4.875 3.25C4.875 3.69687 5.03411 4.07943 5.35234 4.39766C5.67057 4.71589 6.05312 4.875 6.5 4.875Z" fill="#C4C4C4"/>
+                </svg>
+              </Img9>
+                  </DropdownItem>
+                  </Link>
+                  <DropdownItem onClick={logOut}>
+                  <Div8>
+                <Div9>Logout</Div9>
+              </Div8>
+              <Img9
+                loading="lazy"
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/86686b16897beeac74304533d5bb958a4d1e0106aa55fd71c28f706a5b838225?apiKey=76bc4e76ba824cf091e9566ff1ae9339&">
                 <svg width="17" height="15" viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M10.0037 4.25V2.625C10.0037 2.19402 9.83123 1.7807 9.52423 1.47595C9.21722 1.1712 8.80084 1 8.36667 1H2.63704C2.20287 1 1.78648 1.1712 1.47948 1.47595C1.17247 1.7807 1 2.19402 1 2.625V12.375C1 12.806 1.17247 13.2193 1.47948 13.524C1.78648 13.8288 2.20287 14 2.63704 14H8.36667C8.80084 14 9.21722 13.8288 9.52423 13.524C9.83123 13.2193 10.0037 12.806 10.0037 12.375V10.75" stroke="#C4C4C4" strokeLinecap="round" strokeLinejoin="round" />
                   <path d="M4.27408 7.5H15.7333L13.2778 5.0625M13.2778 9.9375L15.7333 7.5" stroke="#C4C4C4" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </Img9>
-            </Div7>
+                  </DropdownItem>
+                  </DropdownMenu>   
+                      )}
+            </DropdownWrapper>  
+            </EditAndDropdown>
+               
           </Div5>
           <ProfileContent>
 
@@ -313,9 +373,9 @@ function Header() {
         includeBoundary={true}
         startsOnSunday={true}
         theme={customTheme}
-        cx={14}
+        cx={12}
         data={calendarData}
-        cy={14}
+        cy={12}
         onCellClick={(_, data) => console.log(data)}
         scroll={false}
       />
@@ -350,8 +410,23 @@ function Header() {
   );
 }
 
+const HeaderWrapper = styled.header`
+  display: flex;
+  width: 100%;
+  gap: 20px;
+  font-size: 16px;
+  font-weight: 400;
+  justify-content: space-between;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+`;
 
 const Div3 = styled.div`
+  position: fixed;
+  z-index: 1;
+  height: 100%;
   align-items: center;
   background-color: #fff;
   display: flex;
@@ -422,6 +497,22 @@ const Div6 = styled.div`
     padding: 0 20px;
   }
 `;
+const EditAndDropdown = styled.div`
+  display: flex;
+`;
+const EditButton = styled.div`
+  cursor: pointer;
+  margin-right: 16px; 
+  display: flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid #d7d7d7;
+  background-color: #fff;
+`;
+const DropdownWrapper = styled.div`
+  width: 160px;
+`;
 const Div7 = styled.div`
   border-radius: 8px;
   border: 1px solid #d7d7d7;
@@ -435,6 +526,7 @@ const Div7 = styled.div`
   }
 `;
 const Div8 = styled.div`
+  cursro: pointer;
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -456,6 +548,35 @@ const Div9 = styled.div`
     white-space: initial;
   }
 `;
+const DropdownMenu = styled.div`
+  width: 160px;
+  position: absolute;
+  top: 45px;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+`;
+
+const DropdownItem = styled.div`
+  border: 1px solid #d7d7d7;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+  padding: 8px 12px;
+  color: #333;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+`;
+
 const Img9 = styled.button`
 aspect-ratio: 1.15;
 object-fit: auto;
@@ -647,6 +768,7 @@ const Main = styled.div`
 `;
 
 const ProfileWrapper = styled.div`
+  margin-left: 60px;
   border-radius: 6px;
   width: 95%;
   height: 830px;
@@ -785,7 +907,6 @@ const StatIcon = styled.img`
 const StatValues = styled.div`
   display: flex;
   margin-top: 32px;
-  gap: 20px;
   font-size: 20px;
   color: #8e8e8e;
   font-weight: 500;
@@ -798,6 +919,9 @@ const StatValues = styled.div`
 `;
 
 const StatValue = styled.span`
+  display: flex;
+  justify-content: center;
+  width: 30px;
   font-family: Roboto, sans-serif;
 `;
 
