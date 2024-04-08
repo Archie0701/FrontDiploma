@@ -1,9 +1,12 @@
-import React, {useEffect, useState} from "react";
+import React, {useState, useEffect} from "react";
 import styled from "styled-components";
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
+import { fetchUsersId, fetchUserData, fetchProposalsId } from "../../services/apiService";
 import {fetchProposersData, fetchUserData } from '../../services/apiService';
 import { ContributionCalendar, createTheme } from "react-contribution-calendar";
+import Spinner from '../Spinner/Spinner';
+import Select from 'react-select';
 import { useParams } from 'react-router-dom';
 import Spinner from '../Spinner/Spinner';
 
@@ -24,6 +27,16 @@ const customTheme = createTheme({
   level4: '#154373',
 });
 
+const years = [
+  { value: '2025', label: '2025' },
+  { value: '2024', label: '2024' },
+  { value: '2023', label: '2023' },
+  { value: '2022', label: '2022' },
+  { value: '2021', label: '2021' },
+  { value: '2020', label: '2020' }
+]
+
+
 const data = [
   {
     id: 1,
@@ -38,13 +51,17 @@ const data = [
 
 
 
+
 function Header() {
-  const [userData, setUserData] = useState(null);
-  const [hoveredDate, setHoveredDate] = useState(null);
+  const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [hoveredDate, setHoveredDate] = useState(null);
+  const [userData, setUserData] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
   const { profileId } = useParams();
   const [proposersData, setProposersData] = useState(null);
+  const [selectedYear, setSelectedYear] = useState('2024');
+  const [proposalsDataById, setProposalsData] = useState(null);
   const [error, setError] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
@@ -57,35 +74,127 @@ function Header() {
     setIsHovered(false);
   };
 
-  useEffect(() =>{
-    const fetchData = async() => {
-      try{
-        const userDataResponse = await fetchUserData();
-        const proposersData = await fetchProposersData()
-        const transformedData = {};
-        proposersData.forEach((item) => {
-          transformedData[item.id] = item;
-        });
-        setUserData(userDataResponse);
-        if(userDataResponse.is_proposer && userDataResponse.proposer.id === parseInt(profileId)){
-          setIsOwner(true);
-        }
-        setProposersData(transformedData);
-        const foundUserProfile = proposersData.find(user => user.id === parseInt(profileId));
-        setUserProfile(foundUserProfile);
-        setLoading(false);
-      } catch (error) {
-        setError(error.message);
-        setLoading(false);
-        console.error('Error fetching user data:', error);
+  const fetchData = async () => {
+    try {
+      const proposersData = await fetchProposersData();
+      const profileDataResponse = await fetchUsersId();
+      const userDataResponse = await fetchUserData();
+      const proposalsDataByIdResponse = await fetchProposalsId();
+      
+      const transformedData = {};
+      proposersData.forEach((item) => {
+        transformedData[item.id] = item;
+      });
+
+      if(userDataResponse.is_proposer && userDataResponse.proposer.id === parseInt(profileId)){
+        setIsOwner(true);
       }
+      const foundUserProfile = proposersData.find(user => user.id === parseInt(profileId));
+      setUserProfile(foundUserProfile);
+      if (proposalsDataByIdResponse) {
+        setProposalsData(proposalsDataByIdResponse);
+      }
+
+      if (profileDataResponse) {
+        setProfileData(profileDataResponse);
+      }
+
+      if (userDataResponse) {
+        setUserData(userDataResponse);
+      }
+
+      setLoading(false);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
     }
+  };
+
+  useEffect(() => {
     fetchData();
-  }, [])
+  }, []);
 
   if (loading) {
-    return <Spinner/> ;
+    return <Spinner />;
   }
+
+  // Count proposals by date
+  const countProposalsByDate = () => {
+    const countByDate = {};
+    proposalsDataById.forEach(proposal => {
+      const date = new Date(proposal.accepted_at);
+      date.setDate(date.getDate()); // Adding 1 day
+      const isoDate = date.toISOString().split('T')[0];
+      countByDate[isoDate] = (countByDate[isoDate] || 0) + 1;
+    });
+    return countByDate;
+  };
+
+  // Generate data for ContributionCalendar
+  const generateCalendarData = () => {
+    const countByDate = countProposalsByDate();
+    const calendarData = [];
+    for (const date in countByDate) {
+      const level = Math.min(countByDate[date], 4); // Limit level to maximum 5, as on GitHub
+      const dataEntry = {
+        [date]: {
+          level: level
+        }
+      };
+      calendarData.push(dataEntry);
+    }
+    return calendarData;
+  };
+
+  const formatDate = (createdAt) => {
+    const date = new Date(createdAt);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${day}.${month}.${year}, ${hours}:${minutes}`;
+  };
+
+  const calendarData = generateCalendarData();
+
+  const handleYearChange = (selectedOption) => {
+    setSelectedYear(selectedOption.value);
+  };
+
+  const getLastCreatedProposal = () => {
+    if (!proposalsDataById || proposalsDataById.length === 0) {
+      return null;
+    }
+    const sortedProposals = proposalsDataById.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    return sortedProposals[0];
+  };
+
+  const lastCreatedProposal = getLastCreatedProposal();
+
+  let sumNew = 0;
+  let sumAccepted = 0;
+  let sumDeclined = 0;
+  let sumArchived = 0;
+
+  proposalsDataById.forEach(data => {
+    switch (data.status) {
+      case 'New':
+        sumNew++;
+        break;
+      case 'Accepted':
+        sumAccepted++;
+        break;
+      case 'Declined':
+        sumDeclined++;
+        break;
+      case 'Archived':
+        sumArchived++;
+        break;
+      default:
+        // Do nothing for undefined statuses
+    }
+  });
+
   return (
     <Container>
       <Main>
@@ -217,8 +326,8 @@ function Header() {
               <ProfileInfo>
                 <ProposerProfile>
                   <ProposerTitle>Proposer's profile</ProposerTitle>
-                  <ProposerImage src={data[0].image} alt="Proposer" />
-                  <ProposerName>{userProfile.user.first_name} {userProfile.user.last_name}</ProposerName>
+                  <ProposerImage  src={profileData.avatar || Logo } alt="Proposer" />
+                  <ProposerName>{profileData.last_name} {profileData.first_name}</ProposerName>
                 </ProposerProfile>
                 <Divider />
                 <ProposerStats>
@@ -229,10 +338,10 @@ function Header() {
                     <StatIcon src="https://cdn.builder.io/api/v1/image/assets/TEMP/e612e4df7331a1a77a9321ec00348235972053f7f1d63da36fc207c8b095475d?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Stat 4" />
                   </StatIcons>
                   <StatValues>
-                    <StatValue>1</StatValue>
-                    <StatValue>1</StatValue>
-                    <StatValue>1</StatValue>
-                    <StatValue>1</StatValue>
+                    <StatValue>{sumNew}</StatValue>
+                    <StatValue>{sumAccepted}</StatValue>
+                    <StatValue>{sumDeclined}</StatValue>
+                    <StatValue>{sumArchived}</StatValue>
                   </StatValues>
                   <AwardsSection>
                     <VerticalDivider />
@@ -248,27 +357,32 @@ function Header() {
             </ProfileColumn>
             <MainVerticalDivider />
             <GraphColumn>
+          
               <LastProposalsGraph>
                 <GraphTitle>
+               
                   <VerticalDivider />
                   
                   <GraphTitleText>Last proposals graph</GraphTitleText>
+                  <Select options={years} onChange={handleYearChange} value={{ value: selectedYear, label: selectedYear }} />
                 </GraphTitle>
                 <GraphContent>
                 </GraphContent>
-                <ContributionCalendar
-          start="2023-01-01"
-          end="2023-12-31"
-          daysOfTheWeek={["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]}
-          includeBoundary={true}
-          startsOnSunday={true}
-          theme={customTheme} 
-          onCellClick={(_, data) => console.log(data)}
-          scroll={false}
-          style={{}}
-        />
+                <ContributionCalendar 
+        start={`${selectedYear}-01-01`}
+        end={`${selectedYear}-12-31`}
+        daysOfTheWeek={["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]}
+        includeBoundary={true}
+        startsOnSunday={true}
+        theme={customTheme}
+        cx={14}
+        data={calendarData}
+        cy={14}
+        onCellClick={(_, data) => console.log(data)}
+        scroll={false}
+      />
               </LastProposalsGraph>
-              <Divider />
+              <Divider style={{marginTop: 65}} />
               <LastProposalsJournal>
                 <JournalTitle>
                   <VerticalDivider />
@@ -276,10 +390,12 @@ function Header() {
                 </JournalTitle>
                 <JournalContent>
                   <JournalText>
-                    <JournalDescription>
-                      Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer. Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer
-                    </JournalDescription>
-                    <JournalDate>29.03.2024, 12:03</JournalDate>
+                  <JournalDescription>
+  {lastCreatedProposal && lastCreatedProposal.text}
+</JournalDescription>
+<JournalDate>
+  {lastCreatedProposal && formatDate(lastCreatedProposal.created_at)}
+</JournalDate>
                   </JournalText>
                   <JournalIcon>
                     <JournalIconImage src="https://cdn.builder.io/api/v1/image/assets/TEMP/59ec102d7837fee5a2a5c1e6f1168c560a21aaa8d15f67d9d81cdc7e11cc3173?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Journal Icon" />
@@ -711,7 +827,7 @@ const ProposerProfile = styled.div`
   flex-grow: 1;
   flex-basis: 0;
   
-  width: fit-content;
+  width: 400px;
  
   @media (max-width: 991px) {
     max-width: 100%;
@@ -730,7 +846,8 @@ const ProposerTitle = styled.h2`
 const ProposerImage = styled.img`
   aspect-ratio: 1.02;
   object-fit: cover;
-  width: 50%;
+  width: 200px;
+  height: 200px;
   margin-left: 50px;
   margin-top: 23px;
 `;
@@ -755,6 +872,7 @@ const Divider = styled.div`
   background-color: #d3d3d3;
   align-self: stretch;
   margin-top: 35px;
+
   height: 1px;
 
   @media (max-width: 991px) {
@@ -880,7 +998,7 @@ const LastProposalsGraph = styled.section`
   display: flex;
   flex-direction: column;
   align-self: stretch;
-  margin-top: 45px;
+  margin-top: 85px;
   width: 75%;
   @media (max-width: 991px) {
     max-width: 100%;
