@@ -111,7 +111,7 @@ function Grading(props) {
     try {
       if (id) {
         // Запрашиваем данные о предложившем лице по его id
-        const proposerDataResponse = await fetch(`http://3.71.200.223:8000/api/proposers/${id}/`);
+        const proposerDataResponse = await fetch(`http://3.71.86.137:8000/api/proposers/${id}/`);
         
         const proposerData = await proposerDataResponse.json();
         // Обработка полученных данных о предложившем лице
@@ -127,7 +127,7 @@ function Grading(props) {
     try {
       if (id) {
         // Запрашиваем данные о комментариях для данного предложения по его id
-        const response = await fetch(`http://3.71.200.223:8000/api/proposals/${id}/get_comments/`);
+        const response = await fetch(`http://3.71.86.137:8000/api/proposals/${id}/get_comments/`);
         const data = await response.json();
         // Обработка полученных данных о комментариях
         setComments(data.comments); // Убедитесь, что comments - это массив комментариев
