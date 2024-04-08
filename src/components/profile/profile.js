@@ -2,13 +2,11 @@ import React, {useState, useEffect} from "react";
 import styled from "styled-components";
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
-import { fetchUsersId, fetchUserData, fetchProposalsId } from "../../services/apiService";
-import {fetchProposersData, fetchUserData } from '../../services/apiService';
+import { fetchUsersId, fetchUserData, fetchProposalsId, fetchProposersData} from "../../services/apiService";
 import { ContributionCalendar, createTheme } from "react-contribution-calendar";
 import Spinner from '../Spinner/Spinner';
 import Select from 'react-select';
 import { useParams } from 'react-router-dom';
-import Spinner from '../Spinner/Spinner';
 
 
 export const logOut = () => {
@@ -285,11 +283,10 @@ function Header() {
             </Div7>
             {isHovered && (    
                 <DropdownMenu>
+                  <Link to={`/profile/${userData.proposer.id}`} style={{textDecoration: 'none', color: '#333'}}> 
                   <DropdownItem>
                   <Div8>
-                  <Link to="/edit_profile" style={{textDecoration: 'none', color: '#333'}}>
-                  <Div9>Edit Profile</Div9>
-                  </Link>
+                  <Div9>Profile</Div9>
               </Div8>
               <Img9
                 loading="lazy"
@@ -300,6 +297,7 @@ function Header() {
                 </svg>
               </Img9>
                   </DropdownItem>
+                  </Link>
                   <DropdownItem onClick={logOut}>
                   <Div8>
                 <Div9>Logout</Div9>
@@ -375,9 +373,9 @@ function Header() {
         includeBoundary={true}
         startsOnSunday={true}
         theme={customTheme}
-        cx={14}
+        cx={12}
         data={calendarData}
-        cy={14}
+        cy={12}
         onCellClick={(_, data) => console.log(data)}
         scroll={false}
       />

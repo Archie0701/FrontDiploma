@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef} from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
 import searchIconSvg from '../../images/search-icon.svg';
-import { fetchUserData, getGrades, fetchProposersId, getComments, fetchGradedProposalData, fetchProposalData, fetchGradingsData, 
+import { fetchUserData, getGrades, getProposerById, getComments, fetchGradedProposalData, fetchProposalData, fetchGradingsData, 
   addComment, updateProposalStatusArchive, fetchProposersData, setSpecialist } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
@@ -67,6 +67,10 @@ function OpenProposal(props) {
         
         setShowCalendar(false);
         updateProposalList();
+        setSelectedEmployee(-1);
+        setSelectedDate(new Date());
+        setIsEmployeeSelected(false);
+        setIsCalendarSelected(false);
       }
       else {
         if(isCalendarSelected){
@@ -80,11 +84,6 @@ function OpenProposal(props) {
       const formattedDate = `${year}-${month}-${day}`;
       console.log("Selected Employee:", allProposers[selectedEmployee].id);
       console.log("Selected Date:", formattedDate);
-
-      setSelectedEmployee(-1);
-      setSelectedDate(new Date());
-      setIsEmployeeSelected(false);
-      setIsCalendarSelected(false);
       } catch (error) {
       console.error(error);
     }
@@ -164,9 +163,10 @@ function OpenProposal(props) {
       setGradingsData(gradingsDataResponse);
       
       if (proposalDataResponse.length > 0) {
-        const proposer = await fetchProposersId(proposalDataResponse[0].proposer);
+        const proposer = await getProposerById(proposalDataResponse[0].proposer);
         const comments = await getComments(proposalDataResponse[0].id); 
         const filteredArray = proposalDataResponse.filter(item => item.proposer === proposalDataResponse[0].proposer);
+        console.log("1");
         
         setProposersProposals(filteredArray);
         setProposersProposalsFull(filteredArray);
@@ -243,7 +243,7 @@ function OpenProposal(props) {
   const fetchProposerData = async (id) => {
     try {
       if (id) {
-        const proposer = await fetchProposersId(id);
+        const proposer = await getProposerById(id);
 
         setProposersData(proposer);
       }

@@ -384,7 +384,6 @@ export const fetchGradingsData = async () => {
 
 export const fetchUsersId = async () => {
   try {
-    // Получаем id из URL
     const urlSegments = window.location.pathname.split('/');
     const id = urlSegments[urlSegments.length - 1];
 
@@ -466,6 +465,26 @@ export const fetchProposersId = async () => {
 
     // Возвращаем только proposer из отфильтрованных данных
     return filteredProposers;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const getProposerById = async (id) => {
+  try {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) {
+      throw new Error('Access token not available');
+    }
+    const response = await apiService.get(`/proposers/${id}`, {
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      }
+    });
+
+    return response.data;
   } catch (error) {
     throw error;
   }
