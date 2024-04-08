@@ -44,7 +44,7 @@ function Grading(props) {
   const [proposalData, setProposalData] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [proposersData, setProposersData] = useState(null);
-  const [gradingsData, setGradingData] = useState(null);
+  const [gradingsData, setGradingsData] = useState(null);
   const [benefitScores, setBenefitScores] = useState({});
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState([]);
@@ -62,8 +62,7 @@ function Grading(props) {
     try {
       const userDataResponse = await fetchUserData();
       const proposalDataResponse = await fetchAcceptedProposalData();
-      const fetchGradingsDataResponse = await fetchGradingsData();
-      const gradingData = fetchGradingsDataResponse.data;
+      const gradingsDataResponse = await fetchGradingsData();
    
       if (userDataResponse) {
         setUserData(userDataResponse);
@@ -71,12 +70,11 @@ function Grading(props) {
       setProposalData(proposalDataResponse);
 
       setLoading(false);
-      setGradingData(gradingData);
+      setGradingsData(gradingsDataResponse);
    
-  
-      // Если есть предложения, запросить данные о первом предложившем лице
+
       if (proposalDataResponse.length > 0) {
-        fetchProposersData(proposalDataResponse[0].proposer); // передайте ID предложения
+        fetchProposersData(proposalDataResponse[0].proposer);
         fetchCommentsData(proposalDataResponse[0].id);
       }
     } catch (error) {
@@ -88,9 +86,7 @@ function Grading(props) {
   const handleAddComment = async () => {
     try {
       await addComment(proposalData[currentIndex].id, commentText);
-      // Обновляем список комментариев после добавления нового комментария
       await fetchCommentsData(proposalData[currentIndex].id);
-      // Очищаем поле ввода после отправки комментария
       setCommentText('');
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -119,11 +115,9 @@ function Grading(props) {
   const fetchProposersData = async (id) => {
     try {
       if (id) {
-        // Запрашиваем данные о предложившем лице по его id
-        const proposerDataResponse = await fetch(`http://3.71.200.223:8000/api/proposers/${id}/`);
+        const proposerDataResponse = await fetch(`http://3.71.86.137:8000/api/proposers/${id}/`);
         
         const proposerData = await proposerDataResponse.json();
-        // Обработка полученных данных о предложившем лице
         setProposersData(proposerData);
       }
     } catch (error) {
@@ -135,11 +129,9 @@ function Grading(props) {
   const fetchCommentsData = async (id) => {
     try {
       if (id) {
-        // Запрашиваем данные о комментариях для данного предложения по его id
-        const response = await fetch(`http://3.71.200.223:8000/api/proposals/${id}/get_comments/`);
+        const response = await fetch(`http://3.71.86.137:8000/api/proposals/${id}/get_comments/`);
         const data = await response.json();
-        // Обработка полученных данных о комментариях
-        setComments(data.comments); // Убедитесь, что comments - это массив комментариев
+        setComments(data.comments);
       }
     } catch (error) {
       console.error('Error fetching comments data:', error);
@@ -148,16 +140,16 @@ function Grading(props) {
 
   let employeeData = [];
 
-  if (proposersData && proposersData.user && gradingsData) { // Изменено на проверку свойства user
+  if (proposersData && proposersData.user && gradingsData) {
     employeeData = [{
-      name: `${proposersData.user.first_name} ${proposersData.user.last_name}`, // Изменено на доступ к свойствам user
+      name: `${proposersData.user.first_name} ${proposersData.user.last_name}`, 
       benefits: gradingsData.map((data, index) => ({ id: data.id, name: data.name }))
     }];
   } else {
     console.error("proposersData is invalid");
   }
 
-  const handleBenefitScoreChange = (grading, newValue) => { // Заменяем benefitName на benefitID
+  const handleBenefitScoreChange = (grading, newValue) => { 
     setBenefitScores(prevState => ({
       ...prevState,
       [grading]: newValue
@@ -180,26 +172,22 @@ function Grading(props) {
   
   const acceptGrade = async () => {
     try {
-      // Проверяем, есть ли данные для оценок
       if (!benefitScores || Object.keys(benefitScores).length < gradingsData.length) {
 
         alert("Change all grades.");
         return;
       }
   
-      // Проверяем, есть ли данные о предложениях
       if (!proposalData || proposalData.length === 0) {
         console.error("No proposal data available.");
         return;
       }
   
-      // Перебираем каждую оценку и отправляем запрос к API для каждой оценки
       for (const [grading, score] of Object.entries(benefitScores)) {
         console.log("Sending request for grading:", grading, "with score:", score +  " id: " + proposalData[currentIndex].id);
-        await gradeProposal(proposalData[currentIndex].id, grading, score); // Передаем grading и score
+        await gradeProposal(proposalData[currentIndex].id, grading, score);
       }
   
-      // После успешного принятия оценок, обновляем статус на "Graded"
       await updateProposalStatusGraded(proposalData[currentIndex].id, "Graded");
   
       console.log("All gradings accepted successfully!");
@@ -319,21 +307,21 @@ function Grading(props) {
             </Div7>
             {isHovered && (    
                 <DropdownMenu>
-                  <DropdownItem>
-                  <Div8>
-                  <Link to="/edit_profile" style={{textDecoration: 'none', color: '#333'}}>
-                  <Div9>Edit Profile</Div9>
-                  </Link>
-              </Div8>
-              <Img9
-                loading="lazy"
-                src="https://cdn.builder.io/api/v1/image/assets/TEMP/86686b16897beeac74304533d5bb958a4d1e0106aa55fd71c28f706a5b838225?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
-                onClick={logOut}>
-                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M6.5 6.5C5.60625 6.5 4.84115 6.18177 4.20469 5.54531C3.56823 4.90885 3.25 4.14375 3.25 3.25C3.25 2.35625 3.56823 1.59115 4.20469 0.954687C4.84115 0.318229 5.60625 0 6.5 0C7.39375 0 8.15885 0.318229 8.79531 0.954687C9.43177 1.59115 9.75 2.35625 9.75 3.25C9.75 4.14375 9.43177 4.90885 8.79531 5.54531C8.15885 6.18177 7.39375 6.5 6.5 6.5ZM0 13V10.725C0 10.2646 0.11849 9.84141 0.355469 9.45547C0.592448 9.06953 0.907292 8.775 1.3 8.57187C2.13958 8.15208 2.99271 7.83724 3.85937 7.62734C4.72604 7.41745 5.60625 7.3125 6.5 7.3125C7.39375 7.3125 8.27396 7.41745 9.14062 7.62734C10.0073 7.83724 10.8604 8.15208 11.7 8.57187C12.0927 8.775 12.4076 9.06953 12.6445 9.45547C12.8815 9.84141 13 10.2646 13 10.725V13H0ZM1.625 11.375H11.375V10.725C11.375 10.576 11.3378 10.4406 11.2633 10.3187C11.1888 10.1969 11.0906 10.1021 10.9688 10.0344C10.2375 9.66875 9.49948 9.39453 8.75469 9.21172C8.0099 9.02891 7.25833 8.9375 6.5 8.9375C5.74167 8.9375 4.9901 9.02891 4.24531 9.21172C3.50052 9.39453 2.7625 9.66875 2.03125 10.0344C1.90937 10.1021 1.8112 10.1969 1.73672 10.3187C1.66224 10.4406 1.625 10.576 1.625 10.725V11.375ZM6.5 4.875C6.94687 4.875 7.32943 4.71589 7.64766 4.39766C7.96589 4.07943 8.125 3.69687 8.125 3.25C8.125 2.80312 7.96589 2.42057 7.64766 2.10234C7.32943 1.78411 6.94687 1.625 6.5 1.625C6.05312 1.625 5.67057 1.78411 5.35234 2.10234C5.03411 2.42057 4.875 2.80312 4.875 3.25C4.875 3.69687 5.03411 4.07943 5.35234 4.39766C5.67057 4.71589 6.05312 4.875 6.5 4.875Z" fill="#C4C4C4"/>
-                </svg>
-              </Img9>
+                <Link to={`/profile/${userData.proposer.id}`} style={{textDecoration: 'none', color: '#333'}}> 
+                      <DropdownItem>
+                      <Div8>
+                      <Div9>Profile</Div9>
+                  </Div8>
+                  <Img9
+                    loading="lazy"
+                    src="https://cdn.builder.io/api/v1/image/assets/TEMP/86686b16897beeac74304533d5bb958a4d1e0106aa55fd71c28f706a5b838225?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
+                    onClick={logOut}>
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6.5 6.5C5.60625 6.5 4.84115 6.18177 4.20469 5.54531C3.56823 4.90885 3.25 4.14375 3.25 3.25C3.25 2.35625 3.56823 1.59115 4.20469 0.954687C4.84115 0.318229 5.60625 0 6.5 0C7.39375 0 8.15885 0.318229 8.79531 0.954687C9.43177 1.59115 9.75 2.35625 9.75 3.25C9.75 4.14375 9.43177 4.90885 8.79531 5.54531C8.15885 6.18177 7.39375 6.5 6.5 6.5ZM0 13V10.725C0 10.2646 0.11849 9.84141 0.355469 9.45547C0.592448 9.06953 0.907292 8.775 1.3 8.57187C2.13958 8.15208 2.99271 7.83724 3.85937 7.62734C4.72604 7.41745 5.60625 7.3125 6.5 7.3125C7.39375 7.3125 8.27396 7.41745 9.14062 7.62734C10.0073 7.83724 10.8604 8.15208 11.7 8.57187C12.0927 8.775 12.4076 9.06953 12.6445 9.45547C12.8815 9.84141 13 10.2646 13 10.725V13H0ZM1.625 11.375H11.375V10.725C11.375 10.576 11.3378 10.4406 11.2633 10.3187C11.1888 10.1969 11.0906 10.1021 10.9688 10.0344C10.2375 9.66875 9.49948 9.39453 8.75469 9.21172C8.0099 9.02891 7.25833 8.9375 6.5 8.9375C5.74167 8.9375 4.9901 9.02891 4.24531 9.21172C3.50052 9.39453 2.7625 9.66875 2.03125 10.0344C1.90937 10.1021 1.8112 10.1969 1.73672 10.3187C1.66224 10.4406 1.625 10.576 1.625 10.725V11.375ZM6.5 4.875C6.94687 4.875 7.32943 4.71589 7.64766 4.39766C7.96589 4.07943 8.125 3.69687 8.125 3.25C8.125 2.80312 7.96589 2.42057 7.64766 2.10234C7.32943 1.78411 6.94687 1.625 6.5 1.625C6.05312 1.625 5.67057 1.78411 5.35234 2.10234C5.03411 2.42057 4.875 2.80312 4.875 3.25C4.875 3.69687 5.03411 4.07943 5.35234 4.39766C5.67057 4.71589 6.05312 4.875 6.5 4.875Z" fill="#C4C4C4"/>
+                    </svg>
+                  </Img9>
                   </DropdownItem>
+                  </Link>
                   <DropdownItem onClick={logOut}>
                   <Div8>
                 <Div9>Logout</Div9>
@@ -373,7 +361,7 @@ function Grading(props) {
                       <Div22 />
                       <Div23>
                         <Div24>
-                          <Div25>{data.title} (Accepted)</Div25>
+                          <Div25>{data.title}</Div25>
                           <Div26>{data.text}</Div26>
                         </Div24>
                         <Div27 />
@@ -411,8 +399,8 @@ function Grading(props) {
       <div key={index}>
         <EmployeeBenefit>{benefit.name}</EmployeeBenefit>
         <EmployeeScoreSlider
-          value={benefitScores[benefit.id] || 1} // Значение из состояния или по умолчанию
-          onValueChange={(value) => handleBenefitScoreChange(benefit.id, value)} // Передаем ID бенефита и новое значение
+          value={benefitScores[benefit.id] || 1} 
+          onValueChange={(value) => handleBenefitScoreChange(benefit.id, value)} 
         />
       </div>
     ))}

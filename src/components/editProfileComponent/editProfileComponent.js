@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
-import { addProposal, criterias, fetchUserData } from '../../services/apiService';
+import { fetchUserData } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
 import './style.css';
@@ -15,14 +15,49 @@ export const logOut = () => {
 function MyComponent(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [proposalText, setProposalText] = useState('');
-  const [proposalTitle, setProposalTitle] = useState('');
-  const [allCriterias, setAllCriterias] = useState([]);
   const [isHovered, setIsHovered] = useState(false);
-  const [proposersData, setProposersData] = useState(null);
-  const [selectedCriteriaIds, setSelectedCriteriaIds] = useState([]);
-  const [checkboxCriteria, setCheckboxCriteria] = useState([]);
+  const fileInputRef = useRef(null);
+
+  const handleImageClick = () => {
+    fileInputRef.current.click();
+  };
+
+  const handleImageChange = (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      const imageUrl = URL.createObjectURL(selectedFile);
+      console.log('Selected image:', imageUrl);
+    }
+  };
+
+  const profileData = {
+    firstName: "Adil",
+    lastName: "gay",
+    email: "SissenovADil@pidoras.ru",
+    phoneNumber: "+7 (778) 485 9242",
+  };
+
+
+  const [firstName, setFirstName] = React.useState(profileData.firstName);
+  const [lastName, setLastName] = React.useState(profileData.lastName);
+  const [email, setEmail] = React.useState(profileData.email);
+  const [phoneNumber, setPhoneNumber] = React.useState(profileData.phoneNumber);
+
+  const handleSave = () => {
+    console.log("Saving profile data:", {
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+    });
+  };
+
+  const handleCancel = () => {
+    setFirstName(profileData.firstName);
+    setLastName(profileData.lastName);
+    setEmail(profileData.email);
+    setPhoneNumber(profileData.phoneNumber);
+  };
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -33,68 +68,17 @@ function MyComponent(props) {
   };
 
 
-  const uncheckAllCheckboxes = () => {
-    const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-    checkboxes.forEach((checkbox) => {
-      checkbox.checked = false;
-    });
-  };
-
-  const handleCheckboxChange = (checked, id) => {
-    if(!checked && checkboxCriteria.includes(id)){
-      const updatedCriterias = checkboxCriteria.filter(item => item !== id);
-      setCheckboxCriteria(updatedCriterias);
-    }
-    else if(checked && !checkboxCriteria.includes(id)){
-      const updatedCriterias = [...checkboxCriteria];
-      updatedCriterias.push(id);
-      setCheckboxCriteria(updatedCriterias);
-    }
-  };
-
   const today = new Date();
   const formattedDate = `${today.getDate()} ${today.toLocaleString('default', { month: 'long' })} ${today.getFullYear()}`;
 
-  // Обновленная функция fetchData
   const fetchData = async () => {
     try {
       const userDataResponse = await fetchUserData();
-      const criteriasData = await criterias();
 
-      setAllCriterias(criteriasData);
       setUserData(userDataResponse);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user data:', error);
-    }
-  };
-
-  const handleSendProposal = async () => {
-    try {
-      if(proposalTitle == ''){
-        alert('Write a proposal title');
-        return;
-      } else if(proposalText == ''){
-        alert('Write a proposal text');
-        return;
-      } else if(checkboxCriteria.length == 0){
-        alert('Please select at least 1 criteria');
-        return;
-      } 
-      const response = await addProposal({
-        title: proposalTitle,
-        text: proposalText,
-        proposer: userData.proposer.id,
-        criteria: checkboxCriteria
-      });
-      console.log('Proposal sent:', response);
-      setProposalTitle('');
-      setProposalText('');
-      setCheckboxCriteria([]);
-      uncheckAllCheckboxes();
-      alert('Proposal sent successfully!');
-    } catch (error) {
-      console.error('Error sending proposal:', error);
     }
   };
 
@@ -222,82 +206,325 @@ function MyComponent(props) {
                       )}
             </DropdownWrapper>  
           </Div5>
-          <Div10 className="slider-container">
-              <Div11 className="slider">
-                <Column>
-                    <Div12>
-                        <Div14>{formattedDate}</Div14>
-                      <Div22 />
-                      <Div23>
-                        <ProposalTitle type="text" 
-                          placeholder="Title" 
-                          value={proposalTitle}
-                          onChange={(e) => setProposalTitle(e.target.value)}
+          <ProfileContainer>
+          <ProfileWrapper>
+          <ProfileForm>
+            <ProfileContent>
+                  <ProfileTitle>Edit profile</ProfileTitle>
+                  <ProfileFieldsWrapper>
+                    <ProfileFieldColumn>
+                      <ProfileFieldWrapper>
+                        <ProfileFieldLabel>First Name</ProfileFieldLabel>
+                        <ProfileFieldInput
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
                         />
-                        <Proposal type="text" 
-                          placeholder="Your proposal" 
-                          value={proposalText}
-                          onChange={(e) => setProposalText(e.target.value)}
+                      </ProfileFieldWrapper>
+                    </ProfileFieldColumn>
+                    <ProfileFieldColumn>
+                      <ProfileFieldWrapper>
+                        <ProfileFieldLabel>Last Name</ProfileFieldLabel>
+                        <ProfileFieldInput
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
                         />
-                      </Div23>
-                      
-                      <ButtonContainer>
-                        <SendButton onClick={handleSendProposal}>Send proposal</SendButton>
-                        <EraseButton onClick={() => {
-                            setProposalText('');
-                            setProposalTitle('');
-                        }}> Erase All
-                        </EraseButton>
-                      </ButtonContainer>
-                    </Div12>
-                </Column>
-                <Column2>
-                  <>
-                    <Div33>
-                      <Div34>
-                        <Div35 />
-                        <Div36>Hidden</Div36>
-                      </Div34>
-                      <Div37>
-                        <Div38>
-                          <Div39>
-                            <Div40>Acceptance criteria</Div40>
-                            <Div41>Criteria</Div41>
-                          </Div39>
-                          <Div42>Description</Div42>
-                        </Div38>
-                        <Div43 />
-                        {allCriterias.map((criteria, index) => (
-
-                          <React.Fragment key={index}>
-                            <Div44>
-                              <Div45>
-                                <Checkbox
-                                  type="checkbox"
-                                  name={criteria.id}
-                                  onChange={(event) => handleCheckboxChange(event.target.checked, criteria.id)}
-                                  />
-                                <Div47>{criteria.name}</Div47>
-                              </Div45>
-                              <Div48>{criteria.description}</Div48>
-                            </Div44>
-                            <Div49 />
-                          </React.Fragment>
-                        ))}
-
-                      </Div37>
-                    </Div33>
-                  </>
-                </Column2>
-              </Div11>
-          </Div10>
-
+                      </ProfileFieldWrapper>
+                    </ProfileFieldColumn>
+                  </ProfileFieldsWrapper>
+                  <ProfileEmailWrapper>
+                    <ProfileFieldLabel>Email</ProfileFieldLabel>
+                    <ProfileEmailField>
+                      <ProfileEmailInput value={email} onChange={(e) => setEmail(e.target.value)}/>
+                      {/* <ProfileEmailIcon src="https://cdn.builder.io/api/v1/image/assets/TEMP/db9ab4fee0d11a8cb3f572c338126ba8a5ccfaba8defc20bb7861234c2ba8103?apiKey=f933b1b419864e2493a2da58c5eeea0a&" /> */}
+                    </ProfileEmailField>
+                  </ProfileEmailWrapper>
+                  <ProfilePhoneWrapper>
+                  <ProfileFieldLabel>Phone number</ProfileFieldLabel>
+                  <ProfilePhoneInput
+                    value={phoneNumber}
+                    onChange={(e) => setPhoneNumber(e.target.value)}
+                  />
+                  </ProfilePhoneWrapper>
+              </ProfileContent>
+              <ProfileImageColumn>
+                <ProfileImageWrapper>
+                  <ProfileImage src="https://cdn.builder.io/api/v1/image/assets/TEMP/6545c28fbdf65f582f2b16383e3e54ef9b085ab7f5f41e4be4b74055971a8c0a?apiKey=f933b1b419864e2493a2da58c5eeea0a&" 
+                    onClick={handleImageClick}
+                  />
+                  <input
+                    type="file"
+                    accept="image/png, image/jpeg"
+                    ref={fileInputRef}
+                    style={{ display: 'none' }}
+                    onChange={handleImageChange}
+                  />
+                  <ProfileName>Adil Sissenov</ProfileName>
+                </ProfileImageWrapper>
+              </ProfileImageColumn>
+            </ProfileForm>
+          </ProfileWrapper>
+          
+          <ProfileActions>
+            <ProfileCancelButton onClick={handleCancel}>
+              Cancel
+            </ProfileCancelButton>
+            <ProfileSaveButton onClick={handleSave}>Save</ProfileSaveButton>
+          </ProfileActions>
+          </ProfileContainer> 
         </Div4>
       </Div2>
     </Div>
   );
 }
 
+const ProfileContainer = styled.div`
+  border-radius: 6px;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: start;
+  padding: 25px 80px 80px;
+  @media (max-width: 991px) {
+    padding: 0 20px;
+  }
+`;
+
+const ProfileWrapper = styled.div`
+  align-self: center;
+  width: 100%;
+  max-width: 1400px;
+  @media (max-width: 991px) {
+    max-width: 100%;
+  }
+`;
+
+const ProfileContent = styled.div`
+  
+`;
+
+const ProfileDetails = styled.div`
+  display: flex;
+  flex-direction: column;
+  line-height: normal;
+  width: 85%;
+  margin-left: 0px;
+  @media (max-width: 991px) {
+    width: 100%;
+  }
+`;
+
+const ProfileForm = styled.div`
+  display: flex;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    margin-top: 40px;
+  }
+`;
+
+const ProfileTitle = styled.h2`
+  color: #1871ed;
+  font: 500 25px Roboto, sans-serif;
+  @media (max-width: 991px) {
+    max-width: 100%;
+  }
+`;
+
+const ProfileFieldsWrapper = styled.div`
+  gap: 20px;
+  display: flex;
+  @media (max-width: 991px) {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0px;
+  }
+`;
+
+const ProfileFieldColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  line-height: normal;
+  width: 50%;
+  @media (max-width: 991px) {
+    width: 100%;
+  }
+`;
+
+const ProfileFieldWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  margin: auto 0;
+  @media (max-width: 991px) {
+    margin-top: 40px;
+  }
+`;
+
+const ProfileFieldLabel = styled.label`
+  color: #6e6e6e;
+  font: 600 22px Roboto, sans-serif;
+`;
+
+const ProfileFieldInput = styled.input`
+  border-radius: 5px;
+  border: 2px solid rgba(133, 133, 133, 1);
+  background-color: #fff;
+  margin-top: 15px;
+  align-items: start;
+  color: #858585;
+  white-space: nowrap;
+  justify-content: center;
+  padding: 28px 29px;
+  font: 500 24px Roboto, sans-serif;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+
+const ProfileEmailWrapper = styled.div`
+  display: flex;
+  margin-top: 15px;
+  width: 100%;
+  flex-direction: column;
+`;
+
+const ProfileEmailField = styled.div`
+  display: flex;
+  flex-direction: column;
+  align-self: stretch;
+  margin: auto 0;
+  @media (max-width: 991px) {
+    margin-top: 40px;
+  }
+`;
+
+const ProfileEmailInput = styled.input`
+  border-radius: 5px;
+  border: 2px solid rgba(133, 133, 133, 1);
+  background-color: #fff;
+  margin-top: 15px;
+  align-items: start;
+  color: #858585;
+  white-space: nowrap;
+  justify-content: center;
+  padding: 28px 29px;
+  font: 500 24px Roboto, sans-serif;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+
+const ProfileEmailIcon = styled.img`
+  aspect-ratio: 1;
+  object-fit: auto;
+  object-position: center;
+  width: 26px;
+`;
+const ProfilePhoneWrapper = styled.div`
+  display: flex;
+  margin-top: 15px;
+  width: 100%;
+  flex-direction: column;
+`;
+const ProfileImageColumn = styled.div`
+  display: flex;
+  flex-direction: column;
+  line-height: normal;
+  width: 15%;
+  margin-left: 50px;
+  @media (max-width: 991px) {
+    width: 100%;
+  }
+`;
+
+const ProfileImageWrapper = styled.div`
+  display: flex;
+  margin-top: 97px;
+  flex-direction: column;
+  align-items: center;
+  font-size: 25px;
+  color: #6e6e6e;
+  font-weight: 500;
+  @media (max-width: 991px) {
+    margin-top: 40px;
+  }
+`;
+
+const ProfileImage = styled.img`
+  aspect-ratio: 1.04;
+  object-fit: auto;
+  object-position: center;
+  width: 190px;
+  border-radius: 16px;
+  cursor: pointer;
+`;
+
+const ProfileName = styled.div`
+  font-family: Roboto, sans-serif;
+  margin-top: 33px;
+`;
+
+const ProfilePhoneInput = styled.input`
+  border-radius: 5px;
+  border: 2px solid rgba(133, 133, 133, 1);
+  background-color: #fff;
+  width: 880px;
+  max-width: 100%;
+  align-items: start;
+  color: #858585;
+  justify-content: center;
+  margin-top: 15px;
+  padding: 25px 29px;
+  font: 500 24px Roboto, sans-serif;
+  @media (max-width: 991px) {
+    padding: 0 20px;
+  }
+`;
+
+const ProfileActions = styled.div`
+  display: flex;
+  gap: 20px;
+  font-size: 28px;
+  white-space: nowrap;
+  justify-content: space-between;
+  margin-top: 78px;
+  @media (max-width: 991px) {
+    white-space: initial;
+    margin: 40px 0 0 10px;
+  }
+`;
+
+const ProfileCancelButton = styled.button`
+  font-family: Roboto, sans-serif;
+  border-radius: 5px;
+  border: 2px solid rgba(16, 156, 241, 1);
+  background-color: #fff;
+  color: #109cf1;
+  font-weight: 400;
+  font-size: 28px;
+  justify-content: center;
+  padding: 12px 48px;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
+
+const ProfileSaveButton = styled.button`
+  font-family: Roboto, sans-serif;
+  border-radius: 5px;
+  background-color: #109cf1;
+  color: #fff;
+  font-weight: 600;
+  font-size: 28px;
+  justify-content: center;
+  padding: 12px 60px;
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
+  }
+`;
 const LogoKaizen = styled.img`
   aspect-ratio: 1.12;
   object-fit: contain;
@@ -465,31 +692,6 @@ const Button5 = styled.button`
   width: 40px;
   margin-top: 10px;
 `;
-const Button6 = styled.button`
-  aspect-ratio: 1;
-  border:none;
-  
-  &:hover {
-    transform: translateY(-5px);
-    color: #333;
-    cursor:pointer;
-    box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
-    background-color:#ECF3FF;
-    pointer-events: visible;
-    position: relative;
-    z-index: 0;
-    visibility: visible;
-    float: none;
-}
-  object-fit: auto;
-  object-position: center;
-  width: 40px;
-  margin-top: 370px;
-  @media (max-width: 991px) {
-    margin-top: 40px;
-  }
-`;
 const Div4 = styled.div`
   margin-left: 60px;
   align-self: start;
@@ -610,323 +812,5 @@ border: none !important;
 font-size:0;
 margin: auto 0;
 `;
-const Div10 = styled.div`
-  margin-top: 55px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    margin-top: 40px;
-  }
-`;
-const Div11 = styled.div`
-  display: flex;
-  @media (max-width: 991px) {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0px;
-  }
-`;
-const Column = styled.div`
-  display: flex;
-  flex-direction: column;
-  line-height: normal;
-  width: 70%;
-  margin-left: 0px;
-  @media (max-width: 991px) {
-    width: 100%;
-  }
-`;
-const Div12 = styled.div`
-  border-radius: 8px;
-  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
-  background-color: #fff;
-  display: flex;
-  flex-direction: column;
-  font-size: 14px;
-  padding: 3px 0 22px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    margin-top: 15px;
-  }
-`;
-
-const ButtonContainer = styled.div`
-  align-self: end;
-  display: flex;
-  gap: 20px;
-  margin: 30px 34px 0 0;
-
-  @media (max-width: 991px) {
-    margin: 40px 10px 0 0;
-  }
-`;
-
-const SendButton = styled.button`
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  background-color: rgba(24, 119, 242, 1);
-  color: #fff;
-  font-weight: 500;
-  justify-content: center;
-  padding: 12px 27px;
-  border: none;
-  cursor: pointer;
-
-  @media (max-width: 991px) {
-    padding: 12px 20px;
-  }
-`;
-
-const EraseButton = styled.button`
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  background-color: rgba(230, 230, 230, 1);
-  color: #434343;
-  font-weight: 400;
-  justify-content: center;
-  padding: 13px 46px;
-  border: none;
-  cursor: pointer;
-
-  @media (max-width: 991px) {
-    padding: 13px 20px;
-  }
-`;
-const Div14 = styled.div`
-  display: flex;
-  height: 35px;
-  align-items: center;
-  font-family: Roboto, sans-serif;
-  margin: 5px 20px;
-`;
-const Div22 = styled.div`
-  background-color: #e6e6e6;
-  height: 1px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-`;
-const Div23 = styled.div`
-  margin: 20px 34px 0 34px;
-  z-index:0;
-  align-items: start;
-  gap: 35px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    flex-wrap: wrap;
-  }
-`;
-const ProposalTitle = styled.input`
-  border:none;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  background-color: #f2f2f2;
-  font-weight: 300;
-  padding: 12px;
-  margin-bottom: 7px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    padding-right: 20px;
-  }
-`;
-const Proposal = styled.input`
-  border:none;
-  width: 100%;
-  font-family: Roboto, sans-serif;
-  border-radius: 8px;
-  background-color: #f2f2f2;
-  font-weight: 300;
-  padding: 14px 0 70px 10px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    padding-right: 20px;
-  }
-`;
-const Column2 = styled.div`
-  display: flex;
-  flex-direction: column;
-  line-height: normal;
-  width: 30%;
-  margin-left: 20px;
-  @media (max-width: 991px) {
-    width: 100%;
-  }
-`;
-const Div33 = styled.div`
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    margin-top: 15px;
-  }
-`;
-const Div34 = styled.button`
-  cursor:pointer;
-  border:none;
-  border-radius: 8px;
-  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
-  background-color: #fff;
-  display: flex;
-  justify-content: space-between;
-  gap: 20px;
-  font-size: 15px;
-  color: #5d5d5d;
-  font-weight: 300;
-  white-space: nowrap;
-  padding: 20px 27px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    flex-wrap: wrap;
-    white-space: initial;
-    padding: 0 20px;
-  }
-  &:hover {
-    transform: translateY(3px);
-    transition: transform 0.5s;
-    background-color: #f2f3f4;
-    cursor:pointer;
-    box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
-    pointer-events: visible;
-    position: relative;
-    z-index: 0;
-    visibility: visible;
-    float: none;
-  }
-`;
-const Div35 = styled.div`
-  border-radius: 8px;
-  background-color: #a0a0a0;
-  width: 52px;
-  height: 52px;
-`;
-const Div36 = styled.div`
-  font-family: Roboto, sans-serif;
-  flex-grow: 1;
-  display:flex;
-  flex-basis: auto;
-  margin: auto 0;
-`;
-const Div37 = styled.div`
-  border-radius: 8px;
-  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
-  background-color: #fff;
-  display: flex;
-  z-index: 1;
-  margin-top: 10px;
-  flex-direction: column;
-  padding: 33px 30px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-    padding: 0 20px;
-  }
-`;
-const Div38 = styled.div`
-  display: flex;
-  margin-left: 41px;
-  width: 301px;
-  max-width: 100%;
-  align-items: flex-start;
-  gap: 20px;
-  color: #5d5d5d;
-  font-weight: 500;
-  white-space: nowrap;
-  @media (max-width: 991px) {
-    margin-left: 10px;
-    white-space: initial;
-  }
-`;
-const Div39 = styled.div`
-  align-self: start;
-  display: flex;
-  flex-direction: column;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const Div40 = styled.div`
-font-family: Roboto, sans-serif;
-font-weight: 600;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const Div41 = styled.div`
-  margin-top: 37px;
-  font-family: Roboto, sans-serif;
-  font-weight: 600;
-`;
-const Div42 = styled.div`
-  align-self: end;
-  margin-top: 54px;
-  font-family: Roboto, sans-serif;
-  font-weight: 600;
-  @media (max-width: 991px) {
-    margin-top: 40px;
-  }
-`;
-const Div43 = styled.div`
-  background-color: #e6e6e6;
-  margin-top: 10px;
-  height: 1px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-`;
-const Div44 = styled.label`
-  display: flex;
-  font-weight: 400;
-  margin: 14px 0 0 11px;
-  @media (max-width: 991px) {
-    margin-left: 10px;
-  }
-`;
-const Div45 = styled.div`
-  display: flex;
-  gap: 12px;
-  font-size: 14px;
-  color: #5d5d5d;
-  white-space: nowrap;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-const Checkbox = styled.input`
-  border-radius: 5px;
-  border: 1px solid #d3d3d3;
-  background-color: #fff;
-
-`;
-const Div47 = styled.div`
-  display: flex;
-  font-family: Roboto, sans-serif;
-  line-height: 1.5;
-  align-items: center;
-  flex-grow: 1;
-  flex-shrink: 1; /* Разрешить сжатие текста */
-  word-wrap: break-word; /* Перенос текста на новую строку при необходимости */
-  white-space: normal; /* Перенос текста на новую строку */
-  overflow: hidden; /* Скрытие излишков текста */
-  text-overflow: ellipsis; /* Отображение многоточия для обрезанного текста */
-  width: 150px; /* Максимальная ширина для текста */
-`;
-
-const Div48 = styled.div`
-  color: #7b7b7b;
-  flex:start;
-  flex-shrink: 1; /* Разрешить сжатие текста */
-  font: 12px Roboto, sans-serif;
-  overflow: hidden; /* Скрытие излишков текста */
-  text-overflow: ellipsis; /* Отображение многоточия для обрезанного текста */
-`;
-
-const Div49 = styled.div`
-  background-color: #e6e6e6;
-  margin-top: 13px;
-  height: 1px;
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-  `
 
 export default MyComponent;

@@ -47,6 +47,7 @@ function Header() {
   const [proposersData, setProposersData] = useState(null);
   const [error, setError] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -66,6 +67,9 @@ function Header() {
           transformedData[item.id] = item;
         });
         setUserData(userDataResponse);
+        if(userDataResponse.is_proposer && userDataResponse.proposer.id === parseInt(profileId)){
+          setIsOwner(true);
+        }
         setProposersData(transformedData);
         const foundUserProfile = proposersData.find(user => user.id === parseInt(profileId));
         setUserProfile(foundUserProfile);
@@ -146,7 +150,17 @@ function Header() {
         <ProfileWrapper>
           <Div5>
             <Div6>Company name</Div6>
-            <DropdownWrapper onMouseEnter={handleMouseEnter}
+            <EditAndDropdown>
+              {isOwner && (
+                <Link to='/edit_profile'>
+                <EditButton>
+                <svg width="32" height="28" viewBox="0 0 32 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.8967 13.1938C11.1234 13.1938 9.60537 12.5624 8.34257 11.2996C7.07976 10.0368 6.44836 8.51878 6.44836 6.74548C6.44836 4.97218 7.07976 3.45413 8.34257 2.19133C9.60537 0.928521 11.1234 0.297119 12.8967 0.297119C14.67 0.297119 16.1881 0.928521 17.4509 2.19133C18.7137 3.45413 19.3451 4.97218 19.3451 6.74548C19.3451 8.51878 18.7137 10.0368 17.4509 11.2996C16.1881 12.5624 14.67 13.1938 12.8967 13.1938ZM0 26.0906V21.5767C0 20.6901 0.22838 19.8572 0.685139 19.078C1.1419 18.2988 1.7733 17.7077 2.57934 17.3047C3.94962 16.6061 5.49454 16.015 7.21411 15.5314C8.93367 15.0477 10.8279 14.8059 12.8967 14.8059H13.461C13.6222 14.8059 13.7834 14.8328 13.9446 14.8865C13.7296 15.3702 13.5483 15.8739 13.4005 16.3979C13.2527 16.9218 13.1385 17.4659 13.0579 18.0301H12.8967C10.9891 18.0301 9.27624 18.2719 7.75819 18.7556C6.24013 19.2392 4.99748 19.7228 4.03023 20.2064C3.78841 20.3408 3.59362 20.5289 3.44584 20.7707C3.29807 21.0125 3.22418 21.2812 3.22418 21.5767V22.8664H13.3804C13.5416 23.4306 13.7565 23.9881 14.0252 24.5389C14.2939 25.0897 14.5894 25.6069 14.9118 26.0906H0ZM22.5693 27.7027L22.0856 25.2845C21.7632 25.1502 21.461 25.0091 21.1788 24.8614C20.8967 24.7136 20.6079 24.5322 20.3123 24.3173L17.9748 25.0427L16.3627 22.3022L18.2166 20.6901C18.1629 20.3139 18.136 19.9646 18.136 19.6422C18.136 19.3198 18.1629 18.9705 18.2166 18.5943L16.3627 16.9823L17.9748 14.2417L20.3123 14.9671C20.6079 14.7522 20.8967 14.5708 21.1788 14.4231C21.461 14.2753 21.7632 14.1342 22.0856 13.9999L22.5693 11.5818H25.7934L26.2771 13.9999C26.5995 14.1342 26.9018 14.282 27.1839 14.4432C27.466 14.6044 27.7548 14.8059 28.0504 15.0477L30.3879 14.2417L32 17.0629L30.1461 18.675C30.1998 18.9974 30.2267 19.3332 30.2267 19.6825C30.2267 20.0318 30.1998 20.3676 30.1461 20.6901L32 22.3022L30.3879 25.0427L28.0504 24.3173C27.7548 24.5322 27.466 24.7136 27.1839 24.8614C26.9018 25.0091 26.5995 25.1502 26.2771 25.2845L25.7934 27.7027H22.5693ZM24.1814 22.8664C25.068 22.8664 25.827 22.5507 26.4584 21.9193C27.0898 21.2879 27.4055 20.5289 27.4055 19.6422C27.4055 18.7556 27.0898 17.9965 26.4584 17.3651C25.827 16.7337 25.068 16.418 24.1814 16.418C23.2947 16.418 22.5357 16.7337 21.9043 17.3651C21.2729 17.9965 20.9572 18.7556 20.9572 19.6422C20.9572 20.5289 21.2729 21.2879 21.9043 21.9193C22.5357 22.5507 23.2947 22.8664 24.1814 22.8664ZM12.8967 9.96966C13.7834 9.96966 14.5424 9.65396 15.1738 9.02256C15.8052 8.39116 16.1209 7.63213 16.1209 6.74548C16.1209 5.85883 15.8052 5.09981 15.1738 4.4684C14.5424 3.837 13.7834 3.5213 12.8967 3.5213C12.0101 3.5213 11.251 3.837 10.6196 4.4684C9.98825 5.09981 9.67254 5.85883 9.67254 6.74548C9.67254 7.63213 9.98825 8.39116 10.6196 9.02256C11.251 9.65396 12.0101 9.96966 12.8967 9.96966Z" fill="#939393"/>
+                </svg>
+                </EditButton>
+                </Link>
+              )}
+              <DropdownWrapper onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}>
             <Div7>
               <Div8>
@@ -192,7 +206,9 @@ function Header() {
                   </DropdownItem>
                   </DropdownMenu>   
                       )}
-            </DropdownWrapper>     
+            </DropdownWrapper>  
+            </EditAndDropdown>
+               
           </Div5>
           <ProfileContent>
 
@@ -366,6 +382,19 @@ const Div6 = styled.div`
     white-space: initial;
     padding: 0 20px;
   }
+`;
+const EditAndDropdown = styled.div`
+  display: flex;
+`;
+const EditButton = styled.div`
+  cursor: pointer;
+  margin-right: 16px; 
+  display: flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 8px;
+  border: 1px solid #d7d7d7;
+  background-color: #fff;
 `;
 const DropdownWrapper = styled.div`
   width: 160px;

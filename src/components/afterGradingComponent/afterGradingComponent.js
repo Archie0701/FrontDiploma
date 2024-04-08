@@ -375,11 +375,10 @@ function MyComponent(props) {
             </Div7>
             {isHovered && (    
                 <DropdownMenu>
+                <Link to={`/profile/${userData.proposer.id}`} style={{textDecoration: 'none', color: '#333'}}> 
                   <DropdownItem>
                   <Div8>
-                  <Link to="/edit_profile" style={{textDecoration: 'none', color: '#333'}}>
-                  <Div9>Edit Profile</Div9>
-                  </Link>
+                  <Div9>Profile</Div9>
               </Div8>
               <Img9
                 loading="lazy"
@@ -390,6 +389,7 @@ function MyComponent(props) {
                 </svg>
               </Img9>
                   </DropdownItem>
+                  </Link>
                   <DropdownItem onClick={logOut}>
                   <Div8>
                 <Div9>Logout</Div9>

@@ -1,11 +1,3 @@
-.employee_search {
-  border: none;
-}
-
-.employee_search:focus {
-  outline: none;
-}
-
 /* Основной контейнер слайдера */
 .slider-container {
   position: relative;
