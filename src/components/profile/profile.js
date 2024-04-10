@@ -2,7 +2,7 @@ import React, {useState, useEffect} from "react";
 import styled from "styled-components";
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
-import { fetchUsersId, fetchUserData, fetchProposalsId, fetchProposersData} from "../../services/apiService";
+import { fetchUserData, fetchProposalsByID, fetchProposersData, getProposerById, fetchProposalData } from "../../services/apiService";
 import { ContributionCalendar, createTheme } from "react-contribution-calendar";
 import Spinner from '../Spinner/Spinner';
 import Select from 'react-select';
@@ -10,7 +10,6 @@ import { useParams } from 'react-router-dom';
 
 
 export const logOut = () => {
-  // Удаляем токен из localStorage
   localStorage.removeItem('accessToken');
   window.location.href = "../login";
 };
@@ -53,11 +52,8 @@ const data = [
 function Header() {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [hoveredDate, setHoveredDate] = useState(null);
   const [userData, setUserData] = useState(null);
-  const [userProfile, setUserProfile] = useState(null);
   const { profileId } = useParams();
-  const [proposersData, setProposersData] = useState(null);
   const [selectedYear, setSelectedYear] = useState('2024');
   const [proposalsDataById, setProposalsData] = useState(null);
   const [error, setError] = useState(null);
@@ -74,11 +70,16 @@ function Header() {
 
   const fetchData = async () => {
     try {
+
+      const urlSegments = window.location.pathname.split('/');
+      const id = urlSegments[urlSegments.length - 1];
+
       const proposersData = await fetchProposersData();
-      const profileDataResponse = await fetchUsersId();
+      const profileDataResponse = await getProposerById(id);
       const userDataResponse = await fetchUserData();
-      const proposalsDataByIdResponse = await fetchProposalsId();
+      const proposalsDataByIdResponse = await fetchProposalsByID(id);
       
+      console.log(proposalsDataByIdResponse)
       const transformedData = {};
       proposersData.forEach((item) => {
         transformedData[item.id] = item;
@@ -87,8 +88,7 @@ function Header() {
       if(userDataResponse.is_proposer && userDataResponse.proposer.id === parseInt(profileId)){
         setIsOwner(true);
       }
-      const foundUserProfile = proposersData.find(user => user.id === parseInt(profileId));
-      setUserProfile(foundUserProfile);
+
       if (proposalsDataByIdResponse) {
         setProposalsData(proposalsDataByIdResponse);
       }
@@ -96,11 +96,9 @@ function Header() {
       if (profileDataResponse) {
         setProfileData(profileDataResponse);
       }
-
       if (userDataResponse) {
         setUserData(userDataResponse);
       }
-
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -115,7 +113,6 @@ function Header() {
     return <Spinner />;
   }
 
-  // Count proposals by date
   const countProposalsByDate = () => {
     const countByDate = {};
     proposalsDataById.forEach(proposal => {
@@ -127,12 +124,11 @@ function Header() {
     return countByDate;
   };
 
-  // Generate data for ContributionCalendar
   const generateCalendarData = () => {
     const countByDate = countProposalsByDate();
     const calendarData = [];
     for (const date in countByDate) {
-      const level = Math.min(countByDate[date], 4); // Limit level to maximum 5, as on GitHub
+      const level = Math.min(countByDate[date], 4);
       const dataEntry = {
         [date]: {
           level: level
@@ -189,7 +185,6 @@ function Header() {
         sumArchived++;
         break;
       default:
-        // Do nothing for undefined statuses
     }
   });
 
@@ -323,9 +318,9 @@ function Header() {
 
               <ProfileInfo>
                 <ProposerProfile>
-                  <ProposerTitle>Proposer's profile</ProposerTitle>
-                  <ProposerImage  src={profileData.avatar || Logo } alt="Proposer" />
-                  <ProposerName>{profileData.last_name} {profileData.first_name}</ProposerName>
+                  <ProposerTitle>{profileData.user.first_name}'s profile</ProposerTitle>
+                  <ProposerImage  src={profileData.user.avatar || Logo } alt="Proposer" />
+                  <ProposerName>{profileData.user.last_name} {profileData.user.first_name}</ProposerName>
                 </ProposerProfile>
                 <Divider />
                 <ProposerStats>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
-import { fetchUserData } from '../../services/apiService';
+import { fetchUserData, editProfile, getImageById } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
 import './style.css';
@@ -16,47 +16,114 @@ function MyComponent(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
-  const fileInputRef = useRef(null);
-
-  const handleImageClick = () => {
-    fileInputRef.current.click();
-  };
-
-  const handleImageChange = (event) => {
-    const selectedFile = event.target.files[0];
-    if (selectedFile) {
-      const imageUrl = URL.createObjectURL(selectedFile);
-      console.log('Selected image:', imageUrl);
-    }
-  };
+  
 
   const profileData = {
-    firstName: "Adil",
-    lastName: "gay",
-    email: "SissenovADil@pidoras.ru",
     phoneNumber: "+7 (778) 485 9242",
   };
 
 
-  const [firstName, setFirstName] = React.useState(profileData.firstName);
-  const [lastName, setLastName] = React.useState(profileData.lastName);
-  const [email, setEmail] = React.useState(profileData.email);
-  const [phoneNumber, setPhoneNumber] = React.useState(profileData.phoneNumber);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [firstName, setFirstName] = useState(null);
+  const [lastName, setLastName] = useState(null);
+  const [email, setEmail] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState(profileData.phoneNumber);
+  const fileInputRef = useRef(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  const [formData, setFormData] = useState(new FormData());
 
+  
+  const handleImageClick = () => {
+    fileInputRef.current.click();
+  };
+  
+  const handleImageChange = async (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      try {
+        
+        const formAvatar = new FormData();
+        formAvatar.append('image', selectedFile);
+
+       
+        setFormData(formAvatar);
+
+        const imageUrl = URL.createObjectURL(selectedFile);
+        setImageSrc(imageUrl);
+      } catch (error) {
+        console.error('Error uploading file:', error);
+      }
+    }
+  };
   const handleSave = () => {
-    console.log("Saving profile data:", {
-      firstName,
-      lastName,
-      email,
-      phoneNumber,
-    });
+    if(firstName != userData.first_name || lastName != userData.last_name
+      || email != userData.email || formData.has('image')){
+      setShowConfirmation(true);
+    } else {
+      alert("Nothing changed.");
+    }
   };
 
-  const handleCancel = () => {
-    setFirstName(profileData.firstName);
-    setLastName(profileData.lastName);
-    setEmail(profileData.email);
-    setPhoneNumber(profileData.phoneNumber);
+  const handleCancel = async() => {
+    if(userData.avatar){
+      const imageResponse = await getImageById(userData.avatar);
+      setImageSrc(imageResponse.image);
+    } else {
+      setImageSrc(null);
+    }
+    setEmail(userData.email);
+    setFirstName(userData.first_name);
+    setLastName(userData.last_name);
+  };
+
+  useEffect(() => {
+    if (showConfirmation) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'auto';
+    }
+  }, [showConfirmation]);
+  
+
+  const handleConfirm = async () => {
+    try { 
+          setShowConfirmation(false);
+          if(formData.has('image')){
+            const accessToken = localStorage.getItem('accessToken');
+            if (!accessToken) {
+              throw new Error('Access token not available');
+            }
+          const response = await fetch('http://3.71.86.137:8000/api/images/',{
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${accessToken}`,
+            }
+          } ,{
+          method: 'POST',
+          body: formData
+          });
+          if (!response.ok) {
+            throw new Error('Failed to upload file');
+          }
+          console.log('File uploaded successfully');
+
+          const responseData = await response.json();
+
+          await editProfile(userData.id, email,firstName, lastName, responseData[responseData.length-1].id);
+          } else {
+          await editProfile(userData.id, email,firstName, lastName, null);
+          }
+          alert("Succesfully changed");
+          window.location.reload();
+        } catch (error) {
+          console.error('Error uploading file:', error);
+        }
+ 
+  };
+
+  const handleConfirmCancel = () => {
+    setShowConfirmation(false);
   };
 
   const handleMouseEnter = () => {
@@ -75,7 +142,17 @@ function MyComponent(props) {
     try {
       const userDataResponse = await fetchUserData();
 
-      setUserData(userDataResponse);
+      if(userDataResponse){
+        if(userDataResponse.avatar){
+          const imageResponse = await getImageById(userDataResponse.avatar);
+          setImageSrc(imageResponse.image);
+        }
+        setUserData(userDataResponse);
+        setEmail(userDataResponse.email);
+        setFirstName(userDataResponse.first_name);
+        setLastName(userDataResponse.last_name);
+      }
+      console.log("User data", userDataResponse);
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user data:', error);
@@ -107,7 +184,7 @@ function MyComponent(props) {
             <Button
               loading="lazy"
             ><svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4.16667 13.3333C3.93056 13.3333 3.73264 13.2535 3.57292 13.0937C3.41319 12.934 3.33333 12.7361 3.33333 12.5V10.8333H14.1667V3.33333H15.8333C16.0694 3.33333 16.2674 3.41319 16.4271 3.57292C16.5868 3.73264 16.6667 3.93056 16.6667 4.16667V16.6667L13.3333 13.3333H4.16667ZM0 12.5V0.833333C0 0.597222 0.0798611 0.399306 0.239583 0.239583C0.399306 0.0798611 0.597222 0 0.833333 0H11.6667C11.9028 0 12.1007 0.0798611 12.2604 0.239583C12.4201 0.399306 12.5 0.597222 12.5 0.833333V8.33333C12.5 8.56944 12.4201 8.76736 12.2604 8.92708C12.1007 9.08681 11.9028 9.16667 11.6667 9.16667H3.33333L0 12.5ZM10.8333 7.5V1.66667H1.66667V7.5H10.8333Z" fill="#2B8DC2" />
+                <path d="M4.16667 13.3333C3.93056 13.3333 3.73264 13.2535 3.57292 13.0937C3.41319 12.934 3.33333 12.7361 3.33333 12.5V10.8333H14.1667V3.33333H15.8333C16.0694 3.33333 16.2674 3.41319 16.4271 3.57292C16.5868 3.73264 16.6667 3.93056 16.6667 4.16667V16.6667L13.3333 13.3333H4.16667ZM0 12.5V0.833333C0 0.597222 0.0798611 0.399306 0.239583 0.239583C0.399306 0.0798611 0.597222 0 0.833333 0H11.6667C11.9028 0 12.1007 0.0798611 12.2604 0.239583C12.4201 0.399306 12.5 0.597222 12.5 0.833333V8.33333C12.5 8.56944 12.4201 8.76736 12.2604 8.92708C12.1007 9.08681 11.9028 9.16667 11.6667 9.16667H3.33333L0 12.5ZM10.8333 7.5V1.66667H1.66667V7.5H10.8333Z" fill="#7D7D7D" />
               </svg>
             </Button>
           </Link>
@@ -164,7 +241,7 @@ function MyComponent(props) {
               <Div8>
                 <Img8
                   loading="lazy"
-                  srcSet={"https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" || Logo}
+                  srcSet={imageSrc || Logo}
                   alt="Person Image"
                   width="24"
                   height="24"
@@ -246,21 +323,16 @@ function MyComponent(props) {
                   />
                   </ProfilePhoneWrapper>
               </ProfileContent>
-              <ProfileImageColumn>
-                <ProfileImageWrapper>
-                  <ProfileImage src="https://cdn.builder.io/api/v1/image/assets/TEMP/6545c28fbdf65f582f2b16383e3e54ef9b085ab7f5f41e4be4b74055971a8c0a?apiKey=f933b1b419864e2493a2da58c5eeea0a&" 
-                    onClick={handleImageClick}
-                  />
+                <ProfileImageContainer>
+                  <ProfileImage src={imageSrc || Logo} onClick={handleImageClick}/>
                   <input
                     type="file"
-                    accept="image/png, image/jpeg"
                     ref={fileInputRef}
                     style={{ display: 'none' }}
                     onChange={handleImageChange}
                   />
-                  <ProfileName>Adil Sissenov</ProfileName>
-                </ProfileImageWrapper>
-              </ProfileImageColumn>
+                <ProfileName>{userData.first_name} {userData.last_name}</ProfileName>
+                </ProfileImageContainer>
             </ProfileForm>
           </ProfileWrapper>
           
@@ -270,6 +342,18 @@ function MyComponent(props) {
             </ProfileCancelButton>
             <ProfileSaveButton onClick={handleSave}>Save</ProfileSaveButton>
           </ProfileActions>
+          {showConfirmation && (
+            <>
+            <ConfirmationOverlay />
+            <ConfirmationDialog>
+              <p>Are you sure you want to apply the changes?</p>
+              <ConfirmationWrapper>
+                <ConfirmationButton onClick={handleConfirmCancel}>Cancel</ConfirmationButton>
+                <ConfirmationButton className='confirm_ok_btn' onClick={handleConfirm}>OK</ConfirmationButton>
+              </ConfirmationWrapper>
+            </ConfirmationDialog>
+            </>
+          )}
           </ProfileContainer> 
         </Div4>
       </Div2>
@@ -428,6 +512,7 @@ const ProfilePhoneWrapper = styled.div`
   flex-direction: column;
 `;
 const ProfileImageColumn = styled.div`
+  font-size: 25px;
   display: flex;
   flex-direction: column;
   line-height: normal;
@@ -438,9 +523,10 @@ const ProfileImageColumn = styled.div`
   }
 `;
 
-const ProfileImageWrapper = styled.div`
+const ProfileImageContainer = styled.div`
   display: flex;
   margin-top: 97px;
+  margin-left: 50px;
   flex-direction: column;
   align-items: center;
   font-size: 25px;
@@ -456,7 +542,7 @@ const ProfileImage = styled.img`
   object-fit: auto;
   object-position: center;
   width: 190px;
-  border-radius: 16px;
+  border-radius: 50%;
   cursor: pointer;
 `;
 
@@ -496,6 +582,7 @@ const ProfileActions = styled.div`
 `;
 
 const ProfileCancelButton = styled.button`
+  cursor: pointer;
   font-family: Roboto, sans-serif;
   border-radius: 5px;
   border: 2px solid rgba(16, 156, 241, 1);
@@ -512,6 +599,7 @@ const ProfileCancelButton = styled.button`
 `;
 
 const ProfileSaveButton = styled.button`
+  cursor: pointer;
   font-family: Roboto, sans-serif;
   border-radius: 5px;
   background-color: #109cf1;
@@ -566,7 +654,6 @@ const Div3 = styled.div`
 const Button = styled.button`
   aspect-ratio: 1;
   border:none;
-  background-color:#ECF3FF;
   &:hover {
     transform: translateY(-5px);
     color: #333;
@@ -758,6 +845,7 @@ const Div8 = styled.div`
   }
 `;
 const Img8 = styled.img`
+  border-radius: 50%;
   aspect-ratio: 1;
   object-fit: auto;
   object-position: center;
@@ -812,5 +900,45 @@ border: none !important;
 font-size:0;
 margin: auto 0;
 `;
+const ConfirmationOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 999;
+`;
 
+const ConfirmationDialog = styled.div`
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  z-index: 999;
+`;
+
+const ConfirmationWrapper = styled.div`
+  display: flex;
+  justify-content: space-around;
+  margin-top: 20px;
+`;
+
+const ConfirmationButton = styled.button`
+padding: 10px 20px;
+border-radius: 4px;
+cursor: pointer;
+outline: none;
+border: none;
+background-color: #ccc;
+color: black;
+&.confirm_ok_btn {
+  background-color: #109cf1;
+  color: white;
+}
+`;
 export default MyComponent;

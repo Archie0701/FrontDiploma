@@ -40,8 +40,8 @@ const SignInPage = ({ setUserRole }) => {
       setUserRole(role);
       navigate("/main");
     } catch (error) {
+      alert('Login failed');
       console.error('Login failed:', error);
-      // Обработка ошибки входа (например, отображение сообщения об ошибке)
     }
   };
   return (
