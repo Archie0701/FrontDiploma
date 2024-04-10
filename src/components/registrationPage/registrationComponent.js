@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import { registration } from "../../services/apiService";
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
-import '../CSS/PromoSection.css'; // Подключаем файл стилей для анимации
+import '../CSS/PromoSection.css'; 
 
 
 const SignUpPage = () => {
@@ -16,11 +16,10 @@ const SignUpPage = () => {
   });
 
 
-  const [setPasswordMatch] = useState(true);
+  const [passwordMatch ,setPasswordMatch] = useState(true);
 
   const handleChange = (e) => {
     const { name, value, checked, type } = e.target;
-    // Check if the target is not a checkbox before updating the state
     if (type !== 'checkbox') {
       setFormData(prevState => ({
         ...prevState,
@@ -48,7 +47,6 @@ const SignUpPage = () => {
       setPasswordMatch(false);
       return;
     }
-    // Your form submission logic here
     try {
       const response = await registration({
         email: formData.email,
@@ -57,13 +55,12 @@ const SignUpPage = () => {
         password: formData.password,
         confirm_password: formData.confirmPassword
       });
+      alert("Registration successful");
       console.log('Registration successful:', response);
       window.location.href = "../login"
 
-      // Действия после успешного входа (например, перенаправление на другую страницу)
     } catch (error) {
       console.error('Registration failed:', error);
-      // Обработка ошибки входа (например, отображение сообщения об ошибке)
     }
   };
 

@@ -480,7 +480,7 @@ function MyComponent(props) {
               </TableHeader>
               <TableBody>
               {proposals.map((item) => (
-                (item.total_score || item.grade_percentage && item.status == 'Graded') ? (
+                (item.status == 'Graded') ? (
                   <TableRow>
                     <CheckboxWrapper>
                       <Checkbox />
