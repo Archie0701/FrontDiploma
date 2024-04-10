@@ -223,7 +223,8 @@ function MyComponent(props) {
           </Div5>
           <Div10 className="slider-container">
               <Div11 className="slider">
-                <Column>
+                <Column></Column>
+                <Column style={{position: 'fixed', width: '65%'}}>
                     <Div12>
                         <Div14>{formattedDate}</Div14>
                       <Div22 />

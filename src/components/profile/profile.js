@@ -2,7 +2,7 @@ import React, {useState, useEffect} from "react";
 import styled from "styled-components";
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
-import { fetchUserData, fetchProposalsByID, fetchProposersData, getProposerById, fetchProposalData } from "../../services/apiService";
+import { getImageById, fetchUserData, fetchProposalsByID, fetchProposersData, getProposerById, fetchProposalData } from "../../services/apiService";
 import { ContributionCalendar, createTheme } from "react-contribution-calendar";
 import Spinner from '../Spinner/Spinner';
 import Select from 'react-select';
@@ -59,6 +59,7 @@ function Header() {
   const [error, setError] = useState(null);
   const [isHovered, setIsHovered] = useState(false);
   const [isOwner, setIsOwner] = useState(false);
+  const [imageSrc, setImageSrc] = useState(null);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -97,6 +98,10 @@ function Header() {
         setProfileData(profileDataResponse);
       }
       if (userDataResponse) {
+        if(userDataResponse.avatar){
+          const imageResponse = await getImageById(userDataResponse.avatar);
+          setImageSrc(imageResponse.image);
+        }
         setUserData(userDataResponse);
       }
       setLoading(false);
@@ -268,7 +273,7 @@ function Header() {
               <Div8>
                 <Img8
                   loading="lazy"
-                  srcSet={"https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" || Logo}
+                  srcSet={imageSrc || Logo}
                   alt="Person Image"
                   width="24"
                   height="24"
@@ -319,7 +324,7 @@ function Header() {
               <ProfileInfo>
                 <ProposerProfile>
                   <ProposerTitle>{profileData.user.first_name}'s profile</ProposerTitle>
-                  <ProposerImage  src={profileData.user.avatar || Logo } alt="Proposer" />
+                  <ProposerImage  src={imageSrc || Logo } alt="Proposer" />
                   <ProposerName>{profileData.user.last_name} {profileData.user.first_name}</ProposerName>
                 </ProposerProfile>
                 <Divider />
@@ -530,6 +535,7 @@ const Div8 = styled.div`
   }
 `;
 const Img8 = styled.img`
+  border-radius: 50%;
   aspect-ratio: 1;
   object-fit: auto;
   object-position: center;
@@ -829,7 +835,7 @@ const ProposerProfile = styled.div`
 
 const ProposerTitle = styled.h2`
   color: #1871ed;
-  margin-left: 60px;
+  margin-left: 50px;
   font-family: Roboto, sans-serif;
   justify-content: center;
   font-size: 25px;

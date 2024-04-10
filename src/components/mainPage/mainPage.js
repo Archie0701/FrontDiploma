@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Link } from 'react-router-dom';
 import { LineChart } from '@mui/x-charts';
 import Spinner from '../Spinner/Spinner'; 
-import { fetchUserData, fetchProposalCountData, fetchProposalCountDataByDays } from '../../services/apiService';
+import { getImageById, fetchUserData, fetchProposalCountData, fetchProposalCountDataByDays } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { useNavigate  } from 'react-router-dom';
 import dayjs from "dayjs";
@@ -18,39 +18,59 @@ export const logOut = (navigate) => {
 function MainPage(props) {
   const [userData, setUserData] = useState(null);
   const [proposalData, setProposalData] = useState(null);
-  const [loading, setLoading] = useState(true); // Добавляем состояние для отслеживания загрузки данных
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [proposalDataByDays, setProposalDataByDays] = useState(null);
+  const [imageSrc, setImageSrc] = useState(null);
+
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleLogout = () => {
+    logOut(navigate);
+  };
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
   let xAxisData;
   let yAxisData;
   const navigate = useNavigate();
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Вызываем функцию fetchUserData для получения данных пользователя
         const userDataResponse = await fetchUserData();
         const proposalDataResponse = await fetchProposalCountData();
         const proposalDataByDaysResponse = await fetchProposalCountDataByDays();
         setProposalData(proposalDataResponse);
-        setUserData(userDataResponse);
+
+        if (userDataResponse) {
+          if(userDataResponse.avatar){
+            const imageResponse = await getImageById(userDataResponse.avatar);
+            setImageSrc(imageResponse.image);
+          }
+          setUserData(userDataResponse);
+        }
+        
         setProposalDataByDays(proposalDataByDaysResponse);
   
-        // Устанавливаем состояние загрузки в false, так как данные получены
         setLoading(false);
   
-        // Выводим данные в консоль для проверки
         console.log('User Data:', userDataResponse);
         console.log('Proposal Data:', proposalDataResponse);
       } catch (error) {
         setError(error.message);
         
-        // Выводим ошибку в консоль для проверки
         console.error('Error fetching user data:', error);
         navigate('/main_page');
       }
     };
   
-    fetchData(); // Вызываем функцию при монтировании компонента
+    fetchData();
   }, []);
 
 
@@ -180,29 +200,41 @@ if (loading) {
                 />
                 <Div28>KaizenCloud</Div28>
               </Div27>
-              <Div29>
-                <Div30>
-                <Img9
-  loading="lazy"
-  srcSet={userData.avatar || Logo}
-  alt="Person Image"
-  width="24"
-  height="24"
-/>
-                  <Div31>{userData.last_name} {userData.first_name}</Div31>
-                </Div30>
-                <Img10
+              <DropdownWrapper onMouseEnter={handleMouseEnter}
+              onMouseLeave={handleMouseLeave}>
+            <Div29>
+                <RightMenuBar>
+                <ProfileImage
                   loading="lazy"
-                  src="https://cdn.builder.io/api/v1/image/assets/TEMP/86686b16897beeac74304533d5bb958a4d1e0106aa55fd71c28f706a5b838225?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
-                onClick={() => {
-                    logOut(navigate);
-                  }}>
-                  <svg width="17" height="15" viewBox="0 0 17 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M10.0037 4.25V2.625C10.0037 2.19402 9.83123 1.7807 9.52423 1.47595C9.21722 1.1712 8.80084 1 8.36667 1H2.63704C2.20287 1 1.78648 1.1712 1.47948 1.47595C1.17247 1.7807 1 2.19402 1 2.625V12.375C1 12.806 1.17247 13.2193 1.47948 13.524C1.78648 13.8288 2.20287 14 2.63704 14H8.36667C8.80084 14 9.21722 13.8288 9.52423 13.524C9.83123 13.2193 10.0037 12.806 10.0037 12.375V10.75" stroke="#C4C4C4" stroke-linecap="round" stroke-linejoin="round" />
-                    <path d="M4.27408 7.5H15.7333L13.2778 5.0625M13.2778 9.9375L15.7333 7.5" stroke="#C4C4C4" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
-                </Img10>
+                  srcSet={imageSrc || Logo}
+                  alt="Person Image"
+                  width="24"
+                  height="24"
+                />
+                <ProfileName>{userData.first_name}</ProfileName>
+              </RightMenuBar>
               </Div29>
+            {isHovered && (    
+              <DropdownMenu>
+                  <DropdownItem onClick={handleLogout}>
+                    <TextWrapper>
+                      <LogoutText>Logout</LogoutText>
+                    </TextWrapper>
+                    <svg
+                      className="img-icon"
+                      width="17"
+                      height="15"
+                      viewBox="0 0 17 15"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path d="M10.0037 4.25V2.625C10.0037 2.19402 9.83123 1.7807 9.52423 1.47595C9.21722 1.1712 8.80084 1 8.36667 1H2.63704C2.20287 1 1.78648 1.1712 1.47948 1.47595C1.17247 1.7807 1 2.19402 1 2.625V12.375C1 12.806 1.17247 13.2193 1.47948 13.524C1.78648 13.8288 2.20287 14 2.63704 14H8.36667C8.80084 14 9.21722 13.8288 9.52423 13.524C9.83123 13.2193 10.0037 12.806 10.0037 12.375V10.75" stroke="#C4C4C4" strokeLinecap="round" strokeLinejoin="round" />
+                      <path d="M4.27408 7.5H15.7333L13.2778 5.0625M13.2778 9.9375L15.7333 7.5" stroke="#C4C4C4" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  </DropdownItem>
+                </DropdownMenu> 
+                      )}
+            </DropdownWrapper>    
             </Div26>
             <Div32>
               <Div33>
@@ -309,6 +341,7 @@ const Div4 = styled.div`
 `;
 
 const Img = styled.img`
+  border-radius: 50%;
   aspect-ratio: 1;
   object-fit: auto;
   object-position: center;
@@ -627,6 +660,11 @@ const Div27 = styled.div`
   }
 `;
 
+const DropdownWrapper = styled.div`
+  width: 160px;
+`;
+
+
 const Img8 = styled.img`
   aspect-ratio: 1.12;
   object-fit: auto;
@@ -656,7 +694,59 @@ const Div29 = styled.div`
     white-space: initial;
   }
 `;
+const DropdownMenu = styled.div`
+  width: 160px;
+  position: absolute;
+  top: 60px;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+`;
 
+const DropdownItem = styled.div`
+  border: 1px solid #d7d7d7;
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+  padding: 8px 12px;
+  color: #333;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+`;
+
+const TextWrapper = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const ProfileText = styled.div`
+  font-family: Roboto, sans-serif;
+  flex-grow: 1;
+  margin: auto 0;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+const LogoutText = styled.div`
+  font-family: Roboto, sans-serif;
+  flex-grow: 1;
+  margin: auto 0;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
 const Div30 = styled.div`
   display: flex;
   justify-content: space-between;
@@ -666,7 +756,34 @@ const Div30 = styled.div`
   }
 `;
 
+const RightMenuBar = styled.div`
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+
+const ProfileName = styled.div`
+  font-family: Roboto, sans-serif;
+  flex-grow: 1;
+  margin: auto 0;
+  @media (max-width: 991px) {
+    white-space: initial;
+  }
+`;
+
+const ProfileImage = styled.img`
+  border-radius: 50%;
+  aspect-ratio: 1;
+  object-fit: auto;
+  object-position: center;
+  width: 24px;
+`;
+
 const Img9 = styled.img`
+  border-radius: 50%;
   aspect-ratio: 1;
   object-fit: auto;
   object-position: center;
@@ -700,7 +817,7 @@ const Div32 = styled.div`
   box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
   background-color: #fff;
   display: flex;
-  margin-top: 28px;
+  margin-top: 15px;
   flex-direction: column;
   padding: 26px 53px 50px 18px;
   @media (max-width: 991px) {

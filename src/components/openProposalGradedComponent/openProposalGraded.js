@@ -82,6 +82,7 @@ function OpenProposal(props) {
         }
       }
       const formattedDate = `${year}-${month}-${day}`;
+      alert("Proposal assigned to specialist");
       console.log("Selected Employee:", allProposers[selectedEmployee].id);
       console.log("Selected Date:", formattedDate);
       } catch (error) {
@@ -1022,7 +1023,7 @@ const TableRowLabel = styled.div`
 border: 1px solid #d3d3d3;
 font-family: Roboto, sans-serif;
 font-size: 11px;
-
+padding: 8px 0;
 display:flex;
 align-items: center;
 justify-content: center;

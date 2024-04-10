@@ -16,7 +16,7 @@ const SignUpPage = () => {
   });
 
 
-  const [setPasswordMatch] = useState(true);
+  const [passwordMatch ,setPasswordMatch] = useState(true);
 
   const handleChange = (e) => {
     const { name, value, checked, type } = e.target;
@@ -55,6 +55,7 @@ const SignUpPage = () => {
         password: formData.password,
         confirm_password: formData.confirmPassword
       });
+      alert("Registration successful");
       console.log('Registration successful:', response);
       window.location.href = "../login"
 

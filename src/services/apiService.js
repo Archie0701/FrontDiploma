@@ -153,13 +153,19 @@ export const gradeProposal = async (proposalId, grading, score ) => {
     throw new Error('Access token not available');
   }
   try {
+    
+    console.log("------------------------------");
+    console.log(proposalId);
+    console.log(grading);
+    console.log(score);
+    console.log("------------------------------");
     const response = await apiService.post(`/proposals/${proposalId}/gradings/`, 
       { grading, score },
       {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`, // Добавляем access token в заголовок
+          'Authorization': `Bearer ${accessToken}`,
         }
       }
     );
@@ -221,12 +227,11 @@ export const getComments = async (proposalId) => {
     if (!accessToken) {
       throw new Error('Access token not available');
     }
-    // Получаем access token из localStorage
     const response = await apiService.get(`/proposals/${proposalId}/get_comments/`, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`, // Добавляем access token в заголовок
+        'Authorization': `Bearer ${accessToken}`,
       }
     });
     
@@ -287,8 +292,8 @@ export const fetchGradedProposalData = async () => {
       if (!accessToken) {
         throw new Error('Access token not available');
       }
-      const response = await apiService.post(`/proposals/${proposalId}/change_status/`, 
-        { status },
+      const response = await apiService.put(`/proposals/${proposalId}/change_status/`, 
+        { "status": status },
         {
           headers: {
             'Accept': 'application/json',
@@ -346,7 +351,7 @@ export const fetchGradedProposalData = async () => {
         throw new Error('Access token not available');
       }
   
-      const response = await apiService.put(`/proposals/${proposalId}/archive/`,
+      const response = await apiService.put(`/proposals/${proposalId}/archive/`, {},
         {
           headers: {
             'Accept': 'application/json',
@@ -559,16 +564,11 @@ export const declineProposal = async (proposalId, selectedCriteriaIds) => {
 
 export const registration = async (userData) => {
   try {
-    const accessToken = localStorage.getItem('accessToken');
-    if (!accessToken) {
-      throw new Error('Access token not available');
-    }
     const response = await apiService.post('/proposers/', userData,
     {"is_specialist": true, "is_staff": true, "is_superuser": true}, {
       headers: {
         'Accept': 'application/json',
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
       }
     });
     

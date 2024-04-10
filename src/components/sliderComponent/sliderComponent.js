@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
-import { fetchUserData, fetchNewProposalData, acceptProposal, declineProposal, criterias, addComment } from '../../services/apiService';
+import { getImageById, fetchUserData, fetchNewProposalData, acceptProposal, declineProposal, criterias, addComment } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
-import '../sliderComponent/style.css'; //
+import '../sliderComponent/style.css';
 
 export const logOut = () => {
-  // Удаляем токен из localStorage
   localStorage.removeItem('accessToken');
   window.location.href = "../login";
 };
@@ -15,6 +14,7 @@ export const logOut = () => {
 
 function MyComponent(props) {
   const [userData, setUserData] = useState(null);
+  const [imageSrc, setImageSrc] = useState(null);
   const [loading, setLoading] = useState(true);
   const [proposalData, setProposalData] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,22 +31,22 @@ function MyComponent(props) {
   const handleMouseLeave = () => {
     setIsHovered(false);
   };
-  // Обновленная функция fetchData
-  // Обновленная функция fetchData
   const fetchData = async () => {
     try {
       const userDataResponse = await fetchUserData();
       const proposalDataResponse = await fetchNewProposalData();
       const criteriasData = await criterias();
 
-      // Обновляем состояние allCriterias с данными из API
       setAllCriterias(criteriasData);
 
-      // Продолжаем обновление других состояний и выполнение вашей логики
       if (userDataResponse) {
+        if(userDataResponse.avatar){
+          const imageResponse = await getImageById(userDataResponse.avatar);
+          setImageSrc(imageResponse.image);
+        }
         setUserData(userDataResponse);
       }
-
+      
       proposalDataResponse.forEach(proposal => {
         if (proposal.criteria && proposal.criteria.length > 0) {
           updateSelectedCriteria(proposal.criteria);
@@ -54,7 +54,6 @@ function MyComponent(props) {
         }
       });
 
-      // Обновляем состояние выбранных критериев
       const selectedCriteriaIds = proposalDataResponse.flatMap(proposal => proposal.criteria.map(criterion => criterion.id));
       setSelectedCriteriaIds(selectedCriteriaIds);
 
@@ -69,9 +68,7 @@ function MyComponent(props) {
   const handleAddComment = async () => {
     try {
       await addComment(proposalData[currentIndex].id, commentText);
-      // Обновляем список комментариев после добавления нового комментария
       await fetchCommentsData(proposalData[currentIndex].id);
-      // Очищаем поле ввода после отправки комментария
       setCommentText('');
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -92,7 +89,6 @@ function MyComponent(props) {
       console.error('Error updating proposal list:', error);
     }
   };
-  // Обновляем выбранные критерии
   const updateSelectedCriteria = (criteriaList) => {
     const criteriaIds = criteriaList.map(criterion => criterion.id);
     setSelectedCriteriaIds(criteriaIds);
@@ -107,11 +103,9 @@ function MyComponent(props) {
   const fetchCommentsData = async (id) => {
     try {
       if (id) {
-        // Запрашиваем данные о комментариях для данного предложения по его id
-        const response = await fetch(`http://3.71.200.223:8000/api/proposals/${id}/get_comments/`);
+        const response = await fetch(`http://3.71.86.137:8000/api/proposals/${id}/get_comments/`);
         const data = await response.json();
-        // Обработка полученных данных о комментариях
-        setComments(data.comments); // Убедитесь, что comments - это массив комментариев
+        setComments(data.comments);
       }
     } catch (error) {
       console.error('Error fetching comments data:', error);
@@ -141,7 +135,6 @@ function MyComponent(props) {
 
       setProposalData(updatedProposalData);
 
-      // Обновляем список выбранных критериев
       if (checked) {
         setSelectedCriteriaIds(prevSelectedCriteriaIds => [...prevSelectedCriteriaIds, criteriaId]);
       } else {
@@ -157,7 +150,7 @@ function MyComponent(props) {
     const nextProposal = proposalData.find((data, index) => index > currentIndex && data.status === "New");
     if (nextProposal) {
       setCurrentIndex(proposalData.indexOf(nextProposal));
-      updateSelectedCriteria(nextProposal.criteria); // Добавляем эту строку
+      updateSelectedCriteria(nextProposal.criteria);
       fetchCommentsData(nextProposal.id);
     }
   };
@@ -166,7 +159,7 @@ function MyComponent(props) {
     const prevProposal = proposalData.slice(0, currentIndex).reverse().find(data => data.status === "New");
     if (prevProposal) {
       setCurrentIndex(proposalData.indexOf(prevProposal));
-      updateSelectedCriteria(prevProposal.criteria); // Добавляем эту строку
+      updateSelectedCriteria(prevProposal.criteria);
       fetchCommentsData(prevProposal.id);
     }
   };
@@ -187,9 +180,7 @@ function MyComponent(props) {
 
       const response = await acceptProposal(proposalId, selectedCriteriaIds);
       await updateProposalList();
-      // Обработка успешного принятия предложения
     } catch (error) {
-      // Обработка ошибки
     }
   };
 
@@ -207,9 +198,7 @@ function MyComponent(props) {
 
       const response = await declineProposal(proposalId, selectedCriteriaIds);
       await updateProposalList();
-      // Обработка успешного принятия предложения
     } catch (error) {
-      // Обработка ошибки
     }
   };
 
@@ -289,7 +278,7 @@ function MyComponent(props) {
               <Div8>
                 <Img8
                   loading="lazy"
-                  srcSet={"https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" || Logo}
+                  srcSet={imageSrc || Logo}
                   alt="Person Image"
                   width="24"
                   height="24"
@@ -332,9 +321,10 @@ function MyComponent(props) {
             </DropdownWrapper>  
           </Div5>
           <Div10 className="slider-container">
-            {proposalData && (
+            {proposalData.length > 0 ? (
               <Div11 className="slider">
-                <Column>
+                <Column></Column>
+                <Column style={{position: 'fixed', width: '90%'}}>
                   {proposalData.filter(data => data.status === "New").map((data, index) => (
                     <Div12
                       className={`slide ${index === currentIndex ? 'active' : ''} ${index < currentIndex ? 'slideToLeft' : index > currentIndex ? 'slideToRight' : ''}`}
@@ -417,7 +407,11 @@ function MyComponent(props) {
                   </>
                 </Column2>
               </Div11>
-            )}
+            ) : (
+            <div>
+              <p>No proposal data available.</p>
+            </div>
+          )}
 
           </Div10>
 
@@ -687,6 +681,7 @@ const Div8 = styled.div`
   }
 `;
 const Img8 = styled.img`
+  border-radius: 50%;
   aspect-ratio: 1;
   object-fit: auto;
   object-position: center;

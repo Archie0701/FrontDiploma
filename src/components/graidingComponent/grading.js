@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Spinner from '../Spinner/Spinner';
-import { fetchUserData, fetchAcceptedProposalData, fetchGradingsData, gradeProposal, updateProposalStatusGraded, addComment, updateProposalStatusArchive } from '../../services/apiService';
+import { getImageById, fetchUserData, fetchAcceptedProposalData, fetchGradingsData, gradeProposal, updateProposalStatusGraded, addComment, updateProposalStatusArchive } from '../../services/apiService';
 import Logo from '../../static/User-512.webp';
 import { Link } from 'react-router-dom';
 import './style.css'; //
 
 export const logOut = () => {
-  // Удаляем токен из localStorage
   localStorage.removeItem('accessToken');
   window.location.href = "../login";
 };
@@ -49,6 +48,7 @@ function Grading(props) {
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState([]);
   const [isHovered, setIsHovered] = useState(false);
+  const [imageSrc, setImageSrc] = useState(null);
 
   const handleMouseEnter = () => {
     setIsHovered(true);
@@ -57,19 +57,24 @@ function Grading(props) {
   const handleMouseLeave = () => {
     setIsHovered(false);
   };
-  // Обновленная функция fetchData
   const fetchData = async () => {
     try {
       const userDataResponse = await fetchUserData();
       const proposalDataResponse = await fetchAcceptedProposalData();
       const gradingsDataResponse = await fetchGradingsData();
+      
+      console.log("Gradings", gradingsDataResponse);
    
       if (userDataResponse) {
+        if(userDataResponse.avatar){
+          const imageResponse = await getImageById(userDataResponse.avatar);
+          setImageSrc(imageResponse.image);
+        }
         setUserData(userDataResponse);
-      } 
+      }
+      
       setProposalData(proposalDataResponse);
 
-      setLoading(false);
       setGradingsData(gradingsDataResponse);
    
 
@@ -77,6 +82,7 @@ function Grading(props) {
         fetchProposersData(proposalDataResponse[0].proposer);
         fetchCommentsData(proposalDataResponse[0].id);
       }
+      setLoading(false);
     } catch (error) {
       console.error('Error fetching user data:', error);
       window.location.href = "../login";
@@ -115,7 +121,6 @@ function Grading(props) {
   const fetchProposersData = async (id) => {
     try {
       if (id) {
-        // Запрашиваем данные о предложившем лице по его id
         const proposerDataResponse = await fetch(`http://3.71.86.137:8000/api/proposers/${id}/`);
         
         const proposerData = await proposerDataResponse.json();
@@ -123,14 +128,12 @@ function Grading(props) {
       }
     } catch (error) {
       console.error('Error fetching proposer data:', error);
-      // Обработка ошибок
     }
   };
 
   const fetchCommentsData = async (id) => {
     try {
       if (id) {
-        // Запрашиваем данные о комментариях для данного предложения по его id
         const response = await fetch(`http://3.71.86.137:8000/api/proposals/${id}/get_comments/`);
         const data = await response.json();
         setComments(data.comments);
@@ -162,6 +165,7 @@ function Grading(props) {
     try {
       const updatedProposalData = await fetchAcceptedProposalData();
       setProposalData(updatedProposalData);
+      setBenefitScores({});
     } catch (error) {
       console.error('Error updating proposal list:', error);
     }
@@ -193,6 +197,7 @@ function Grading(props) {
       await updateProposalStatusGraded(proposalData[currentIndex].id, "Graded");
   
       console.log("All gradings accepted successfully!");
+      alert("All gradings accepted successfully!");
       await updateProposalList();
     } catch (error) {
       console.error("Error while accepting gradings:", error);
@@ -204,6 +209,7 @@ function Grading(props) {
     const nextProposal = proposalData.find((data, index) => index > currentIndex && data.status === "Accepted");
     if (nextProposal) {
       console.log(nextProposal.proposer);
+      setBenefitScores({});
       setCurrentIndex(proposalData.indexOf(nextProposal));
       fetchProposersData(nextProposal.proposer);
       fetchCommentsData(nextProposal.id);
@@ -213,6 +219,7 @@ function Grading(props) {
   const handleBack = () => {
     const prevProposal = proposalData.slice(0, currentIndex).reverse().find(data => data.status === "Accepted");
     if (prevProposal) {
+      setBenefitScores({});
       setCurrentIndex(proposalData.indexOf(prevProposal));
       fetchProposersData(prevProposal.proposer);
       fetchCommentsData(prevProposal.id);
@@ -299,7 +306,7 @@ function Grading(props) {
               <Div8>
                 <Img8
                   loading="lazy"
-                  srcSet={"https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" || Logo}
+                  srcSet={imageSrc || Logo}
                   alt="Person Image"
                   width="24"
                   height="24"
@@ -344,7 +351,8 @@ function Grading(props) {
           <Div10 className="slider-container">
             {(proposalData.length != 0) && (
               <Div11 className="slider">
-                <Column>
+                <Column></Column>
+                <Column style={{position: 'fixed', width: '90%'}}>
                   {proposalData.filter(data => data.status === "Accepted").map((data, index) => (
                     <Div12
                       className={`slide ${index === currentIndex ? 'active' : ''} ${index < currentIndex ? 'slideToLeft' : index > currentIndex ? 'slideToRight' : ''}`}
@@ -391,7 +399,7 @@ function Grading(props) {
   {employeeData.map((employee, index) => (
   <EmployeeInfo key={index}>
     <EmployeeDetails>
-      <EmployeeAvatar src="https://cdn.builder.io/api/v1/image/assets/TEMP/3e8e0fc76c3a135312bf03173b585264be24c42d6b683692201c8547563522d3?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="Employee Avatar" />
+      <EmployeeAvatar src={imageSrc || Logo} alt="Employee Avatar" />
       <EmployeeText>
         <EmployeeName>{employee.name}</EmployeeName>
         <EmployeeId>{employee.score}</EmployeeId>
@@ -683,6 +691,7 @@ const Div8 = styled.div`
   }
 `;
 const Img8 = styled.img`
+  border-radius: 50%;
   aspect-ratio: 1;
   object-fit: auto;
   object-position: center;
