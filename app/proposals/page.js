@@ -13,6 +13,7 @@ import startOfMonth from 'date-fns/startOfMonth';
 import endOfMonth from 'date-fns/endOfMonth';
 import addMonths from 'date-fns/addMonths';
 import 'rsuite/dist/rsuite-no-reset.min.css';
+import './proposals.css';
 
 export const logOut = () => {
   localStorage.removeItem('accessToken');
@@ -468,7 +469,7 @@ function MyComponent(props) {
               <Div8>
                 <Img8
                   loading="lazy"
-                  srcSet={"https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" || Logo}
+                  srcSet={"https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" || '/User-512.webp'}
                   alt="Person Image"
                   width="24"
                   height="24"

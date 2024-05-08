@@ -4,7 +4,7 @@ import styled from "styled-components";
 import Link from 'next/link'
 import { LineChart } from '@mui/x-charts';
 import Spinner from './spinner/spinner'; 
-import { getImageById, fetchUserData, fetchProposalCountData, fetchProposalData } from '../services/apiService';
+import { getImageById, fetchUserData, fetchProposalData } from '../services/apiService';
 import dayjs from "dayjs";
 import { redirect } from 'next/navigation';
 import Image from 'next/image';
@@ -477,17 +477,6 @@ const Div7 = styled.div`
   }
 `;
 
-const Div8 = styled.div`
-  color: #5f5e5e;
-  text-align: center;
-  align-self: center;
-  margin-top: 90px;
-  font: 400 32px Roboto, sans-serif;
-  @media (max-width: 991px) {
-    margin-top: 40px;
-  }
-`;
-
 const Div9 = styled.div`
   margin-top: 56px;
   @media (max-width: 991px) {
@@ -554,7 +543,6 @@ const Button = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -581,111 +569,6 @@ const Div17 = styled.div`
   }
 `;
 
-// const Div18 = styled.div`
-//   display: flex;
-//   flex-grow: 1;
-//   flex-basis: 0%;
-//   flex-direction: column;
-//   align-items: center;
-//   @media (max-width: 991px) {
-//     white-space: initial;
-//   }
-// `;
-
-// const Img4 = styled.img`
-//   aspect-ratio: 1;
-//   object-fit: auto;
-//   object-position: center;
-//   width: 120px;
-//   border-radius: 16px;
-// `;
-
-// const Div19 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   margin-top: 19px;
-// `;
-
-// const Div20 = styled.div`
-//   display: flex;
-//   flex-grow: 1;
-//   flex-basis: 0%;
-//   flex-direction: column;
-//   align-items: center;
-//   @media (max-width: 991px) {
-//     white-space: initial;
-//   }
-// `;
-
-// const Img5 = styled.img`
-//   aspect-ratio: 1;
-//   object-fit: auto;
-//   object-position: center;
-//   width: 120px;
-// `;
-
-// const Div21 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   margin-top: 19px;
-// `;
-
-// const Column3 = styled.div`
-//   display: flex;
-//   flex-direction: column;
-//   line-height: normal;
-//   width: 30%;
-//   @media (max-width: 991px) {
-//     width: 100%;
-//   }
-// `;
-
-const Div22 = styled.div`
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-  align-items: center;
-  font-size: 18px;
-  color: #000;
-  font-weight: 300;
-  white-space: nowrap;
-  text-align: center;
-  @media (max-width: 991px) {
-    margin-top: 40px;
-    white-space: initial;
-  }
-`;
-
-// const Img6 = styled.img`
-//   aspect-ratio: 1;
-//   object-fit: auto;
-//   object-position: center;
-//   width: 120px;
-//   border-radius: 16px;
-// `;
-
-// const Div23 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   align-self: stretch;
-//   margin-top: 18px;
-//   @media (max-width: 991px) {
-//     white-space: initial;
-//   }
-// `;
-
-const Img7 = styled.button`
-  aspect-ratio: 1;
-  object-fit: auto;
-  object-position: center;
-  width: 120px;
-  margin-top: 35px;
-  background-color:#ECF3FF;
-  border:none;
-  border-radius: 10%;
-`;
-
-const Div24 = styled.div`
-  font-family: Roboto, sans-serif;
-  margin-top: 19px;
-`;
 
 const Column4 = styled.div`
   display: flex;
@@ -845,44 +728,6 @@ const ProfileName = styled.div`
   @media (max-width: 991px) {
     white-space: initial;
   }
-`;
-
-const ProfileImage = styled.img`
-  border-radius: 50%;
-  aspect-ratio: 1;
-  object-fit: auto;
-  object-position: center;
-  width: 24px;
-`;
-
-const Img9 = styled.img`
-  border-radius: 50%;
-  aspect-ratio: 1;
-  object-fit: auto;
-  object-position: center;
-  width: 24px;
-`;
-
-const Div31 = styled.div`
-  font-family: Roboto, sans-serif;
-  flex-grow: 1;
-  margin: auto 0;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-
-const Img10 = styled.button`
-  aspect-ratio: 1.15;
-  object-fit: auto;
-  object-position: center;
-  width: 15px;
-  
-  cursor:pointer;
-  background: transparent;
-  border: none !important;
-  font-size:0;
-  margin: auto 0;
 `;
 
 const Div32 = styled.div`

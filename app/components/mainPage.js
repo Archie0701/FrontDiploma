@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { LineChart } from '@mui/x-charts';
 import Spinner from './spinner/spinner'; 
 import { getImageById, fetchUserData, fetchProposalCountData, fetchProposalCountDataByDays } from '../services/apiService';
-import { redirect } from 'next/navigation'
+import { redirect } from 'next/navigation';
+import Image from 'next/image';
 import dayjs from "dayjs";
 
 
@@ -20,10 +21,23 @@ function MainPage(props) {
   const [proposalDataByDays, setProposalDataByDays] = useState(null);
   const [imageSrc, setImageSrc] = useState(null);
 
+
+  const [userRole, setUserRole] = useState(null);
+  const accessToken = localStorage.getItem('accessToken');
+
+    useEffect(() => {
+      const storedUserRole = localStorage.getItem('userRole');
+      if (storedUserRole) {
+        setUserRole(storedUserRole);
+      }
+    }, []);
+
+
   const [isHovered, setIsHovered] = useState(false);
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
+    localStorage.removeItem('userRole');
     window.location.href = "/login"; 
   };
 
@@ -55,14 +69,9 @@ function MainPage(props) {
           }
           setUserData(userDataResponse);
         }
-        console.log("PROPOSAL DATA BY DAYS: ", proposalDataByDaysResponse);
         
         setProposalDataByDays(proposalDataByDaysResponse);
-  
         setLoading(false);
-  
-        console.log('User Data:', userDataResponse);
-        console.log('Proposal Data:', proposalDataResponse);
       } catch (error) {
         setError(error.message);
         console.error('Error fetching user data:', error);
@@ -87,9 +96,11 @@ yAxisData = proposalDataByDays.map(data => {
 }
 
 if (loading) {
-  return <Spinner/> ; // Показываем сообщение о загрузке, пока данные загружаются
+  return <Spinner/> ;
 }
   return (
+    <>
+    {accessToken && userRole === 'staff' ? (
     <Div>
       <Div2>
         <Column>
@@ -107,7 +118,6 @@ if (loading) {
                 <Div7>Supervisor</Div7>
               </Div5>
             </Div4>
-            <Div8>Proposal Processing</Div8>
             <Div9>
               <Div10>
                 <Column2>
@@ -281,12 +291,16 @@ if (loading) {
         </Column4>
       </Div2>
     </Div>
+  ) : (
+        redirect('/login')
+    )}
+    </>
   );
 }
 
 const Div = styled.div`
   background-color: #fff;
-  padding: 19px 78px 50px;
+  padding: 0 20px 0 50px;
   @media (max-width: 991px) {
     padding: 0 20px;
   }
@@ -321,12 +335,12 @@ const Div3 = styled.div`
 `;
 
 const Div4 = styled.div`
+  align-items: center;
   border-radius: 8px;
   box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
   background-color: #fff;
   display: flex;
-  gap: 17px;
-  padding: 18px 0 18px 18px;
+  padding: 18px 5px 18px 18px;
   @media (max-width: 991px) {
     max-width: 100%;
     flex-wrap: wrap;
@@ -339,7 +353,8 @@ const Img = styled.img`
   aspect-ratio: 1;
   object-fit: auto;
   object-position: center;
-  width: 65px;
+  width: 85px;
+  height: 85px;
 `;
 
 const Div5 = styled.div`
@@ -357,8 +372,9 @@ const Div6 = styled.div`
 `;
 
 const Div7 = styled.div`
+  margin-left: 15px;
   color: #868686;
-  margin-top: 1px;
+  margin-top: 10px;
   white-space: nowrap;
   font: italic 300 19px Roboto, sans-serif;
   @media (max-width: 991px) {
@@ -430,18 +446,6 @@ const Div12 = styled.div`
   }
 `;
 
-const Div13 = styled.div`
-  align-self: start;
-  display: flex;
-  flex-grow: 1;
-  flex-basis: 0%;
-  flex-direction: column;
-  align-items: center;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-
 const Button = styled.button`
   aspect-ratio: 1;
   object-fit: auto;
@@ -454,7 +458,6 @@ const Button = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -469,30 +472,6 @@ const Text = styled.div`
   margin-top: 19px;
 `;
 
-// const Div15 = styled.div`
-//   display: flex;
-//   flex-grow: 1;
-//   flex-basis: 0%;
-//   flex-direction: column;
-//   align-items: center;
-//   @media (max-width: 991px) {
-//     white-space: initial;
-//   }
-// `;
-
-// const Img3 = styled.img`
-//   aspect-ratio: 1;
-//   object-fit: auto;
-//   object-position: center;
-//   width: 120px;
-//   border-radius: 16px;
-// `;
-
-// const Div16 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   margin-top: 19px;
-// `;
-
 const Div17 = styled.div`
   display: flex;
   margin-top: 35px;
@@ -501,111 +480,6 @@ const Div17 = styled.div`
   @media (max-width: 991px) {
     white-space: initial;
   }
-`;
-
-// const Div18 = styled.div`
-//   display: flex;
-//   flex-grow: 1;
-//   flex-basis: 0%;
-//   flex-direction: column;
-//   align-items: center;
-//   @media (max-width: 991px) {
-//     white-space: initial;
-//   }
-// `;
-
-// const Img4 = styled.img`
-//   aspect-ratio: 1;
-//   object-fit: auto;
-//   object-position: center;
-//   width: 120px;
-//   border-radius: 16px;
-// `;
-
-// const Div19 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   margin-top: 19px;
-// `;
-
-// const Div20 = styled.div`
-//   display: flex;
-//   flex-grow: 1;
-//   flex-basis: 0%;
-//   flex-direction: column;
-//   align-items: center;
-//   @media (max-width: 991px) {
-//     white-space: initial;
-//   }
-// `;
-
-// const Img5 = styled.img`
-//   aspect-ratio: 1;
-//   object-fit: auto;
-//   object-position: center;
-//   width: 120px;
-// `;
-
-// const Div21 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   margin-top: 19px;
-// `;
-
-// const Column3 = styled.div`
-//   display: flex;
-//   flex-direction: column;
-//   line-height: normal;
-//   width: 30%;
-//   @media (max-width: 991px) {
-//     width: 100%;
-//   }
-// `;
-
-const Div22 = styled.div`
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-  align-items: center;
-  font-size: 18px;
-  color: #000;
-  font-weight: 300;
-  white-space: nowrap;
-  text-align: center;
-  @media (max-width: 991px) {
-    margin-top: 40px;
-    white-space: initial;
-  }
-`;
-
-// const Img6 = styled.img`
-//   aspect-ratio: 1;
-//   object-fit: auto;
-//   object-position: center;
-//   width: 120px;
-//   border-radius: 16px;
-// `;
-
-// const Div23 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   align-self: stretch;
-//   margin-top: 18px;
-//   @media (max-width: 991px) {
-//     white-space: initial;
-//   }
-// `;
-
-const Img7 = styled.button`
-  aspect-ratio: 1;
-  object-fit: auto;
-  object-position: center;
-  width: 120px;
-  margin-top: 35px;
-  border:none;
-  border-radius: 10%;
-`;
-
-const Div24 = styled.div`
-  font-family: Roboto, sans-serif;
-  margin-top: 19px;
 `;
 
 const Column4 = styled.div`
@@ -656,6 +530,7 @@ const Div27 = styled.div`
 
 const DropdownWrapper = styled.div`
   width: 160px;
+  margin-top: 15px;
 `;
 
 
@@ -691,7 +566,7 @@ const Div29 = styled.div`
 const DropdownMenu = styled.div`
   width: 160px;
   position: absolute;
-  top: 60px;
+  top: 55px;
   display: flex;
   flex-direction: column;
   background-color: white;
@@ -776,35 +651,6 @@ const ProfileImage = styled.img`
   width: 24px;
 `;
 
-const Img9 = styled.img`
-  border-radius: 50%;
-  aspect-ratio: 1;
-  object-fit: auto;
-  object-position: center;
-  width: 24px;
-`;
-
-const Div31 = styled.div`
-  font-family: Roboto, sans-serif;
-  flex-grow: 1;
-  margin: auto 0;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-
-const Img10 = styled.button`
-  aspect-ratio: 1.15;
-  object-fit: auto;
-  object-position: center;
-  width: 15px;
-  
-  cursor:pointer;
-  background: transparent;
-  border: none !important;
-  font-size:0;
-  margin: auto 0;
-`;
 
 const Div32 = styled.div`
   border-radius: 8px;
@@ -813,7 +659,7 @@ const Div32 = styled.div`
   display: flex;
   margin-top: 15px;
   flex-direction: column;
-  padding: 30px 53px 50px 18px;
+  padding: 30px 18px 0 18px;
   @media (max-width: 991px) {
     max-width: 100%;
     padding-right: 20px;
@@ -830,22 +676,6 @@ const Div33 = styled.div`
   }
 `;
 
-const Div34 = styled.div`
-  @media (max-width: 991px) {
-    max-width: 100%;
-  }
-`;
-
-const Div35 = styled.div`
-  gap: 80px;
-  display: flex;
-  @media (max-width: 991px) {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0px;
-  }
-`;
-
 const Column5 = styled.div`
   display: flex;
   flex-direction: column;
@@ -854,18 +684,6 @@ const Column5 = styled.div`
   margin-left: 0px;
   @media (max-width: 991px) {
     width: 100%;
-  }
-`;
-
-const Div36 = styled.div`
-  display: flex;
-  flex-grow: 1;
-  flex-direction: column;
-  font-size: 16px;
-  color: #484848;
-  font-weight: 500;
-  @media (max-width: 991px) {
-    margin-top: 40px;
   }
 `;
 
@@ -897,31 +715,6 @@ const Div39 = styled.div`
   font: 400 32px Roboto, sans-serif;
 `;
 
-const Div40 = styled.div`
-  display: flex;
-  margin-top: 65px;
-  flex-grow: 1;
-  flex-direction: column;
-  color: #484848;
-  white-space: nowrap;
-  @media (max-width: 991px) {
-    margin-top: 40px;
-    white-space: initial;
-  }
-`;
-
-const Div41 = styled.div`
-  font: 600 16px Roboto, sans-serif;
-  @media (max-width: 991px) {
-    white-space: initial;
-  }
-`;
-
-const Div42 = styled.div`
-  margin-top: 24px;
-  font: 400 32px Roboto, sans-serif;
-`;
-
 const Div43 = styled.div`
   flex-direction: column;
   @media (max-width: 991px) {
@@ -949,165 +742,5 @@ const Div46 = styled.div`
     margin-top: 40px;
   }
 `;
-
-
-// const Div47 = styled.div`
-//   display: flex;
-//   justify-content: space-between;
-//   gap: 12px;
-//   font-size: 16px;
-//   color: #484848;
-//   font-weight: 400;
-//   white-space: nowrap;
-//   margin: 43px 0 0 30px;
-//   @media (max-width: 991px) {
-//     max-width: 100%;
-//     flex-wrap: wrap;
-//     margin-top: 40px;
-//     white-space: initial;
-//   }
-// `;
-
-// const Div48 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   flex-grow: 1;
-// `;
-
-// const Div49 = styled.div`
-//   background-color: #d9d9d9;
-//   width: 1090px;
-//   max-width: 100%;
-//   height: 3px;
-//   margin: auto 0;
-// `;
-
-// const Div50 = styled.div`
-//   display: flex;
-//   justify-content: space-between;
-//   gap: 12px;
-//   font-size: 16px;
-//   color: #484848;
-//   font-weight: 400;
-//   white-space: nowrap;
-//   margin: 50px 0 0 30px;
-//   @media (max-width: 991px) {
-//     max-width: 100%;
-//     flex-wrap: wrap;
-//     margin-top: 40px;
-//     white-space: initial;
-//   }
-// `;
-
-// const Div51 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   flex-grow: 1;
-// `;
-
-// const Div52 = styled.div`
-//   background-color: #d9d9d9;
-//   align-self: start;
-//   width: 1090px;
-//   max-width: 100%;
-//   height: 2px;
-// `;
-
-// const Div53 = styled.div`
-//   display: flex;
-//   justify-content: space-between;
-//   gap: 12px;
-//   font-size: 16px;
-//   color: #484848;
-//   font-weight: 400;
-//   white-space: nowrap;
-//   margin: 50px 0 0 30px;
-//   @media (max-width: 991px) {
-//     max-width: 100%;
-//     flex-wrap: wrap;
-//     margin-top: 40px;
-//     white-space: initial;
-//   }
-// `;
-
-// const Div54 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   flex-grow: 1;
-// `;
-
-// const Div55 = styled.div`
-//   background-color: #d9d9d9;
-//   align-self: start;
-//   width: 1090px;
-//   max-width: 100%;
-//   height: 2px;
-// `;
-
-// const Div56 = styled.div`
-//   display: flex;
-//   justify-content: space-between;
-//   gap: 12px;
-//   font-size: 16px;
-//   color: #484848;
-//   font-weight: 400;
-//   white-space: nowrap;
-//   margin: 50px 0 0 30px;
-//   @media (max-width: 991px) {
-//     max-width: 100%;
-//     flex-wrap: wrap;
-//     margin-top: 40px;
-//     white-space: initial;
-//   }
-// `;
-
-// const Div57 = styled.div`
-//   font-family: Roboto, sans-serif;
-//   flex-grow: 1;
-// `;
-
-// const Div58 = styled.div`
-//   background-color: #d9d9d9;
-//   width: 1090px;
-//   max-width: 100%;
-//   height: 2px;
-//   margin: auto 0;
-// `;
-
-// const Div59 = styled.div`
-//   display: flex;
-//   width: 888px;
-//   max-width: 100%;
-//   justify-content: space-between;
-//   gap: 20px;
-//   font-size: 16px;
-//   color: #484848;
-//   font-weight: 400;
-//   margin: 8px 0 15px 59px;
-//   @media (max-width: 991px) {
-//     flex-wrap: wrap;
-//   }
-// `;
-
-// const Div60 = styled.div`
-//   font-family: Roboto, sans-serif;
-// `;
-
-// const Div61 = styled.div`
-//   font-family: Roboto, sans-serif;
-// `;
-
-// const Div62 = styled.div`
-//   font-family: Roboto, sans-serif;
-// `;
-
-// const Div63 = styled.div`
-//   font-family: Roboto, sans-serif;
-// `;
-
-// const Div64 = styled.div`
-//   font-family: Roboto, sans-serif;
-// `;
-
-// const Div65 = styled.div`
-//   font-family: Roboto, sans-serif;
-// `;
 
 export default MainPage;

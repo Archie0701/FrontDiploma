@@ -1,0 +1,33 @@
+.employee_search {
+    border: none;
+  }
+  
+  .employee_search:focus {
+    outline: none;
+  }
+
+  .slider-container {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .slide {
+    position: absolute;
+    width: 69%;
+    opacity: 0;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  
+  }
+
+  .slide.active {
+    opacity: 1;
+  }
+  
+  .slide.slideToLeft {
+    transform: translateX(-100%);
+  }
+  
+  .slide.slideToRight {
+    transform: translateX(100%);
+  }
+  

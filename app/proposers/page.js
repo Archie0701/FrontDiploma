@@ -61,7 +61,6 @@ function MyComponent(props) {
         setUserData(userDataResponse);
 
 
-        // Выводим данные в консоль для проверки
         console.log('Proposal Data:', proposalData);
         console.log('User Data:', userDataResponse);
         const transformedData = {};
@@ -76,7 +75,6 @@ function MyComponent(props) {
       } catch (error) {
         setError(error.message);
 
-        // Выводим ошибку в консоль для проверки
         console.error('Error fetching user data:', error);
         window.location.href = "../login";
       }
