@@ -7,11 +7,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { redirect } from 'next/navigation';
 
-export const logOut = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('userRole');
-  window.location.href = "../login";
-};
 
 
 function MyComponent(props) {
@@ -25,7 +20,11 @@ function MyComponent(props) {
   const [imageSrc, setImageSrc] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const accessToken = localStorage.getItem('accessToken');
-
+  const logOut = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userRole');
+    window.location.href = "../login";
+  };
     useEffect(() => {
       const storedUserRole = localStorage.getItem('userRole');
       if (storedUserRole) {
