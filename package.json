@@ -4,6 +4,7 @@
   "scripts": {
     "build": "next build",
     "dev": "next dev",
+    "start": "next start",
     "email": "email dev --dir app/emails"
   },
   "dependencies": {
