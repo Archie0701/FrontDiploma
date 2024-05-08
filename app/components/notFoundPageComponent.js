@@ -3,7 +3,8 @@ import styled from "styled-components";
 
 function NotFoundPage() {
   return (
-    <ErrorPageContainer>
+    <>
+      <ErrorPageContainer>
       <ErrorImage src="https://cdn.builder.io/api/v1/image/assets/TEMP/67561e2bd7a4e0f8b4ccc5f1b9d08ebe63f9a3fda99782c297f273090d8ffc1f?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Error illustration" />
       <ErrorTitle>Page Not Found</ErrorTitle>
       <ErrorDescription>
@@ -12,6 +13,7 @@ function NotFoundPage() {
       </ErrorDescription>
       <ReturnLink href="/main">Return to homepage.</ReturnLink>
     </ErrorPageContainer>
+    </>
   );
 }
 

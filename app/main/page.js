@@ -24,7 +24,7 @@ const Main = () => {
     }
   return (
     <>
-      {accessToken ? (
+      {!accessToken ? (
     userRole === 'proposer' ? (
         <ProposerMainPage />
     ) : (

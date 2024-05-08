@@ -7,7 +7,6 @@ import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
 import { redirect } from 'next/navigation';
 
-
 function MyComponent(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);

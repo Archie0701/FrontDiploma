@@ -278,7 +278,7 @@ const InputOption = styled.div`
     font-size: 15px;
     padding: 5px;
     ::placeholder {
-      color: #5d5d5d; /* Цвет placeholder'а */
+      color: #5d5d5d;
     }
   }
 `;
@@ -338,12 +338,11 @@ const SignInButton = styled.button`
     }
   }
   &:hover {
-    background-color: #1d5a96; /* Изменение цвета при наведении */
+    background-color: #1d5a96;
   }
 
-  /* Добавьте обработчик событий по вашему выбору */
   &:active {
-    background-color: #144276; /* Изменение цвета при активации */
+    background-color: #144276; 
   }
 `;
 

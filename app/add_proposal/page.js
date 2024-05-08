@@ -8,7 +8,6 @@ import Image from 'next/image';
 import { redirect } from 'next/navigation';
 
 
-
 function MyComponent(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
