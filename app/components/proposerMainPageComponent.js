@@ -47,7 +47,7 @@ function ProposerMainPage(props) {
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
-    window.location.href = "/login"; 
+    redirect('/login');
   };
 
   const handleMouseEnter = () => {

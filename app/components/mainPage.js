@@ -38,7 +38,7 @@ function MainPage(props) {
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
-    window.location.href = "/login"; 
+    redirect('/login');
   };
 
 

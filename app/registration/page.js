@@ -223,7 +223,7 @@ const SignUpPage = () => {
       };
       localStorage.setItem('registration_data', JSON.stringify(dataToStore));
 
-      window.location.href = "../email_confirmation";
+      redirect('/email_confirmation');
     } catch (error) {
       setLoading(false);
       console.error('Registration failed:', error);

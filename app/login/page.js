@@ -41,7 +41,7 @@ const SignInPage = () => {
       const userDataResponse = await fetchUserData();
       const role = userDataResponse.is_proposer ? 'proposer' : 'staff';
       localStorage.setItem('userRole', role);
-      window.location.href = '/main';
+      redirect('/main');
     } catch (error) {
       toast.error("Login attributes are incorrect.")
       console.error('Login failed:', error);

@@ -5,14 +5,14 @@ import Spinner from '../components/spinner/spinner';
 import { getImageById, fetchUserData, fetchAcceptedProposalData, fetchGradingsData, gradeProposal, updateProposalStatusGraded, addComment, updateProposalStatusArchive, API_URL } from '../services/apiService';
 import Link from 'next/link';
 import './grading.css';
-
+import { redirect } from 'next/navigation'
 
 const EmployeeScoreSlider = ({ value, onValueChange }) => {
 
     const logOut = () => {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('userRole');
-        window.location.href = "../login";
+        redirect('/login');
     };
   const handleChange = (event) => {
     onValueChange(event.target.value);
@@ -95,7 +95,7 @@ function Grading(props) {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user data:', error);
-      window.location.href = "../login";
+      redirect('/login');
     }
   };
 

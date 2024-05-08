@@ -12,7 +12,7 @@ function MyComponent(props) {
   const logOut = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
-    window.location.href = "../login";
+    redirect('/login');
   };
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -75,7 +75,7 @@ function MyComponent(props) {
         setError(error.message);
 
         console.error('Error fetching user data:', error);
-        window.location.href = "../login";
+        redirect('/login');
       }
     };
 

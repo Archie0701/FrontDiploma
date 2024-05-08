@@ -5,7 +5,7 @@ import Spinner from '../components/spinner/spinner';
 import { fetchUserData, editProfile, getImageById, API_URL } from '../services/apiService';
 import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
-import { redirect } from 'next/navigation'
+import { redirect } from 'next/navigation';
 
 
 function MyComponent(props) {
@@ -29,7 +29,7 @@ function MyComponent(props) {
   const logOut = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
-    window.location.href = "../login";
+    redirect('/login');
   };
   const [imageSrc, setImageSrc] = useState(null);
   const [firstName, setFirstName] = useState(null);
@@ -120,8 +120,7 @@ function MyComponent(props) {
           } else {
           await editProfile(userData.id, email,firstName, lastName, null);
           }
-          alert("Succesfully changed");
-          window.location.reload();
+          toast.success("Changed Successfully");
         } catch (error) {
           console.error('Error uploading file:', error);
         }

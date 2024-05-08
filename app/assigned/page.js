@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import './assigned.css'; 
+import { redirect } from 'next/navigation';
 
 
 function OpenProposal(props) {
@@ -58,7 +59,7 @@ function OpenProposal(props) {
   const logOut = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
-    window.location.href = "../login";
+    redirect('/login');
 };
     const handleAssignClick = async () => {
       try{

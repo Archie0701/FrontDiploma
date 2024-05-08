@@ -10,11 +10,6 @@ import NotFoundPage from '../../components/notFoundPageComponent'
 import { redirect } from 'next/navigation';
 
 
-
-
-
-
-
 function Header({params}) {
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -58,11 +53,11 @@ function Header({params}) {
       ],
     },
   ];
-  
+
   const logOut = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
-    window.location.href = "../login";
+    redirect('/login');
   };
     useEffect(() => {
       const storedUserRole = localStorage.getItem('userRole');
@@ -82,7 +77,6 @@ function Header({params}) {
   const fetchData = async () => {
     try {
       setProfileID();
-      const urlSegments = window.location.pathname.split('/');
       const id = urlSegments[urlSegments.length - 1];
 
       const proposersData = await fetchProposersData();

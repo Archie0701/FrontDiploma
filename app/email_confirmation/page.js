@@ -95,7 +95,7 @@ function ConfirmEmail() {
           });
           toast.success('Registration was successful.');
           console.log('Registration successful:', response);
-          window.location.href = "../login"
+          redirect('/login');
     
         } catch (error) {
           console.error('Registration failed:', error);

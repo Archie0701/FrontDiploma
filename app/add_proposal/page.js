@@ -23,7 +23,7 @@ function MyComponent(props) {
   const logOut = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
-    window.location.href = "../login";
+    redrect('/login');
   };
     useEffect(() => {
       const storedUserRole = localStorage.getItem('userRole');
