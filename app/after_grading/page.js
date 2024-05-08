@@ -25,19 +25,26 @@ function MyComponent(props) {
   const [query, setQuery] = useState('');
   const [isHovered, setIsHovered] = useState(false);
   const [userRole, setUserRole] = useState(null);
-  const accessToken = localStorage.getItem('accessToken');
+  const [accessToken, setAccessToken] = useState(null);
 
+  if (typeof window !== 'undefined') {
+    setAccessToken(localStorage.getItem('accessToken'));
+  }
   const logOut = () => {
+    if (typeof window !== 'undefined') {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
+    }
     redirect('/login');
   };
 
     useEffect(() => {
+      if (typeof window !== 'undefined') {
       const storedUserRole = localStorage.getItem('userRole');
       if (storedUserRole) {
         setUserRole(storedUserRole);
       }
+    }
     }, []);
 
   const handleMouseEnter = () => {

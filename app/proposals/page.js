@@ -19,8 +19,10 @@ import './proposals.css';
 function MyComponent(props) {
 
   const logOut = () => {
+    if (typeof window !== 'undefined') {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
+    }
     redirect('/login');
   };
 
@@ -110,13 +112,19 @@ function MyComponent(props) {
   const [isChecked, setIsChecked] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [userRole, setUserRole] = useState(null);
-  const accessToken = localStorage.getItem('accessToken');
+  const [accessToken, setAccessToken] = useState(null);
+
+  if (typeof window !== 'undefined') {
+    setAccessToken(localStorage.getItem('accessToken'));
+  }
 
     useEffect(() => {
+      if (typeof window !== 'undefined') {
       const storedUserRole = localStorage.getItem('userRole');
       if (storedUserRole) {
         setUserRole(storedUserRole);
       }
+    }
     }, []);
 
   const handleMouseEnter = () => {

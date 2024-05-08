@@ -10,8 +10,10 @@ import { redirect } from 'next/navigation';
 
 function MyComponent(props) {
   const logOut = () => {
+    if (typeof window !== 'undefined') {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
+    }
     redirect('/login');
   };
   const [userData, setUserData] = useState(null);
@@ -20,13 +22,19 @@ function MyComponent(props) {
   const [proposals, setProposals] = useState(null);
   const [proposersData, setProposersData] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const accessToken = localStorage.getItem('accessToken');
+  const [accessToken, setAccessToken] = useState(null);
+
+  if (typeof window !== 'undefined') {
+    setAccessToken(localStorage.getItem('accessToken'));
+  }
 
     useEffect(() => {
+      if (typeof window !== 'undefined') {
       const storedUserRole = localStorage.getItem('userRole');
       if (storedUserRole) {
         setUserRole(storedUserRole);
       }
+    }
     }, []);
 
   const [query, setQuery] = useState('');

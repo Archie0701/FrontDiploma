@@ -8,8 +8,11 @@ import toast, { Toaster } from 'react-hot-toast';
 import { redirect } from 'next/navigation';
 
 const SignInPage = () => {
-  const accessToken = localStorage.getItem('accessToken');
+  const [accessToken, setAccessToken] = useState(null);
 
+  if (typeof window !== 'undefined') {
+    setAccessToken(localStorage.getItem('accessToken'));
+  }
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -40,7 +43,9 @@ const SignInPage = () => {
       });
       const userDataResponse = await fetchUserData();
       const role = userDataResponse.is_proposer ? 'proposer' : 'staff';
-      localStorage.setItem('userRole', role);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userRole', role);
+      }
       redirect('/main');
     } catch (error) {
       toast.error("Login attributes are incorrect.")

@@ -18,20 +18,24 @@ function ConfirmEmail() {
   const [resendDisabled, setResendDisabled] = useState(false);
 
   useEffect(() => {
+    if (typeof window !== 'undefined') {
     const lastResendTimeStr = localStorage.getItem('last_resend_time');
     if (lastResendTimeStr) {
       const lastResendTime = parseInt(lastResendTimeStr, 10);
       setLastResendTime(lastResendTime);
     }
+  }
   }, []);
   
   const [registrationData, setRegistrationData] = useState({});
   useEffect(() => {
-    const storedData = JSON.parse(localStorage.getItem('registration_data'));
-    if(storedData === null) {
-      redirect('/login');
-    } else {
-      setRegistrationData(storedData);
+    if (typeof window !== 'undefined') {
+      const storedData = JSON.parse(localStorage.getItem('registration_data'));
+      if(storedData === null) {
+        redirect('/login');
+      } else {
+        setRegistrationData(storedData);
+      }
     }
   }, []);
 
@@ -51,7 +55,9 @@ function ConfirmEmail() {
       for (let i = 0; i < 8; i++) {
         code += characters.charAt(Math.floor(Math.random() * charactersLength));
       }
-      localStorage.setItem('last_resend_time', currentTime.toString());
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('last_resend_time', currentTime.toString());
+      }
       setLastResendTime(currentTime);
       registrationData.confirmation_code = code;
       await confirmationEmail({confirmationCode: code, email: registrationData.email});

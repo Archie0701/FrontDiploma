@@ -38,8 +38,11 @@ const SignUpPage = () => {
     agreedToTerms: false
   });
 
-  const accessToken = localStorage.getItem('accessToken');
-  
+  const [accessToken, setAccessToken] = useState(null);
+
+  if (typeof window !== 'undefined') {
+    setAccessToken(localStorage.getItem('accessToken'));
+  }
   if (accessToken) {
     redirect('/main');
   }
@@ -211,7 +214,9 @@ const SignUpPage = () => {
       await confirmationEmail({confirmationCode: code, email: formData.email});
       const registration_data = localStorage.getItem('registration_data');
       if(registration_data != null) {
+        if (typeof window !== 'undefined') {
         localStorage.removeItem('registration_data');
+        }
       }
       const dataToStore = {
         email: formData.email,
@@ -221,8 +226,9 @@ const SignUpPage = () => {
         confirm_password: formData.confirmPassword,
         confirmation_code: code
       };
+      if (typeof window !== 'undefined') {
       localStorage.setItem('registration_data', JSON.stringify(dataToStore));
-
+      }
       redirect('/email_confirmation');
     } catch (error) {
       setLoading(false);

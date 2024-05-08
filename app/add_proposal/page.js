@@ -19,17 +19,26 @@ function MyComponent(props) {
   const [checkboxCriteria, setCheckboxCriteria] = useState([]);
   const [imageSrc, setImageSrc] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const accessToken = localStorage.getItem('accessToken');
+  const [accessToken, setAccessToken] = useState(null);
+
+  if (typeof window !== 'undefined') {
+    setAccessToken(localStorage.getItem('accessToken'));
+  }
   const logOut = () => {
-    localStorage.removeItem('accessToken');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
+    }
     redrect('/login');
   };
     useEffect(() => {
-      const storedUserRole = localStorage.getItem('userRole');
+      if (typeof window !== 'undefined') {
+        const storedUserRole = localStorage.getItem('userRole');
       if (storedUserRole) {
         setUserRole(storedUserRole);
       }
+      }
+      
     }, []);
 
   const handleMouseEnter = () => {

@@ -13,12 +13,17 @@ function MyComponent(props) {
   const [loading, setLoading] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [userRole, setUserRole] = useState(null);
-  const accessToken = localStorage.getItem('accessToken');
+  const [accessToken, setAccessToken] = useState(null);
 
+  if (typeof window !== 'undefined') {
+    setAccessToken(localStorage.getItem('accessToken'));
+  }
     useEffect(() => {
-      const storedUserRole = localStorage.getItem('userRole');
+      if (typeof window !== 'undefined') {
+        const storedUserRole = localStorage.getItem('userRole');
       if (storedUserRole) {
         setUserRole(storedUserRole);
+      }
       }
     }, []);
 
@@ -27,8 +32,10 @@ function MyComponent(props) {
   };
 
   const logOut = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('userRole');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('userRole');
+    }
     redirect('/login');
   };
   const [imageSrc, setImageSrc] = useState(null);
@@ -96,7 +103,6 @@ function MyComponent(props) {
     try { 
           setShowConfirmation(false);
           if(formData.has('image')){
-            const accessToken = localStorage.getItem('accessToken');
             if (!accessToken) {
               throw new Error('Access token not available');
             }

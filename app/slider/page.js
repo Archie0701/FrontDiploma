@@ -10,8 +10,10 @@ import './slider.css';
 function MyComponent(props) {
 
   const logOut = () => {
+    if (typeof window !== 'undefined') {
         localStorage.removeItem('accessToken');
         localStorage.removeItem('userRole');
+    }
         redirect('/login');
       };
   const [userData, setUserData] = useState(null);
