@@ -16,13 +16,6 @@ import './after_grading.css';
 import 'rsuite/dist/rsuite-no-reset.min.css';
 import { redirect } from 'next/navigation';
 
-export const logOut = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('userRole');
-  window.location.href = "../login";
-};
-
-
 function MyComponent(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -33,6 +26,12 @@ function MyComponent(props) {
   const [isHovered, setIsHovered] = useState(false);
   const [userRole, setUserRole] = useState(null);
   const accessToken = localStorage.getItem('accessToken');
+
+  const logOut = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userRole');
+    window.location.href = "../login";
+  };
 
     useEffect(() => {
       const storedUserRole = localStorage.getItem('userRole');

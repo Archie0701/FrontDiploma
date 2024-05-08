@@ -9,12 +9,6 @@ import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import './assigned.css'; 
 
-export const logOut = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('userRole');
-    window.location.href = "../login";
-};
-
 
 function OpenProposal(props) {
   const [userData, setUserData] = useState(null);
@@ -61,6 +55,11 @@ function OpenProposal(props) {
   const [isEmployeeSelected, setIsEmployeeSelected] = useState(false);
   const [isCalendarSelected, setIsCalendarSelected] = useState(false);
   
+  const logOut = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userRole');
+    window.location.href = "../login";
+};
     const handleAssignClick = async () => {
       try{
       const date = new Date(selectedDate);

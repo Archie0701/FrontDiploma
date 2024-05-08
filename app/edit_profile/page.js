@@ -7,12 +7,6 @@ import Link from 'next/link';
 import toast, { Toaster } from 'react-hot-toast';
 import { redirect } from 'next/navigation'
 
-export const logOut = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('userRole');
-  window.location.href = "../login";
-};
-
 
 function MyComponent(props) {
   const [userData, setUserData] = useState(null);
@@ -32,7 +26,11 @@ function MyComponent(props) {
     phoneNumber: "+7 (778) 485 9242",
   };
 
-
+  const logOut = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userRole');
+    window.location.href = "../login";
+  };
   const [imageSrc, setImageSrc] = useState(null);
   const [firstName, setFirstName] = useState(null);
   const [lastName, setLastName] = useState(null);

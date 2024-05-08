@@ -8,13 +8,12 @@ import 'rsuite/dist/rsuite-no-reset.min.css';
 import { redirect } from 'next/navigation';
 
 
-export const logOut = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('userRole');
-  window.location.href = "../login";
-};
-
 function MyComponent(props) {
+  const logOut = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userRole');
+    window.location.href = "../login";
+  };
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [proposalData, setProposalData] = useState(null);

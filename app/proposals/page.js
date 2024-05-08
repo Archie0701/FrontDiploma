@@ -15,13 +15,15 @@ import addMonths from 'date-fns/addMonths';
 import 'rsuite/dist/rsuite-no-reset.min.css';
 import './proposals.css';
 
-export const logOut = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('userRole');
-  window.location.href = "../login";
-};
 
 function MyComponent(props) {
+
+  const logOut = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userRole');
+    window.location.href = "../login";
+  };
+  
   const predefinedRanges = [
     {
       label: 'Today',

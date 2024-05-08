@@ -6,13 +6,14 @@ import { getImageById, fetchUserData, fetchAcceptedProposalData, fetchGradingsDa
 import Link from 'next/link';
 import './grading.css';
 
-export const logOut = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('userRole');
-    window.location.href = "../login";
-};
 
 const EmployeeScoreSlider = ({ value, onValueChange }) => {
+
+    const logOut = () => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('userRole');
+        window.location.href = "../login";
+    };
   const handleChange = (event) => {
     onValueChange(event.target.value);
   };

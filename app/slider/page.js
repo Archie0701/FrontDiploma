@@ -6,14 +6,14 @@ import { getImageById, fetchUserData, fetchNewProposalData, acceptProposal, decl
 import Link from 'next/link';
 import './slider.css';
 
-export const logOut = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('userRole');
-  window.location.href = "../login";
-};
-
 
 function MyComponent(props) {
+
+  const logOut = () => {
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('userRole');
+        window.location.href = "../login";
+      };
   const [userData, setUserData] = useState(null);
   const [imageSrc, setImageSrc] = useState(null);
   const [loading, setLoading] = useState(true);
