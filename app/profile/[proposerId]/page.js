@@ -22,7 +22,7 @@ function Header({params}) {
   const [isOwner, setIsOwner] = useState(false);
   const [imageSrc, setImageSrc] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const accessToken = localStorage.getItem('accessToken');
+  const [accessToken, setAccessToken] = useState(null);
 
   const customTheme = createTheme({
     level0: '#d0e1eb',
@@ -73,10 +73,6 @@ function Header({params}) {
 
   const fetchData = async () => {
     try {
-      setProfileID();
-      const urlSegments = window.location.pathname.split('/');
-      const id = urlSegments[urlSegments.length - 1];
-
       const proposersData = await fetchProposersData();
       const profileDataResponse = await getProposerById(profileId);
       const userDataResponse = await fetchUserData();
