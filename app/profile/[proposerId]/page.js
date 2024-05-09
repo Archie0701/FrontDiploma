@@ -2,7 +2,7 @@
 import React, {useState, useEffect} from "react";
 import styled from "styled-components";
 import Link from 'next/link';
-import { getImageById, fetchUserData, fetchProposalsByID, fetchProposersData, getProposerById, fetchProposalData } from "../../services/apiService";
+import { getImageById, fetchUserData, fetchProposalsByID, fetchProposersData, getProposerById } from "../../../components/services/apiService";
 import { ContributionCalendar, createTheme } from "react-contribution-calendar";
 import Spinner from '../../components/spinner/spinner';
 import Select from 'react-select';
@@ -62,9 +62,11 @@ function Header({params}) {
   const [isOwner, setIsOwner] = useState(false);
   const [imageSrc, setImageSrc] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const accessToken = localStorage.getItem('accessToken');
+  const [accessToken, setAccessToken] = useState(null);
 
     useEffect(() => {
+  const accessToken = localStorage.getItem('accessToken');
+  setAccessToken(accessToken);
       const storedUserRole = localStorage.getItem('userRole');
       if (storedUserRole) {
         setUserRole(storedUserRole);
@@ -81,14 +83,10 @@ function Header({params}) {
 
   const fetchData = async () => {
     try {
-      setProfileID();
-      const urlSegments = window.location.pathname.split('/');
-      const id = urlSegments[urlSegments.length - 1];
-
       const proposersData = await fetchProposersData();
-      const profileDataResponse = await getProposerById(id);
+      const profileDataResponse = await getProposerById(profileId);
       const userDataResponse = await fetchUserData();
-      const proposalsDataByIdResponse = await fetchProposalsByID(id);
+      const proposalsDataByIdResponse = await fetchProposalsByID(profileId);
       const transformedData = {};
       proposersData.forEach((item) => {
         transformedData[item.id] = item;
@@ -135,7 +133,7 @@ function Header({params}) {
     const countByDate = {};
     proposalsDataById.forEach(proposal => {
       const date = new Date(proposal.accepted_at);
-      date.setDate(date.getDate()); // Adding 1 day
+      date.setDate(date.getDate()); 
       const isoDate = date.toISOString().split('T')[0];
       countByDate[isoDate] = (countByDate[isoDate] || 0) + 1;
     });
@@ -208,7 +206,6 @@ function Header({params}) {
 
   return (
     <>
-      {accessToken && (isOwner && userRole === 'staff') ? (
     <Container>
       <Main>
         <Div3>
@@ -422,9 +419,6 @@ function Header({params}) {
 
       </Main>
     </Container>
-  ) : (
-        redirect('/main')
-    )}
     </>
   );
 }
