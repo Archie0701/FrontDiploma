@@ -6,14 +6,16 @@ module.exports = {
     // Enables the styled-components SWC transform
     styledComponents: true
   },
-  rules: [
-    {
+  webpack: (config, { isServer }) => {
+    // For CSS files
+    config.module.rules.push({
       test: /\.css$/i,
       use: ["style-loader", "css-loader"],
-    },
-  ],
-}
+    });
 
+    return config;
+  },
+};
 function throwError(envVar) {
   throw `Abort: You need to define ${envVar} in the .env file.`
 }
