@@ -54,23 +54,6 @@ function Header({params}) {
     },
   ];
 
-
-
-
-function Header({params}) {
-  const [profileData, setProfileData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [userData, setUserData] = useState(null);
-  const [profileId, setProfileID] = useState(params.proposerId);
-  const [selectedYear, setSelectedYear] = useState('2024');
-  const [proposalsDataById, setProposalsData] = useState(null);
-  const [error, setError] = useState(null);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isOwner, setIsOwner] = useState(false);
-  const [imageSrc, setImageSrc] = useState(null);
-  const [userRole, setUserRole] = useState(null);
-  const accessToken = localStorage.getItem('accessToken');
-
     useEffect(() => {
   const accessToken = localStorage.getItem('accessToken');
   setAccessToken(accessToken);
