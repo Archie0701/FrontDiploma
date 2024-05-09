@@ -1,9 +1,8 @@
-<<<<<<< HEAD
 'use client';
 import React, { useState } from "react";
 import styled from "styled-components";
 import Spinner from '../components/spinner/spinner';
-import { confirmationEmail, checkNewByEmail } from "../services/apiService";
+import { confirmationEmail, checkNewByEmail, registration } from "../services/apiService";
 import { CSSTransition, TransitionGroup } from 'react-transition-group';
 import toast, { Toaster } from 'react-hot-toast';
 import { redirect } from 'next/navigation';
@@ -39,11 +38,8 @@ const SignUpPage = () => {
     agreedToTerms: false
   });
 
-  const [accessToken, setAccessToken] = useState(null);
-
-  if (typeof window !== 'undefined') {
-    setAccessToken(localStorage.getItem('accessToken'));
-  }
+  const accessToken = localStorage.getItem('accessToken');
+  
   if (accessToken) {
     redirect('/main');
   }
@@ -215,22 +211,18 @@ const SignUpPage = () => {
       await confirmationEmail({confirmationCode: code, email: formData.email});
       const registration_data = localStorage.getItem('registration_data');
       if(registration_data != null) {
-        if (typeof window !== 'undefined') {
         localStorage.removeItem('registration_data');
-        }
       }
-      const dataToStore = {
+      await registration({
         email: formData.email,
         first_name: formData.name,
         last_name: formData.surname,
         password: formData.password,
         confirm_password: formData.confirmPassword,
-        confirmation_code: code
-      };
-      if (typeof window !== 'undefined') {
-      localStorage.setItem('registration_data', JSON.stringify(dataToStore));
-      }
-      redirect('/email_confirmation');
+      });
+      // localStorage.setItem('registration_data', JSON.stringify(dataToStore));
+
+      window.location.href = "../login";
     } catch (error) {
       setLoading(false);
       console.error('Registration failed:', error);
@@ -751,15 +743,3 @@ const SocialIcon = styled.button`
 `;
 
 export default SignUpPage;
-=======
-import dynamic from 'next/dynamic'
- 
-const DynamicHeader = dynamic(() => import('../../components/registration/page'), {
-  loading: () => <p>Loading...</p>,
-  ssr: false,
-})
- 
-export default function Registration() {
-  return <DynamicHeader />
-}
->>>>>>> for_master

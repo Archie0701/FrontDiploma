@@ -12,9 +12,8 @@ import addDays from 'date-fns/addDays';
 import startOfMonth from 'date-fns/startOfMonth';
 import endOfMonth from 'date-fns/endOfMonth';
 import addMonths from 'date-fns/addMonths';
-import './after_grading.css';
 import 'rsuite/dist/rsuite-no-reset.min.css';
-import { redirect } from 'next/navigation';
+import './proposals.css';
 
 export const logOut = () => {
   localStorage.removeItem('accessToken');
@@ -22,36 +21,7 @@ export const logOut = () => {
   window.location.href = "../login";
 };
 
-
 function MyComponent(props) {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [proposalData, setProposalData] = useState(null);
-  const [proposals, setProposals] = useState(null);
-  const [proposersData, setProposersData] = useState(null);
-  const [query, setQuery] = useState('');
-  const [isHovered, setIsHovered] = useState(false);
-  const [userRole, setUserRole] = useState(null);
-  const accessToken = localStorage.getItem('accessToken');
-
-    useEffect(() => {
-      const storedUserRole = localStorage.getItem('userRole');
-      if (storedUserRole) {
-        setUserRole(storedUserRole);
-      }
-    }, []);
-
-  const handleMouseEnter = () => {
-    setIsHovered(true);
-  };
-
-  const handleMouseLeave = () => {
-    setIsHovered(false);
-  };
-
-  const [, setIsChecked] = useState(false);
-
-
   const predefinedRanges = [
     {
       label: 'Today',
@@ -129,12 +99,39 @@ function MyComponent(props) {
     }
   ];
 
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [proposalData, setProposalData] = useState(null);
+  const [proposals, setProposals] = useState(null);
+  const [proposersData, setProposersData] = useState(null);
+  const [query, setQuery] = useState('');
+  const [isChecked, setIsChecked] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [userRole, setUserRole] = useState(null);
+  const accessToken = localStorage.getItem('accessToken');
+
+    useEffect(() => {
+      const storedUserRole = localStorage.getItem('userRole');
+      if (storedUserRole) {
+        setUserRole(storedUserRole);
+      }
+    }, []);
+
+  const handleMouseEnter = () => {
+    setIsHovered(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+  };
+
   const checkbox = (event) => {
     setIsChecked(event.target.checked);
   };
 
-  const [, setError] = useState(null);
-  let rowNum = 0
+  const [error, setError] = useState(null);
+
+  let rowNum = 0;
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -145,8 +142,6 @@ function MyComponent(props) {
         setProposals(proposalData);
         setUserData(userDataResponse);
 
-        setLoading(false);
-
         console.log('Proposal Data:', proposalData);
         console.log('User Data:', userDataResponse);
         const transformedData = {};
@@ -155,11 +150,13 @@ function MyComponent(props) {
         });
         console.log('Proposer Data:', transformedData);
         setProposersData(transformedData)
+
+        
+        setLoading(false);
       } catch (error) {
         setError(error.message);
 
         console.error('Error fetching user data:', error);
-        window.location.href = "../login";
       }
     };
 
@@ -167,7 +164,8 @@ function MyComponent(props) {
   }, []);
 
 
-  const handleInputChange = (event) => {
+
+  const searchInputChange = (event) => {
     const { value } = event.target;
     setQuery(value);
     if (value === '') {
@@ -181,8 +179,7 @@ function MyComponent(props) {
       setProposals(filteredProposals);
     }
   };
-
-  const [, setdateData] = useState([]);
+  const [dateData, setdateData] = useState([]);
 
   const dateSelected = (selectedDate) => {
     const date1 = new Date(selectedDate[0]).setHours(0, 0, 0, 0);
@@ -190,74 +187,114 @@ function MyComponent(props) {
 
     setdateData([date1, date2]);
 
-    // const filteredProposals = proposals.filter(proposal => {
-    //   const created_date = new Date(proposal.created_at).setHours(0, 0, 0, 0);
-    //   if (created_date >= date1 && created_date <= date2 ) {
-    //   return true;
-    //   }
-    //   return false;
-    // });
-    //   setProposals(filteredProposals);
+    const filteredProposals = proposals.filter(proposal => {
+      const created_date = new Date(proposal.created_at).setHours(0, 0, 0, 0);
+      if (created_date >= date1 && created_date <= date2 ) {
+      return true;
+      }
+      return false;
+    });
+      setProposals(filteredProposals);
   };
 
   const dateClean = () => {
-    // if(query != ''){
-    //   const filteredProposalsBySearch = proposalData.filter(proposal => {
-    //     const fullName = `${proposerData[proposal.proposer].user.first_name} ${proposerData[proposal.proposer].user.last_name}`;
-    //     return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
-    //   });
-
-    //   if(selectedOption != 'filter by'){
-    //     const filteredProposalsByStatus = filteredProposalsBySearch.filter(proposal => {
-    //       return proposal.status == selectedOption;
-    //     });
-    //     setProposals(filteredProposalsByStatus);
-    //   } else {
-    //   }
-    // }
-    // else {
-    //   if(selectedOption != 'filter by'){
-    //     const filteredProposalsByStatus = proposalData.filter(proposal => {
-    //       return proposal.status == selectedOption;
-    //     });
-    //     setProposals(filteredProposalsByStatus);
-    //   } else {
-    //     setProposals(proposalData);
-      
-    // } 
+    filterOptimizer('date');
   }
 
   const [isDrop, setIsDrop] = useState(false);
-  const [selectedOption, setSelectedOption] = useState("Filter By");
+  const [selectedOption, setSelectedOption] = useState("~Status~");
 
   const options = [
-    "Date Graded",
-    "Date Accepted",
+    "New",
+    "Accepted",
+    "Declined",
+    "Graded",
+    "In progress",
+    "Done"
   ];
 
   const handleOptionSelect = (option) => {
     setSelectedOption(option);
+    if(selectedOption != '~Status~'){
+      filterOptimizer('status');
+    }
     const filteredProposals = proposals.filter(proposal => {
-      return proposal.status === option;
+      return proposal.status == option;
     });
-    setIsOpen(false);
+    setIsDrop(false);
     setProposals(filteredProposals);
-      
   };
 
   const clearSelection = () => {
-    setSelectedOption("Filter By");
-    if(query === '') {
-      setProposals(proposalData);
-    } else {
-      const filteredProposalsBySearch = proposalData.filter(proposal => {
-      const fullName = `${proposersData[proposal.proposer].user.first_name} ${proposersData[proposal.proposer].user.last_name}`;
-      return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
-        });
-      setProposals(filteredProposalsBySearch);
+    setSelectedOption("~Status~");
+    filterOptimizer('status');
+  }
+
+  function filterOptimizer(filter) {
+    switch(filter) {
+      case 'date': {
+        if(query != ''){
+          const filteredProposalsBySearch = proposalData.filter(proposal => {
+            const fullName = `${proposersData[proposal.proposer].user.first_name} ${proposersData[proposal.proposer].user.last_name}`;
+            return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+          });
+    
+          if(selectedOption != '~Status~'){
+            const filteredProposalsByStatus = filteredProposalsBySearch.filter(proposal => {
+              return proposal.status == selectedOption;
+            });
+            setProposals(filteredProposalsByStatus);
+          } else {
+            setProposals(filteredProposalsBySearch);
+          }
+        }
+        else {
+          if(selectedOption != '~Status~'){
+            const filteredProposalsByStatus = proposalData.filter(proposal => {
+              return proposal.status == selectedOption;
+            });
+            setProposals(filteredProposalsByStatus);
+          } else {
+            setProposals(proposalData);
+          }
+        } 
+        break;
+      }
+      case 'status': {
+        if(dateData.length === 0){
+          const filteredProposalsBySearch = proposalData.filter(proposal => {
+            const fullName = `${proposersData[proposal.proposer].user.first_name} ${proposersData[proposal.proposer].user.last_name}`;
+            return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+          });
+          setProposals(filteredProposalsBySearch);
+          sortByDateOrder();
+        } else {
+          const filteredByDate = proposalData.filter(proposal => {
+            const created_date = new Date(proposal.created_at).setHours(0, 0, 0, 0);
+            if (created_date >= dateData[0] && created_date <= dateData[1] ) {
+            return true;
+            }
+            return false;
+          });
+    
+          if(query == ''){
+            setProposals(filteredByDate);
+          }
+          else {
+            const filteredProposalsBySearch = filteredByDate.filter(proposal => {
+              const fullName = `${proposersData[proposal.proposer].user.first_name} ${proposersData[proposal.proposer].user.last_name}`;
+              return fullName.toLowerCase().includes(query.toLowerCase()) || proposal.text.toLowerCase().includes(query.toLowerCase());
+            });
+            setProposals(filteredProposalsBySearch);
+          }
+        }
+        setIsDrop(false);
+        break;
+      }
     }
-    setIsOpen(false);
-  };
+  }
+
+
 
   const [isOpen, setIsOpen] = React.useState(false);
   const [selectedLanguage, setSelectedLanguage] = React.useState("ENG");
@@ -269,20 +306,81 @@ function MyComponent(props) {
   };
 
   const filteredLanguages = languages.filter(lang => lang !== selectedLanguage);
+
+
+  const [sortOrder, setSortOrder] = useState('both');
+
+  function sortByDateOrder() {
+    switch (sortOrder) {
+      case 'descending':
+        const filteredByDateDesc = proposals.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateA - dateB;
+        });
+        setProposals(filteredByDateDesc);
+        break;
+      case 'ascending':
+        const filteredByDateAsc = proposals.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateB - dateA;
+        });
+        setProposals(filteredByDateAsc);
+        break;
+        }
+  }
+  const toggleSortOrder = () => {
+    switch (sortOrder) {
+      case 'both':
+        const filteredByDateDesc = proposals.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateB - dateA;
+        });
+        setProposals(filteredByDateDesc);
+        setSortOrder('descending');
+        break;
+      case 'descending':
+        const filteredByDateAsc = proposals.sort((a, b) => {
+          const dateA = new Date(a.created_at);
+          const dateB = new Date(b.created_at);
+          return dateA - dateB;
+        });
+        setProposals(filteredByDateAsc);
+        setSortOrder('ascending');
+        break;
+      case 'ascending':
+        setSortOrder('both');
+        break;
+      default:
+        setSortOrder('both');
+    }
+  };
+
+
+  const renderArrows = () => {
+    if (sortOrder === 'ascending') {
+      return <ArrowWrapper><Arrow>▲</Arrow> <Arrow style={{visibility: 'hidden'}}>▼</Arrow></ArrowWrapper>;
+    } else if (sortOrder === 'descending') {
+      return <ArrowWrapper><Arrow style={{visibility: 'hidden'}}>▲</Arrow> <Arrow>▼</Arrow></ArrowWrapper>;
+    } else {
+      return <ArrowWrapper><Arrow>▲</Arrow> <Arrow>▼</Arrow></ArrowWrapper>;
+    }
+  };
+
   
   if (loading) {
-    return <Spinner />; // Показываем сообщение о загрузке, пока данные загружаются
+    return <Spinner />;
   }
   return (
     <>
-    {accessToken && userRole === 'staff' ? (
+      {accessToken ? (
     <Div>
       <Div2>
-        <Div3>
+        <Menu>
           <Link href="/proposers" style={{ textDecoration: 'none' }}>
-          <Link href={"/main"}>
           <LogoKaizen src="https://cdn.builder.io/api/v1/image/assets/TEMP/3905e52e9c6b961ec6717c80409232f3222eab9fc52b8caf2e55d314ff83b93e?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" alt="KaizenCloud Logo" />
-        </Link>
           </Link>
           <Link href="/slider">
           <Button
@@ -307,10 +405,10 @@ function MyComponent(props) {
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/c076e6824233e52b16e32cf78756a71928a23aa05c184db05634c92927feb03f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
           ><svg width="19" height="20" viewBox="0 0 19 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M9.6189 5.87494C9.6189 5.5033 9.92017 5.20203 10.2918 5.20203H16.6251C16.9968 5.20203 17.2981 5.5033 17.2981 5.87494C17.2981 6.24658 16.9968 6.54786 16.6251 6.54786H10.2918C9.92017 6.54786 9.6189 6.24658 9.6189 5.87494Z" fill="#2B8DC2" />
-              <path fill-rule="evenodd" clip-rule="evenodd" d="M1.70215 12.9999C1.70215 12.6283 2.00342 12.327 2.37507 12.327H8.7084C9.08004 12.327 9.38132 12.6283 9.38132 12.9999C9.38132 13.3716 9.08004 13.6729 8.7084 13.6729H2.37507C2.00342 13.6729 1.70215 13.3716 1.70215 12.9999Z" fill="#2B8DC2" />
-              <path d="M7.125 5.875C7.125 7.18668 6.06168 8.25 4.75 8.25C3.43832 8.25 2.375 7.18668 2.375 5.875C2.375 4.56332 3.43832 3.5 4.75 3.5C6.06168 3.5 7.125 4.56332 7.125 5.875Z" fill="#2B8DC2" />
-              <path d="M16.625 13C16.625 14.3117 15.5617 15.375 14.25 15.375C12.9383 15.375 11.875 14.3117 11.875 13C11.875 11.6883 12.9383 10.625 14.25 10.625C15.5617 10.625 16.625 11.6883 16.625 13Z" fill="#2B8DC2" />
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M9.6189 5.87494C9.6189 5.5033 9.92017 5.20203 10.2918 5.20203H16.6251C16.9968 5.20203 17.2981 5.5033 17.2981 5.87494C17.2981 6.24658 16.9968 6.54786 16.6251 6.54786H10.2918C9.92017 6.54786 9.6189 6.24658 9.6189 5.87494Z" fill="#7D7D7D" />
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M1.70215 12.9999C1.70215 12.6283 2.00342 12.327 2.37507 12.327H8.7084C9.08004 12.327 9.38132 12.6283 9.38132 12.9999C9.38132 13.3716 9.08004 13.6729 8.7084 13.6729H2.37507C2.00342 13.6729 1.70215 13.3716 1.70215 12.9999Z" fill="#7D7D7D" />
+              <path d="M7.125 5.875C7.125 7.18668 6.06168 8.25 4.75 8.25C3.43832 8.25 2.375 7.18668 2.375 5.875C2.375 4.56332 3.43832 3.5 4.75 3.5C6.06168 3.5 7.125 4.56332 7.125 5.875Z" fill="#7D7D7D" />
+              <path d="M16.625 13C16.625 14.3117 15.5617 15.375 14.25 15.375C12.9383 15.375 11.875 14.3117 11.875 13C11.875 11.6883 12.9383 10.625 14.25 10.625C15.5617 10.625 16.625 11.6883 16.625 13Z" fill="#7D7D7D" />
             </svg>
           </Button2>
           </Link>
@@ -319,7 +417,7 @@ function MyComponent(props) {
             loading="lazy"
             src="https://cdn.builder.io/api/v1/image/assets/TEMP/11090c7aac88afef2d142d5d27a3ad7894848a709c7f10afa40b6467f9bf0b7f?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
           ><svg width="17" height="18" viewBox="0 0 17 18" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M1.66667 16.394C1.20833 16.394 0.815972 16.2367 0.489583 15.9222C0.163194 15.6077 0 15.2296 0 14.7879V3.5455C0 3.10383 0.163194 2.72574 0.489583 2.41121C0.815972 2.09669 1.20833 1.93943 1.66667 1.93943H5.16667C5.34722 1.45762 5.64931 1.06949 6.07292 0.775041C6.49653 0.480596 6.97222 0.333374 7.5 0.333374C8.02778 0.333374 8.50347 0.480596 8.92708 0.775041C9.35069 1.06949 9.65278 1.45762 9.83333 1.93943H13.3333C13.7917 1.93943 14.184 2.09669 14.5104 2.41121C14.8368 2.72574 15 3.10383 15 3.5455V8.9258C14.7361 8.80534 14.4653 8.70162 14.1875 8.61462C13.9097 8.52763 13.625 8.46406 13.3333 8.4239V3.5455H1.66667V14.7879H6.70833C6.75 15.0824 6.81597 15.3634 6.90625 15.6311C6.99653 15.8988 7.10417 16.1531 7.22917 16.394H1.66667ZM1.66667 13.9849V14.7879V3.5455V8.4239V8.36368V13.9849ZM3.33333 13.1819H6.72917C6.77083 12.9008 6.83681 12.6264 6.92708 12.3588C7.01736 12.0911 7.11806 11.8301 7.22917 11.5758H3.33333V13.1819ZM3.33333 9.96974H8.41667C8.86111 9.56822 9.35764 9.23363 9.90625 8.96595C10.4549 8.69827 11.0417 8.51759 11.6667 8.4239V8.36368H3.33333V9.96974ZM3.33333 6.75762H11.6667V5.15156H3.33333V6.75762ZM7.5 2.94322C7.68055 2.94322 7.82986 2.88634 7.94792 2.77258C8.06597 2.65882 8.125 2.51494 8.125 2.34095C8.125 2.16696 8.06597 2.02308 7.94792 1.90932C7.82986 1.79556 7.68055 1.73868 7.5 1.73868C7.31944 1.73868 7.17014 1.79556 7.05208 1.90932C6.93403 2.02308 6.875 2.16696 6.875 2.34095C6.875 2.51494 6.93403 2.65882 7.05208 2.77258C7.17014 2.88634 7.31944 2.94322 7.5 2.94322ZM12.5 18C11.3472 18 10.3646 17.6086 9.55208 16.8256C8.73958 16.0427 8.33333 15.0957 8.33333 13.9849C8.33333 12.874 8.73958 11.9271 9.55208 11.1442C10.3646 10.3612 11.3472 9.96974 12.5 9.96974C13.6528 9.96974 14.6354 10.3612 15.4479 11.1442C16.2604 11.9271 16.6667 12.874 16.6667 13.9849C16.6667 15.0957 16.2604 16.0427 15.4479 16.8256C14.6354 17.6086 13.6528 18 12.5 18ZM12.0833 16.394H12.9167V14.3864H15V13.5834H12.9167V11.5758H12.0833V13.5834H10V14.3864H12.0833V16.394Z" fill="#7D7D7D" />
+              <path d="M1.66667 16.394C1.20833 16.394 0.815972 16.2367 0.489583 15.9222C0.163194 15.6077 0 15.2296 0 14.7879V3.5455C0 3.10383 0.163194 2.72574 0.489583 2.41121C0.815972 2.09669 1.20833 1.93943 1.66667 1.93943H5.16667C5.34722 1.45762 5.64931 1.06949 6.07292 0.775041C6.49653 0.480596 6.97222 0.333374 7.5 0.333374C8.02778 0.333374 8.50347 0.480596 8.92708 0.775041C9.35069 1.06949 9.65278 1.45762 9.83333 1.93943H13.3333C13.7917 1.93943 14.184 2.09669 14.5104 2.41121C14.8368 2.72574 15 3.10383 15 3.5455V8.9258C14.7361 8.80534 14.4653 8.70162 14.1875 8.61462C13.9097 8.52763 13.625 8.46406 13.3333 8.4239V3.5455H1.66667V14.7879H6.70833C6.75 15.0824 6.81597 15.3634 6.90625 15.6311C6.99653 15.8988 7.10417 16.1531 7.22917 16.394H1.66667ZM1.66667 13.9849V14.7879V3.5455V8.4239V8.36368V13.9849ZM3.33333 13.1819H6.72917C6.77083 12.9008 6.83681 12.6264 6.92708 12.3588C7.01736 12.0911 7.11806 11.8301 7.22917 11.5758H3.33333V13.1819ZM3.33333 9.96974H8.41667C8.86111 9.56822 9.35764 9.23363 9.90625 8.96595C10.4549 8.69827 11.0417 8.51759 11.6667 8.4239V8.36368H3.33333V9.96974ZM3.33333 6.75762H11.6667V5.15156H3.33333V6.75762ZM7.5 2.94322C7.68055 2.94322 7.82986 2.88634 7.94792 2.77258C8.06597 2.65882 8.125 2.51494 8.125 2.34095C8.125 2.16696 8.06597 2.02308 7.94792 1.90932C7.82986 1.79556 7.68055 1.73868 7.5 1.73868C7.31944 1.73868 7.17014 1.79556 7.05208 1.90932C6.93403 2.02308 6.875 2.16696 6.875 2.34095C6.875 2.51494 6.93403 2.65882 7.05208 2.77258C7.17014 2.88634 7.31944 2.94322 7.5 2.94322ZM12.5 18C11.3472 18 10.3646 17.6086 9.55208 16.8256C8.73958 16.0427 8.33333 15.0957 8.33333 13.9849C8.33333 12.874 8.73958 11.9271 9.55208 11.1442C10.3646 10.3612 11.3472 9.96974 12.5 9.96974C13.6528 9.96974 14.6354 10.3612 15.4479 11.1442C16.2604 11.9271 16.6667 12.874 16.6667 13.9849C16.6667 15.0957 16.2604 16.0427 15.4479 16.8256C14.6354 17.6086 13.6528 18 12.5 18ZM12.0833 16.394H12.9167V14.3864H15V13.5834H12.9167V11.5758H12.0833V13.5834H10V14.3864H12.0833V16.394Z" fill="#2B8DC2" />
             </svg>
 
           </Button3>
@@ -330,7 +428,7 @@ function MyComponent(props) {
           ><svg width="16" height="18" viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M6.75556 13.3778L13.0222 7.11111L11.7778 5.86667L6.75556 10.8889L4.22222 8.35556L2.97778 9.6L6.75556 13.3778ZM1.77778 17.7778C1.28889 17.7778 0.87037 17.6037 0.522222 17.2556C0.174074 16.9074 0 16.4889 0 16V3.55556C0 3.06667 0.174074 2.64815 0.522222 2.3C0.87037 1.95185 1.28889 1.77778 1.77778 1.77778H5.51111C5.7037 1.24444 6.02593 0.814815 6.47778 0.488889C6.92963 0.162963 7.43704 0 8 0C8.56296 0 9.07037 0.162963 9.52222 0.488889C9.97407 0.814815 10.2963 1.24444 10.4889 1.77778H14.2222C14.7111 1.77778 15.1296 1.95185 15.4778 2.3C15.8259 2.64815 16 3.06667 16 3.55556V16C16 16.4889 15.8259 16.9074 15.4778 17.2556C15.1296 17.6037 14.7111 17.7778 14.2222 17.7778H1.77778ZM1.77778 16H14.2222V3.55556H1.77778V16ZM8 2.88889C8.19259 2.88889 8.35185 2.82593 8.47778 2.7C8.6037 2.57407 8.66667 2.41481 8.66667 2.22222C8.66667 2.02963 8.6037 1.87037 8.47778 1.74444C8.35185 1.61852 8.19259 1.55556 8 1.55556C7.80741 1.55556 7.64815 1.61852 7.52222 1.74444C7.3963 1.87037 7.33333 2.02963 7.33333 2.22222C7.33333 2.41481 7.3963 2.57407 7.52222 2.7C7.64815 2.82593 7.80741 2.88889 8 2.88889Z" fill="#7D7D7D" />
             </svg>
-          </Button4>        
+          </Button4>
           <Link href="/proposers">
           <Button5
             loading="lazy"
@@ -340,7 +438,7 @@ function MyComponent(props) {
             </svg>
           </Button5>
           </Link>
-        </Div3>
+        </Menu>
         <Div4>
           <Div5>
             <Div6>Company name</Div6>
@@ -371,7 +469,7 @@ function MyComponent(props) {
               <Div8>
                 <Img8
                   loading="lazy"
-                  srcSet={"https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" || `/User-512.webp`}
+                  srcSet={"https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" || '/User-512.webp'}
                   alt="Person Image"
                   width="24"
                   height="24"
@@ -381,12 +479,21 @@ function MyComponent(props) {
             </Div7>
             {isHovered && (    
                 <DropdownMenu>
-                <DropdownItem>
-                    <Div8>
-                        <Div9>Home</Div9>
-                    </Div8>
-                    <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#999999"><path d="M264-216h132v-234h168v234h132v-348L480-728 264-564v348Zm-20 20v-378l236-179 236 179v378H544v-234H416v234H244Zm236-276Z"/></svg>
-                </DropdownItem>
+                <Link href={`/profile/${userData.proposer.id}`} style={{textDecoration: 'none', color: '#333'}}> 
+                  <DropdownItem>
+                  <Div8>
+                  <Div9>Profile</Div9>
+              </Div8>
+              <Img9
+                loading="lazy"
+                src="https://cdn.builder.io/api/v1/image/assets/TEMP/86686b16897beeac74304533d5bb958a4d1e0106aa55fd71c28f706a5b838225?apiKey=76bc4e76ba824cf091e9566ff1ae9339&"
+                onClick={logOut}>
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M6.5 6.5C5.60625 6.5 4.84115 6.18177 4.20469 5.54531C3.56823 4.90885 3.25 4.14375 3.25 3.25C3.25 2.35625 3.56823 1.59115 4.20469 0.954687C4.84115 0.318229 5.60625 0 6.5 0C7.39375 0 8.15885 0.318229 8.79531 0.954687C9.43177 1.59115 9.75 2.35625 9.75 3.25C9.75 4.14375 9.43177 4.90885 8.79531 5.54531C8.15885 6.18177 7.39375 6.5 6.5 6.5ZM0 13V10.725C0 10.2646 0.11849 9.84141 0.355469 9.45547C0.592448 9.06953 0.907292 8.775 1.3 8.57187C2.13958 8.15208 2.99271 7.83724 3.85937 7.62734C4.72604 7.41745 5.60625 7.3125 6.5 7.3125C7.39375 7.3125 8.27396 7.41745 9.14062 7.62734C10.0073 7.83724 10.8604 8.15208 11.7 8.57187C12.0927 8.775 12.4076 9.06953 12.6445 9.45547C12.8815 9.84141 13 10.2646 13 10.725V13H0ZM1.625 11.375H11.375V10.725C11.375 10.576 11.3378 10.4406 11.2633 10.3187C11.1888 10.1969 11.0906 10.1021 10.9688 10.0344C10.2375 9.66875 9.49948 9.39453 8.75469 9.21172C8.0099 9.02891 7.25833 8.9375 6.5 8.9375C5.74167 8.9375 4.9901 9.02891 4.24531 9.21172C3.50052 9.39453 2.7625 9.66875 2.03125 10.0344C1.90937 10.1021 1.8112 10.1969 1.73672 10.3187C1.66224 10.4406 1.625 10.576 1.625 10.725V11.375ZM6.5 4.875C6.94687 4.875 7.32943 4.71589 7.64766 4.39766C7.96589 4.07943 8.125 3.69687 8.125 3.25C8.125 2.80312 7.96589 2.42057 7.64766 2.10234C7.32943 1.78411 6.94687 1.625 6.5 1.625C6.05312 1.625 5.67057 1.78411 5.35234 2.10234C5.03411 2.42057 4.875 2.80312 4.875 3.25C4.875 3.69687 5.03411 4.07943 5.35234 4.39766C5.67057 4.71589 6.05312 4.875 6.5 4.875Z" fill="#C4C4C4"/>
+                </svg>
+              </Img9>
+                  </DropdownItem>
+                  </Link>
                   <DropdownItem onClick={logOut}>
                   <Div8>
                 <Div9>Logout</Div9>
@@ -402,7 +509,7 @@ function MyComponent(props) {
                   </DropdownItem>
                   </DropdownMenu>   
                       )}
-            </DropdownWrapper>  
+            </DropdownWrapper>     
             </Div51>
             
           </Div5>
@@ -410,12 +517,12 @@ function MyComponent(props) {
             <Div50>
               <FilterWrapper>
               <SearchInput>
-                <SearchIcon src={`/search-icon.svg`} alt="Search icon" />
+                <SearchIcon src={'/search-icon.svg'} alt="Search icon" />
                 <input
                   type="text"
-                  value={query}
                   className='search_input'
-                  onChange={handleInputChange}
+                  value={query}
+                  onChange={searchInputChange}
                   placeholder="Search"
                 />
               </SearchInput>
@@ -434,7 +541,7 @@ function MyComponent(props) {
                 />
               </Stack>
               <div className="dropdown">
-                <button className="dropbtn" onClick={() => setIsDrop(!isOpen)}>{selectedOption} {selectedOption !== "filter by" && <span className="clear" onClick={(e) => {e.stopPropagation(); clearSelection()}}>x</span>}</button>
+                <button className="dropbtn" onClick={() => setIsDrop(!isOpen)}>{selectedOption} {selectedOption !== "~Status~" && <span className="clear" onClick={(e) => {e.stopPropagation(); clearSelection()}}>x</span>}</button>
                 {isDrop && (
                   <div className="dropdown-content">
                     {options.map((option, index) => (
@@ -447,7 +554,7 @@ function MyComponent(props) {
             </Div50>
             <Container>
               <Header>
-                <HeaderWrapper className='RatedText'>Rated</HeaderWrapper>
+                <HeaderWrapper className='proposalsText'>Proposals</HeaderWrapper>
               </Header>
               <Table>
                 <Divider />
@@ -457,7 +564,7 @@ function MyComponent(props) {
                   <Checkbox type="checkbox" name="checkbox_proposal" 
                     onChange={checkbox}
                   />
-                    <CheckboxIcon loading="lazy" src={`/checkbox-arrow.svg`} alt="Checkbox Icon" />
+                    <CheckboxIcon loading="lazy" src={'/checkbox-arrow.svg'} alt="Checkbox Icon" />
                   </CheckboxWrapper>
                   <TableHeaderLabels>
                     <TableHeaderLabel className="header_number">№</TableHeaderLabel>
@@ -467,37 +574,39 @@ function MyComponent(props) {
                   </TableHeaderLabels>
                 </TableHeaderLeft>
                 <TableHeaderRight>
-                  <TableHeaderLabel className="header_points">Points</TableHeaderLabel>
-                  <TableHeaderLabel className="header_grade">Grade</TableHeaderLabel>
-                  <TableHeaderLabel className="header_date_graded">Date graded</TableHeaderLabel>
-                  <TableHeaderLabel className="header_date_accepted">Date accepted</TableHeaderLabel>
                   <TableHeaderLabel className="header_status">Status</TableHeaderLabel>
+                  <TableHeaderLabel className="header_date" onClick={toggleSortOrder}> <div>Date</div> 
+                  {renderArrows()}</TableHeaderLabel>
                   <TableHeaderLabel className="header_actions">Actions</TableHeaderLabel>
                 </TableHeaderRight>
               </TableHeader>
               <TableBody>
-              {proposals.map((item) => (
-                (item.status === 'Graded') ? (
-                  <TableRow>
-                    <CheckboxWrapper>
-                      <Checkbox />
-                    </CheckboxWrapper>
-                    <TableRowLabel className="row_number">{++rowNum}</TableRowLabel>
-                    <TableRowLabel className="row_name">{proposersData[item.proposer].user.first_name}</TableRowLabel>
-                    <TableRowLabel className="row_surname">{proposersData[item.proposer].user.last_name}</TableRowLabel>
-                    <TableRowLabel className="row_proposal">{item.text}</TableRowLabel>
-                    <TableRowLabel className="row_points">{item.total_score}</TableRowLabel>
-                    <TableRowLabel className="row_grade">{item.grade_percentage}</TableRowLabel>
-                    <TableRowLabel className="row_date_graded">{item.graded_at.split('T')[0]}</TableRowLabel>
-                    <TableRowLabel className="row_date_accepted">{item.accepted_at.split('T')[0]}</TableRowLabel>
-                    <TableRowLabel className="row_status" status={item.status}>{item.status}</TableRowLabel>
-                    <TableRowLabel className='row_actions'>
-                      <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/45ba6e34c4feb0d1b52792ce057608876be231e17318d83a73a051445a2210ec?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
-                      <ActionIcon loading="lazy" src="https://cdn.builder.io/api/v1/image/assets/TEMP/0539ef010e404541cac233bb9e81504535f80b90b240f64a9e5f8bd27bf3a7a1?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Action Icon" />
-                    </TableRowLabel>
-                  </TableRow>
-                ) : null
+                {proposals.map((item) => (
+                <TableRow>
+                  <CheckboxWrapper>
+                    <Checkbox />
+                  </CheckboxWrapper>
+                  <TableRowLabel className="row_number">{++rowNum}</TableRowLabel>
+                  <TableRowLabel className="row_name">{proposersData[item.proposer].user.first_name}</TableRowLabel>
+                  <TableRowLabel className="row_surname">{proposersData[item.proposer].user.last_name}</TableRowLabel>
+                  <TableRowLabel className="row_proposal">{item.text}</TableRowLabel>
+                  <TableRowLabel className="row_status" status={item.status}>{item.status}</TableRowLabel>
+                  <TableRowLabel className="row_date">{item.created_at.split('T')[0]}</TableRowLabel>
+                  <TableRowLabel className="row_actions">
+                    <ActionIcon
+                      loading="lazy"
+                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/45ba6e34c4feb0d1b52792ce057608876be231e17318d83a73a051445a2210ec?apiKey=f933b1b419864e2493a2da58c5eeea0a&"
+                      alt="Action Icon"
+                    />
+                    <ActionIcon
+                      loading="lazy"
+                      src="https://cdn.builder.io/api/v1/image/assets/TEMP/0539ef010e404541cac233bb9e81504535f80b90b240f64a9e5f8bd27bf3a7a1?apiKey=f933b1b419864e2493a2da58c5eeea0a&"
+                      alt="Action Icon"
+                    />
+                  </TableRowLabel>
+                </TableRow>
               ))}
+              
               </TableBody>
               </Table>
               
@@ -514,12 +623,13 @@ function MyComponent(props) {
         </Div4>
       </Div2>
     </Div>
-  ) : (
-        redirect('/main')
-    )}
-    </>
+    ) : (
+      redirect('/login')
+  )}
+  </>
   );
 }
+
 
 const getStatusColor = (status) => {
   switch(status) {
@@ -529,6 +639,14 @@ const getStatusColor = (status) => {
       return '#63BE09';
     case 'Declined':
       return '#BE2A09';
+    case 'Graded':
+      return '#1871ED';
+    case 'In progress':
+      return '#63BE09';
+    case 'Done':
+      return '#7CE68A';
+    case 'Archived':
+      return '#C9C2C1';
     default:
       return '';
   }
@@ -559,10 +677,10 @@ const Div2 = styled.div`
     flex-wrap: wrap;
   }
 `;
-const Div3 = styled.div`
+const Menu = styled.div`
   position: fixed;
-  z-index: 1;
   height: 100%;
+  z-index: 1;
   align-items: center;
   background-color: #fff;
   display: flex;
@@ -581,7 +699,6 @@ const Button = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -604,7 +721,6 @@ const Button1 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -621,13 +737,11 @@ const Button1 = styled.button`
 const Button2 = styled.button`
   border:none;
   aspect-ratio: 1;
-  background-color:#ECF3FF;
   &:hover {
     transform: translateY(-5px);
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -642,12 +756,12 @@ const Button2 = styled.button`
 `;
 const Button3 = styled.button`
   border:none;
+  background-color:#ECF3FF;
   &:hover {
     transform: translateY(-5px);
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     
     pointer-events: visible;
@@ -671,7 +785,6 @@ const Button4 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -693,7 +806,6 @@ const Button5 = styled.button`
     color: #333;
     cursor:pointer;
     box-shadow: .0rem .2rem .4rem #777;
-    /* line I added */
     background-color:#ECF3FF;
     pointer-events: visible;
     position: relative;
@@ -706,6 +818,33 @@ const Button5 = styled.button`
   width: 40px;
   margin-top: 10px;
 `;
+
+const MenuCollapse = styled.button`
+  aspect-ratio: 1;
+  border:none;
+  
+  &:hover {
+    transform: translateY(-5px);
+    color: #333;
+    cursor:pointer;
+    box-shadow: .0rem .2rem .4rem #777;
+    /* line I added */
+    background-color:#ECF3FF;
+    pointer-events: visible;
+    position: relative;
+    z-index: 0;
+    visibility: visible;
+    float: none;
+}
+  object-fit: auto;
+  object-position: center;
+  width: 40px;
+  margin-top: 370px;
+  @media (max-width: 991px) {
+    margin-top: 40px;
+  }
+`;
+
 const Div4 = styled.div`
   margin-left: 60px;
   align-self: start;
@@ -840,6 +979,7 @@ const Div9 = styled.div`
     white-space: initial;
   }
 `;
+
 const DropdownMenu = styled.div`
   width: 160px;
   position: absolute;
@@ -898,7 +1038,7 @@ const FilterWrapper = styled.div`
   display: flex;
   gap: 5px;
   height: 40px;
-
+  
   @media (max-width: 991px) {
     flex-wrap: wrap;
   }
@@ -908,11 +1048,11 @@ const SearchInput = styled.div`
   display: flex;
   align-items: center;
   gap: 18px;
-  padding: 10px 15px;
+  padding: 0 15px;
   background-color: #fff;
   border-radius: 8px;
   box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.1);
-  
+    
   @media (max-width: 991px) {
     flex-wrap: wrap;
   }
@@ -922,7 +1062,6 @@ const SearchIcon = styled.img`
   width: 16px;
   height: 16px;
 `;
-
 
 const Container = styled.div`
   display: flex;
@@ -934,7 +1073,6 @@ const Container = styled.div`
   min-height: 813px;
   padding-bottom: 8px;
 `;
-
 
 const Header = styled.header`
   position: relative;
@@ -958,9 +1096,9 @@ const HeaderWrapper = styled.div`
   display: flex;
   color: #6c6c6c;
   
-  &.RatedText {
+  &.proposalsText {
+    padding: 11px 440px 12px 30px;
     font-size: 20px;
-    padding: 11px 450px 12px 30px;
     color: #1871ed;
     font-family: Roboto, sans-serif;
     margin: auto 0;
@@ -1053,30 +1191,12 @@ justify-content: center;
 &.row_proposal {
   padding: 7px 0 7px 17px;
   justify-content: start;
-  width: 645px;
+  width: 840px;
   line-height: 1.5;
 }
 
-&.row_points {
-  padding-left: 14px;
-  justify-content: start;
-  min-width: 54px;
-}
-
-&.row_grade {
-  padding-left: 14px;
-  justify-content: start;
-  min-width: 68px;
-}
-
-&.row_date_graded {
-  padding-left: 13px;
-  justify-content: start;
-  min-width: 82px;
-}
-
-&.row_date_accepted {
-  padding-left: 5px;
+&.row_date {
+  padding-left: 10px;
   justify-content: start;
   min-width: 86px;
 }
@@ -1085,6 +1205,7 @@ justify-content: center;
   padding-left: 16px;
   justify-content: start;
   min-width: 84px;
+
   color: ${props => getStatusColor(props.status)};
 }
 
@@ -1113,10 +1234,10 @@ const TableHeaderLabel = styled.div`
   font-family: Roboto, sans-serif;
   display:flex;
   align-items: center;
-  justify-content: center;
   font-weight: bold;
   &.header_number {
     min-width: 30px;
+    justify-content:center;
   }
 
   &.header_name {
@@ -1134,31 +1255,15 @@ const TableHeaderLabel = styled.div`
   &.header_proposals {
     padding: 7px 0 7px 17px;
     justify-content: start;
-    width: 645px;
+    width: 840px;
     line-height: 1.5;
   }
 
-  &.header_points {
-    padding-left: 14px;
-    justify-content: start;
-    min-width: 54px;
-  }
-
-  &.header_grade {
-    padding-left: 14px;
-    justify-content: start;
-    min-width: 68px;
-  }
-
-  &.header_date_graded {
-    padding-left: 13px;
-    justify-content: start;
-    min-width: 82px;
-  }
-
-  &.header_date_accepted {
-    padding-left: 5px;
-    justify-content: start;
+  
+  &.header_date {
+    cursor: pointer;
+    padding-left: 10px;
+    justify-content: space-between;
     min-width: 86px;
   }
 
@@ -1166,7 +1271,6 @@ const TableHeaderLabel = styled.div`
     padding-left: 16px;
     justify-content: start;
     min-width: 84px;
-    color: ${props => getStatusColor(props.status)};
   }
 
   &.header_actions {
@@ -1175,6 +1279,14 @@ const TableHeaderLabel = styled.div`
     justify-content: start;
     min-width: 84px;
   }
+`;
+
+const ArrowWrapper = styled.div`
+  margin-right: 5px;
+  font-size: 10px;
+`;
+
+const Arrow = styled.div`
 `;
 
 const TableHeaderRight = styled.div`
@@ -1208,6 +1320,8 @@ const TableRow = styled.div`
     flex-wrap: wrap;
   }
 `;
+
+
 
 const ActionIcon = styled.img`
   aspect-ratio: 1;
@@ -1252,4 +1366,5 @@ const FooterPageTotal = styled.div`
 const FooterTotal = styled.div`
   font-family: Roboto, sans-serif;
 `;
+
 export default MyComponent;

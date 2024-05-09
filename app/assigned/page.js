@@ -8,7 +8,12 @@ import Link from 'next/link';
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import './assigned.css'; 
-import { redirect } from 'next/navigation';
+
+export const logOut = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userRole');
+    window.location.href = "../login";
+};
 
 
 function OpenProposal(props) {
@@ -32,19 +37,13 @@ function OpenProposal(props) {
   const [showCalendar, setShowCalendar] = useState(false);
   const calendarRef = useRef(null);
   const [userRole, setUserRole] = useState(null);
-  const [accessToken, setAccessToken] = useState(null);
-
-  if (typeof window !== 'undefined') {
-    setAccessToken(localStorage.getItem('accessToken'));
-  }
+  const accessToken = localStorage.getItem('accessToken');
 
     useEffect(() => {
-        if (typeof window !== 'undefined') {
       const storedUserRole = localStorage.getItem('userRole');
       if (storedUserRole) {
         setUserRole(storedUserRole);
       }
-    }
     }, []);
 
   const handleMouseEnter = () => {
@@ -62,13 +61,6 @@ function OpenProposal(props) {
   const [isEmployeeSelected, setIsEmployeeSelected] = useState(false);
   const [isCalendarSelected, setIsCalendarSelected] = useState(false);
   
-  const logOut = () => {
-    if (typeof window !== 'undefined') {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('userRole');
-    }
-    redirect('/login');
-};
     const handleAssignClick = async () => {
       try{
       const date = new Date(selectedDate);

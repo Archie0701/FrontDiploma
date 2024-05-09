@@ -1,8 +1,7 @@
-<<<<<<< HEAD
 import axios from 'axios';
 
 export const API_URL = 'http://127.0.0.1:8000/api';
-const BASIC_URL = 'http://localhost:3000/';
+const BASIC_URL = 'http://127.0.0.1:8000';
 
 const apiService = axios.create({
   baseURL: API_URL,
@@ -675,5 +674,3 @@ export async function confirmationEmail(data) {
 }
 
 export default apiService;
-=======
->>>>>>> for_master

@@ -1,74 +1,51 @@
-<<<<<<< HEAD
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef} from 'react';
 import styled from "styled-components";
 import Spinner from '../components/spinner/spinner';
-import { getImageById, fetchUserData, fetchAcceptedProposalData, fetchGradingsData, gradeProposal, updateProposalStatusGraded, addComment, updateProposalStatusArchive, API_URL } from '../services/apiService';
+import { fetchUserData, getGrades, getProposerById, getComments, fetchGradedProposalData, fetchProposalData, fetchGradingsData, 
+  addComment, updateProposalStatusArchive, fetchProposersData, setSpecialist } from '../services/apiService';
 import Link from 'next/link';
-import './grading.css';
-import { redirect } from 'next/navigation'
+import Calendar from "react-calendar";
+import "react-calendar/dist/Calendar.css";
+import './assigned.css'; 
 
-const EmployeeScoreSlider = ({ value, onValueChange }) => {
-
-    const logOut = () => {
-        if (typeof window !== 'undefined') {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('userRole');
-    }
-        redirect('/login');
-    };
-  const handleChange = (event) => {
-    onValueChange(event.target.value);
-  };
-
-  return (
-    <EmployeeScoreContainer>
-      <EmployeeScoreInput
-        type="range"
-        min="1"
-        max="10"
-        value={value}
-        onChange={handleChange}
-        valueLabelDisplay="auto"
-      />
-      <EmployeeScoreValue style={{ left: `calc(${(value - 1) * 10}% + 24px)` }}>
-        {value}
-      </EmployeeScoreValue>
-    </EmployeeScoreContainer>
-  );
+export const logOut = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userRole');
+    window.location.href = "../login";
 };
 
 
-
-function Grading(props) {
+function OpenProposal(props) {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
-
-     
   const [proposalData, setProposalData] = useState(null);
+  const [allProposals, setAllProposals] = useState(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [proposersData, setProposersData] = useState(null);
+  const [proposerData, setProposersData] = useState(null);
+  const [allProposers, setAllProposers] = useState(null);
+  const [selectedProposers, setSelectedProposers] = useState(null);
   const [gradingsData, setGradingsData] = useState(null);
-  const [benefitScores, setBenefitScores] = useState({});
   const [commentText, setCommentText] = useState('');
   const [comments, setComments] = useState([]);
   const [isHovered, setIsHovered] = useState(false);
-  const [imageSrc, setImageSrc] = useState(null);
+  const [proposersProposals, setProposersProposals] = useState(null);
+  const [proposersProposalsFull, setProposersProposalsFull] = useState(null);
+  const [grades, setGrades] = useState(new Map());
+  const [query, setQuery] = useState('');
+  const [proposerInfo, setProposerInfo] = useState([]);
+  const [showCalendar, setShowCalendar] = useState(false);
+  const calendarRef = useRef(null);
   const [userRole, setUserRole] = useState(null);
-  const [accessToken, setAccessToken] = useState(null);
+  const accessToken = localStorage.getItem('accessToken');
 
-  if (typeof window !== 'undefined') {
-    setAccessToken(localStorage.getItem('accessToken'));
-  }
     useEffect(() => {
-      if (typeof window !== 'undefined') {
       const storedUserRole = localStorage.getItem('userRole');
       if (storedUserRole) {
         setUserRole(storedUserRole);
       }
-    }
     }, []);
-    
+
   const handleMouseEnter = () => {
     setIsHovered(true);
   };
@@ -76,41 +53,172 @@ function Grading(props) {
   const handleMouseLeave = () => {
     setIsHovered(false);
   };
+
+  const headerLabelWidths = [89, 89.5, 97, 88.5, 89.5, 89, 89.5, 89, 89, 95.5, 88.5];
+
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedEmployee, setSelectedEmployee] = useState(-1);
+  const [isEmployeeSelected, setIsEmployeeSelected] = useState(false);
+  const [isCalendarSelected, setIsCalendarSelected] = useState(false);
+  
+    const handleAssignClick = async () => {
+      try{
+      const date = new Date(selectedDate);
+      const year = date.getFullYear();
+      const month = ('0' + (date.getMonth() + 1)).slice(-2);
+      const day = ('0' + date.getDate()).slice(-2);
+      console.log("Id: ", proposalData[currentIndex].id);
+      console.log("Proposer: ", allProposers[selectedEmployee].id);
+      console.log("Date: ", selectedDate);
+      if(isEmployeeSelected && isCalendarSelected){
+        await setSpecialist(proposalData[currentIndex].id, allProposers[selectedEmployee].user.id, selectedDate);
+        
+        setShowCalendar(false);
+        updateProposalList();
+        setSelectedEmployee(-1);
+        setSelectedDate(new Date());
+        setIsEmployeeSelected(false);
+        setIsCalendarSelected(false);
+      }
+      else {
+        if(isCalendarSelected){
+          alert('Select an employee');
+        } else if(isEmployeeSelected){
+          alert('Select a deadline');
+        } else {
+          alert('Select an employee and deadline');
+        }
+      }
+      const formattedDate = `${year}-${month}-${day}`;
+      alert("Proposal assigned to specialist");
+      console.log("Selected Employee:", allProposers[selectedEmployee].id);
+      console.log("Selected Date:", formattedDate);
+      } catch (error) {
+      console.error(error);
+    }
+    };
+
+    const handleDateChange = (date) => {
+      if (date >= new Date()) {
+        setIsCalendarSelected(true);
+        setSelectedDate(date);
+      }
+    };
+  
+    const handleEmployeeSelect = (index) => {
+      setIsEmployeeSelected(true);
+      setSelectedEmployee(index);
+    };
+  
+    const tileDisabled = ({ date, view }) => {
+      if (view === "month") {
+        return date < new Date();
+      }
+    };
+
+    const employeeSearchHandler = (event) => {
+      const { value } = event.target;
+      setQuery(value);
+      if (value === '') {
+        setSelectedProposers(allProposers);
+      } else{
+      
+      const filteredProposals = allProposers.filter(proposer => {
+        const fullName = `${proposer.user.first_name} ${proposer.user.last_name}`;
+        return fullName.toLowerCase().includes(value.toLowerCase());
+      });
+        setSelectedProposers(filteredProposals);
+      }
+    };
+
+    useEffect(() => {
+      function handleClickOutside(event) {
+        if (calendarRef.current && !calendarRef.current.contains(event.target)) {
+          setShowCalendar(false);
+          setIsEmployeeSelected(false);
+          setIsCalendarSelected(false);
+          setSelectedEmployee(-1);
+          setSelectedDate(new Date());
+        }
+      }
+  
+      document.addEventListener('mousedown', handleClickOutside);
+  
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, []);
+    
   const fetchData = async () => {
     try {
+      const allProposalsResponse = await fetchProposalData();
       const userDataResponse = await fetchUserData();
-      const proposalDataResponse = await fetchAcceptedProposalData();
+      const proposalDataResponse = await fetchGradedProposalData();
       const gradingsDataResponse = await fetchGradingsData();
-      
-   
+      const proposersDataResponse = await fetchProposersData();
+      const transformedData = [];
+      proposersDataResponse.forEach((item, index) => {
+        transformedData[index] = item;
+      });
+      setSelectedEmployee(transformedData.length-1);
+      setAllProposers(transformedData);
+      setSelectedProposers(transformedData);
+
       if (userDataResponse) {
-        if(userDataResponse.avatar){
-          const imageResponse = await getImageById(userDataResponse.avatar);
-          setImageSrc(imageResponse.image);
-        }
         setUserData(userDataResponse);
-      }
-      
+      } 
+      setAllProposals(allProposalsResponse);
       setProposalData(proposalDataResponse);
-
       setGradingsData(gradingsDataResponse);
-   
-
+      
       if (proposalDataResponse.length > 0) {
-        fetchProposersData(proposalDataResponse[0].proposer);
-        fetchCommentsData(proposalDataResponse[0].id);
+        const proposer = await getProposerById(proposalDataResponse[0].proposer);
+        const comments = await getComments(proposalDataResponse[0].id); 
+        const filteredArray = proposalDataResponse.filter(item => item.proposer === proposalDataResponse[0].proposer);
+        console.log("1");
+        
+        setProposersProposals(filteredArray);
+        setProposersProposalsFull(filteredArray);
+        setProposersData(proposer);
+        setComments(comments);
+
+        filteredArray.forEach(async (item) =>  {
+          if(!grades.has(item.id)){
+            const gradesDataResponse = await getGrades(item.id);
+            setGrades(grades.set(item.id, gradesDataResponse[0].gradings));  
+          }
+        });
+        const filteredProposersProposals = allProposalsResponse.filter(item => item.proposer === proposalDataResponse[0].proposer);
+        const acceptedProposals = filteredProposersProposals.filter(item => item.status === 'Accepted');
+        const declinedProposals = filteredProposersProposals.filter(item => item.status === 'Declined');
+        setProposerInfo([{
+          title: "Total sent",
+          value: filteredProposersProposals.length,
+          description: "During all this time",
+        },
+        {
+          title: "Accepted",
+          value: acceptedProposals.length,
+          description: "During all this time",
+        },
+        {
+          title: "Rejected",
+          value: declinedProposals.length,
+          description: "During all this time",
+        },]);
       }
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user data:', error);
-      redirect('/login');
     }
   };
+  
 
   const handleAddComment = async () => {
     try {
       await addComment(proposalData[currentIndex].id, commentText);
-      await fetchCommentsData(proposalData[currentIndex].id);
+      const comments = await getComments(proposalData[currentIndex].id);
+      setComments(comments);
       setCommentText('');
     } catch (error) {
       console.error('Error adding comment:', error);
@@ -125,66 +233,12 @@ function Grading(props) {
 
   useEffect(() => {
     fetchData();
-
-
   }, []);
-
-  useEffect(() => {
-    if (proposalData) {
-      fetchProposersData();
-      fetchCommentsData();
-    }
-  }, [proposalData]);
-
-  const fetchProposersData = async (id) => {
-    try {
-      if (id) {
-        const proposerDataResponse = await fetch(`${API_URL}/proposers/${id}/`);
-        
-        const proposerData = await proposerDataResponse.json();
-        setProposersData(proposerData);
-      }
-    } catch (error) {
-      console.error('Error fetching proposer data:', error);
-    }
-  };
-
-  const fetchCommentsData = async (id) => {
-    try {
-      if (id) {
-        const response = await fetch(`${API_URL}/proposals/${id}/get_comments/`);
-        const data = await response.json();
-        setComments(data.comments);
-      }
-    } catch (error) {
-      console.error('Error fetching comments data:', error);
-    }
-  };
-
-  let employeeData = [];
-
-  if (proposersData && proposersData.user && gradingsData) {
-    console.log('Hello');
-    employeeData = [{
-      name: `${proposersData.user.first_name} ${proposersData.user.last_name}`, 
-      benefits: gradingsData.map((data, index) => ({ id: data.id, name: data.name }))
-    }];
-  } else {
-    console.error("proposersData is invalid");
-  }
-
-  const handleBenefitScoreChange = (grading, newValue) => { 
-    setBenefitScores(prevState => ({
-      ...prevState,
-      [grading]: newValue
-    }));
-  };
 
   const updateProposalList = async () => {
     try {
-      const updatedProposalData = await fetchAcceptedProposalData();
+      const updatedProposalData = await fetchGradedProposalData();
       setProposalData(updatedProposalData);
-      setBenefitScores({});
     } catch (error) {
       console.error('Error updating proposal list:', error);
     }
@@ -194,58 +248,120 @@ function Grading(props) {
     await updateProposalStatusArchive(proposalData[currentIndex].id, "Archived");
     updateProposalList();
   }
-  
-  const acceptGrade = async () => {
-    try {
-      if (!benefitScores || Object.keys(benefitScores).length < gradingsData.length) {
 
-        alert("Change all grades.");
-        return;
+  const fetchProposerData = async (id) => {
+    try {
+      if (id) {
+        const proposer = await getProposerById(id);
+
+        setProposersData(proposer);
       }
-  
-      if (!proposalData || proposalData.length === 0) {
-        console.error("No proposal data available.");
-        return;
-      }
-  
-      for (const [grading, score] of Object.entries(benefitScores)) {
-        console.log("Sending request for grading:", grading, "with score:", score +  " id: " + proposalData[currentIndex].id);
-        await gradeProposal(proposalData[currentIndex].id, grading, score);
-      }
-  
-      await updateProposalStatusGraded(proposalData[currentIndex].id, "Graded");
-  
-      console.log("All gradings accepted successfully!");
-      alert("All gradings accepted successfully!");
-      await updateProposalList();
     } catch (error) {
-      console.error("Error while accepting gradings:", error);
+      console.error('Error fetching proposer data:', error);
     }
-    
+  };
+
+  const fetchCommentsData = async (id) => {
+    try {
+      if (id) {
+        const comments = await getComments(id); 
+
+        setComments(comments);
+      }
+    } catch (error) {
+      console.error('Error fetching comments data:', error);
+    }
   };
 
   const handleNext = () => {
-    const nextProposal = proposalData.find((data, index) => index > currentIndex && data.status === "Accepted");
+    const nextProposal = proposalData.find((data, index) => index > currentIndex && data.status === "Graded");
     if (nextProposal) {
-      console.log(nextProposal.proposer);
-      setBenefitScores({});
+      if(nextProposal.proposer != proposerData.proposer){
+          const filteredProposersProposals = allProposals.filter(item => item.proposer === nextProposal.proposer);
+          const acceptedProposals = filteredProposersProposals.filter(item => item.status === 'Accepted');
+          const declinedProposals = filteredProposersProposals.filter(item => item.status === 'Declined');
+          setProposerInfo([{
+            title: "Total sent",
+            value: filteredProposersProposals.length,
+            description: "During all this time",
+          },
+          {
+            title: "Accepted",
+            value: acceptedProposals.length,
+            description: "During all this time",
+          },
+          {
+            title: "Rejected",
+            value: declinedProposals.length,
+            description: "During all this time",
+          },]);
+          const filteredArray = proposalData.filter(item => item.proposer === nextProposal.proposer);
+          setProposersProposals(filteredArray);
+          setProposersProposalsFull(filteredArray);
+          filteredArray.forEach(async (item) =>  {
+            if(!grades.has(item.id)){
+              const gradesDataResponse = await getGrades(item.id);
+              setGrades(grades.set(item.id, gradesDataResponse[0].gradings));  
+            }
+          });
+        }
+      }
       setCurrentIndex(proposalData.indexOf(nextProposal));
-      fetchProposersData(nextProposal.proposer);
+      fetchProposerData(nextProposal.proposer);
       fetchCommentsData(nextProposal.id);
-    }
   };
 
   const handleBack = () => {
-    const prevProposal = proposalData.slice(0, currentIndex).reverse().find(data => data.status === "Accepted");
+    const prevProposal = proposalData.slice(0, currentIndex).reverse().find(data => data.status === "Graded");
     if (prevProposal) {
-      setBenefitScores({});
+      if(prevProposal.proposer != proposerData.proposer){
+          const filteredProposersProposals = allProposals.filter(item => item.proposer === prevProposal.proposer);
+          const acceptedProposals = filteredProposersProposals.filter(item => item.status === 'Accepted');
+          const declinedProposals = filteredProposersProposals.filter(item => item.status === 'Declined');
+          setProposerInfo([{
+            title: "Total sent",
+            value: filteredProposersProposals.length,
+            description: "During all this time",
+          },
+          {
+            title: "Accepted",
+            value: acceptedProposals.length,
+            description: "During all this time",
+          },
+          {
+            title: "Rejected",
+            value: declinedProposals.length,
+            description: "During all this time",
+          },]);
+        const filteredArray = proposalData.filter(item => item.proposer === prevProposal.proposer);
+        setProposersProposals(filteredArray);
+        setProposersProposalsFull(filteredArray);
+        filteredArray.forEach(async (item) =>  {
+          if(!grades.has(item.id)){
+            const gradesDataResponse = await getGrades(item.id);
+            setGrades(grades.set(item.id, gradesDataResponse[0].gradings));  
+          }
+        });
+      }
       setCurrentIndex(proposalData.indexOf(prevProposal));
-      fetchProposersData(prevProposal.proposer);
+      fetchProposerData(prevProposal.proposer);
       fetchCommentsData(prevProposal.id);
     }
   };
 
-  
+  const searchInputChange = (event) => {
+    const { value } = event.target;
+    setQuery(value);
+    if (value === '') {
+      setProposersProposals(proposersProposalsFull);
+    } else{
+    
+      const filteredProposals = proposersProposalsFull.filter(proposal => {
+      return proposal.title.toLowerCase().includes(value.toLowerCase());
+    });
+      setProposersProposals(filteredProposals);
+    }
+  };
 
   if (loading) {
     return <Spinner />;
@@ -327,7 +443,7 @@ function Grading(props) {
               <Div8>
                 <Img8
                   loading="lazy"
-                  srcSet={imageSrc || '/User-512.webp'}
+                  srcSet={"https://cdn.builder.io/api/v1/image/assets/TEMP/4dcf99f382750292c7d84a7df0227aaa7983b668cf36e9dfd3e8efa1f74f2292?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" || '/User-512.webp'}
                   alt="Person Image"
                   width="24"
                   height="24"
@@ -363,9 +479,8 @@ function Grading(props) {
           <Div10 className="slider-container">
             {(proposalData.length != 0) && (
               <Div11 className="slider">
-                <Column></Column>
-                <Column style={{position: 'fixed', width: '90%'}}>
-                  {proposalData.filter(data => data.status === "Accepted").map((data, index) => (
+                <Column>
+                  {proposalData.map((data, index) => (
                     <Div12
                       className={`slide ${index === currentIndex ? 'active' : ''} ${index < currentIndex ? 'slideToLeft' : index > currentIndex ? 'slideToRight' : ''}`}
                       key={data.id}
@@ -373,6 +488,7 @@ function Grading(props) {
                       <Div13>
                         <Div14>{formatDate(data.created_at)}</Div14>
                         <Div15>
+                          <SetSpecialistButton onClick={() => setShowCalendar(!showCalendar)}>Set a specialist</SetSpecialistButton>
                           <ArchiveButton onClick={archive}>Archive</ArchiveButton>
                         </Div15>
                         <Div19>
@@ -403,45 +519,142 @@ function Grading(props) {
                       </Div23>
                     </Div12>
                   ))}
+                  <SearchInput>
+                <SearchIcon src={"/searh-icon.svg"} alt="Search icon" />
+                <input
+                  type="text"
+                  className='search_input'
+                  value={query}
+                  onChange={searchInputChange}
+                  placeholder="Search"
+                />
+                </SearchInput>
+                
+                <TableWrapper>
+      <TableHeader>
+        <TableHeaderLabel className="headerLabel">Date</TableHeaderLabel>
+        <TableHeaderLabel className='proposal_title headerLabel'>Proposal title</TableHeaderLabel>
+        { 
+          (() => {
+            const reversedElements = [];
+            gradingsData.slice().reverse().forEach((item, index) => {
+              reversedElements.push(
+                <TableHeaderLabel key={index} className="headerLabel">
+                  {item.name}
+                </TableHeaderLabel>
+              );
+            });
+            return reversedElements;
+          })()
+        }
+      </TableHeader>
+      <TableBody>
+        {proposersProposals.map((item, rowIndex) => (
+          <TableRow key={rowIndex}>
+            <TableRowLabel style={{ width: headerLabelWidths[0] }}>{item.graded_at.split('T')[0]}</TableRowLabel>
+            <TableRowLabel style={{ width: headerLabelWidths[1] }}>{item.title}</TableRowLabel>
+            {grades.has(item.id) &&
+              grades.get(item.id).map((gradings, index) => (
+                <TableRowLabel key={index} style={{ width: headerLabelWidths[index + 2] }}>
+                  {gradings.score}/{gradings.grading.score}
+                </TableRowLabel>
+              ))}
+          </TableRow>
+        ))}
+      </TableBody>
+    </TableWrapper>
                 </Column>
+                
                 <Column2>
                   <>
                   <Container>
-  <EmployeeSection>
-  {employeeData.map((employee, index) => (
-  <EmployeeInfo key={index}>
-    <EmployeeDetails>
-      <EmployeeAvatar src={imageSrc || `/User-512.webp`} alt="Employee Avatar" />
-      <EmployeeText>
-        <EmployeeName>{employee.name}</EmployeeName>
-        <EmployeeId>{employee.score}</EmployeeId>
-      </EmployeeText>
-    </EmployeeDetails>
-    {employee.benefits.map((benefit, index) => (
-      <div key={index}>
-        <EmployeeBenefit>{benefit.name}</EmployeeBenefit>
-        <EmployeeScoreSlider
-          value={benefitScores[benefit.id] || 1} 
-          onValueChange={(value) => handleBenefitScoreChange(benefit.id, value)} 
-        />
-      </div>
-    ))}
-  </EmployeeInfo>
-))}
-  </EmployeeSection>
-  <AcceptButton onClick={acceptGrade}>Accept</AcceptButton>
-</Container>
+                  <ProfileCardWrapper>
+                  <ProfileHeader>
+                    <ProfileImage src="https://cdn.builder.io/api/v1/image/assets/TEMP/8db8f9cf15e4a3b936231bc496dc49c62912c6702c17224a1648ebff8012758f?apiKey=f933b1b419864e2493a2da58c5eeea0a&" alt="Profile" loading="lazy" />
+                    <ProfileInfo>
+                      <ProfileName>{proposerData.user.last_name} {proposerData.user.first_name}</ProfileName>
+                    </ProfileInfo>
+                  </ProfileHeader>
+                  <OffersSummary>
+                    <OffersTitle>Offers</OffersTitle>
+                    <TotalOffersTitle>Total offers</TotalOffersTitle>
+                  </OffersSummary>
+                  <Divider />
+                  {proposerInfo.map((item, index) => (
+                    <React.Fragment key={index}>
+                      <OfferItem>
+                        <OfferTitle>{item.title}</OfferTitle>
+                        <OfferDetails>
+                          <OfferValue>{item.value}</OfferValue>
+                          <OfferDescription>{item.description}</OfferDescription>
+                        </OfferDetails>
+                      </OfferItem>
+                      {index !== proposerInfo.length - 1 && <Divider />}
+                    </React.Fragment>
+                  ))}
+                </ProfileCardWrapper>
+                </Container>
                   </>
                 </Column2>
               </Div11>
             )}
 
           </Div10>
-
+          
         </Div4>
       </Div2>
+      {showCalendar && <BackgroundOverlay />}
+      {showCalendar && (
+        <CalendarContainer ref={calendarRef}>
+      <CalendarHeader>Set a specialist</CalendarHeader>
+      <CalendarContent>
+        <EmployeeCalendar>
+          <EmployeeSearch>
+          <input
+                  type="text"
+                  className='employee_search'
+                  value={query}
+                  onChange={employeeSearchHandler}
+                  placeholder="Employee search"
+                />
+                asdasd
+          </EmployeeSearch>
+          <EmployeeItemWrapper>
+          {selectedProposers.map((item, index) => (
+            <EmployeeItem
+            isSelected={index === selectedEmployee}
+            onClick={() => handleEmployeeSelect(index)}
+          >
+            <CalendarCheckbox isSelected={index === selectedEmployee} />
+            <EmployeeName>
+              {item.user.first_name} {item.user.last_name} {item.department || ''}
+            </EmployeeName>
+          </EmployeeItem>
+          )
+          )}
+          </EmployeeItemWrapper>
+        </EmployeeCalendar>
+        <CalendarSection>
+          <StyledCalendar
+            value={selectedDate}
+            onChange={handleDateChange}
+            tileDisabled={tileDisabled}
+            minDate={new Date()}
+          />
+          <CalendarFooter>
+            <SelectedDate>
+              {selectedDate.getFullYear()} y. {selectedDate.getDate()}{" "}
+              {selectedDate.toLocaleString("default", { month: "long" })}
+            </SelectedDate>
+            <AssignButton onClick={handleAssignClick}>Assign</AssignButton>
+          </CalendarFooter>
+        </CalendarSection>
+      </CalendarContent>
+    </CalendarContainer>
+      )}
+      
     </Div>
-    ) : (
+) : (
         redirect('/main')
     )}
     </>
@@ -708,7 +921,6 @@ const Div8 = styled.div`
   }
 `;
 const Img8 = styled.img`
-  border-radius: 50%;
   aspect-ratio: 1;
   object-fit: auto;
   object-position: center;
@@ -723,6 +935,7 @@ const Div9 = styled.div`
   }
 `;
 const DropdownMenu = styled.div`
+  z-index: 11;
   width: 160px;
   position: absolute;
   top: 45px;
@@ -769,6 +982,80 @@ const Div10 = styled.div`
     margin-top: 40px;
   }
 `;
+const TableWrapper = styled.div`
+  width: 100%;
+  background-color: #fff;
+  margin-top: 17px;
+  margin-bottom: 70px;
+`;
+const TableHeader = styled.div`
+  display: flex;
+  width: 100%;
+  background-color: #fff;
+  @media (max-width: 991px) {
+    max-width: 100%;
+    flex-wrap: wrap;
+    padding-right: 20px;
+  }
+`;
+const TableHeaderLabel = styled.div`
+  background-color: #fff;
+  flex: 1;
+  padding: 4px;
+  border: 1px solid #d3d3d3;
+  font-family: Roboto, sans-serif;
+  font-size: 11px;
+  display: flex;
+  line-height: 1.3;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+`;
+const TableBody = styled.div`
+  display: flex;
+  flex-direction: column;  
+  @media (max-width: 991px) {
+    margin-right: 5px;
+  }
+`;
+const TableRow = styled.div`
+  display: flex;
+  
+  @media (max-width: 991px) {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+`;
+const TableRowLabel = styled.div`
+border: 1px solid #d3d3d3;
+font-family: Roboto, sans-serif;
+font-size: 11px;
+padding: 8px 0;
+display:flex;
+align-items: center;
+justify-content: center;
+`;
+const SearchInput = styled.div`
+  z-index: 1;
+  margin-top: 293px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 0 15px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, 0.1);
+    
+  @media (max-width: 991px) {
+    flex-wrap: wrap;
+  }
+`;
+const SearchIcon = styled.img`
+  width: 16px;
+  height: 16px;
+`;
+
 const Div11 = styled.div`
   display: flex;
   @media (max-width: 991px) {
@@ -825,6 +1112,34 @@ const Div15 = styled.div`
   white-space: nowrap;
   @media (max-width: 991px) {
     white-space: initial;
+  }
+`;
+const SetSpecialistButton = styled.button`
+&:hover {
+  transform: translateY(-5px);
+  color: #333;
+  cursor:pointer;
+  box-shadow: .0rem .2rem .4rem #777;
+  /* line I added */
+  background-color:#ECF3FF;
+  pointer-events: visible;
+  position: relative;
+  z-index: 0;
+  visibility: visible;
+  float: none;
+}
+  border:none;
+  cursor:pointer;
+  font-family: Roboto, sans-serif;
+  border-radius: 8px 4px 4px 8px;
+  background-color: #e6e6e6;
+  flex-grow: 1;
+  justify-content: center;
+  padding: 13px 10px;
+  
+  @media (max-width: 991px) {
+    white-space: initial;
+    padding: 0 20px;
   }
 `;
 const ArchiveButton = styled.button`
@@ -1040,155 +1355,350 @@ const Container = styled.div`
     margin-top: 40px;
   }
 `;
-
-const EmployeeSection = styled.section`
-  background-color: #fff;
+const ProfileCardWrapper = styled.section`
   border-radius: 8px;
-  padding: 15px;
-  gap: 20px;
-  justify-content: space-between;
-
+  box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+  display: flex;
+  max-width: 596px;
+  flex-direction: column;
+  align-items: start;
+  padding: 17px;
   @media (max-width: 991px) {
-    max-width: 100%;
-    flex-wrap: wrap;
     padding-right: 20px;
   }
 `;
 
-const EmployeeInfo = styled.div`
+const ProfileHeader = styled.header`
   display: flex;
-  flex-direction: column;
+  gap: 18px;
+  color: #525252;
 `;
 
-const EmployeeDetails = styled.div`
-  display: flex;
-  gap: 15px;
-`;
-
-const EmployeeAvatar = styled.img`
-  width: 50px;
-  height: 50px;
+const ProfileImage = styled.img`
+  width: 48px;
+  height: 48px;
   object-fit: cover;
   border-radius: 50%;
 `;
 
-const EmployeeText = styled.div`
-  align-self: start;
+const ProfileInfo = styled.div`
   display: flex;
-  margin-top: 4px;
   flex-direction: column;
+  justify-content: center;
 `;
 
-const EmployeeName = styled.h3`
-  color: #5d5d5d;
-  font: 16px Roboto, sans-serif;
+const ProfileName = styled.h2`
+  font: 500 18px Roboto, sans-serif;
   margin: 0;
 `;
 
-const EmployeeId = styled.p`
-  color: #8d8d8d;
-  margin: 12px 0 0;
+
+const OffersSummary = styled.div`
+  display: flex;
+  width: 100%;
+  max-width: 282px;
+  gap: 20px;
+  font-size: 16px;
+  color: #525252;
+  font-weight: 500;
+  justify-content: space-between;
+  margin: 34px 0 0 45px;
+  @media (max-width: 991px) {
+    margin-left: 10px;
+  }
+`;
+
+const OffersTitle = styled.h3`
+  font-family: Roboto, sans-serif;
+  margin: 0;
+`;
+
+const TotalOffersTitle = styled.h3`
+  font-family: Roboto, sans-serif;
+  margin: 0;
+`;
+
+const Divider = styled.hr`
+  border: none;
+  border-top: 1px solid rgba(230, 230, 230, 0.5);
+  background-color: rgba(230, 230, 230, 0.5);
+  width: 100%;
+  max-width: 534px;
+  margin: 13px 0 0 14px;
+`;
+
+const OfferItem = styled.div`
+  display: flex;
+  width: 100%;
+  max-width: 299px;
+  gap: 20px;
+  font-weight: 400;
+  justify-content: space-between;
+  margin: 15px 0 0 44px;
+  @media (max-width: 991px) {
+    margin-left: 10px;
+  }
+`;
+
+const OfferTitle = styled.h4`
+  color: #525252;
+  margin: auto 0;
+  font: 14px Roboto, sans-serif;
+`;
+
+const OfferDetails = styled.div`
+  display: flex;
+  flex-direction: column;
+`;
+
+const OfferValue = styled.p`
+  color: #525252;
+  font: 14px Roboto, sans-serif;
+  margin: 0;
+`;
+
+const OfferDescription = styled.p`
+  color: #7b7b7b;
+  margin: 6px 0 0;
   font: 12px Roboto, sans-serif;
 `;
 
-const EmployeeBenefit = styled.p`
-  color: #5b5b5b;
-  margin-top: 26px;
-  font: 16px Roboto, sans-serif;
-
-  &:last-child {
-    margin-top: 52px;
-
-    @media (max-width: 991px) {
-      margin-top: 40px;
-    }
-  }
-`;
-
-const EmployeeScoreContainer = styled.div`
-  position: relative;
+const BackgroundOverlay = styled.div`
+  position: fixed;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Black with 50% opacity */
+  z-index: 5;
 `;
 
-const EmployeeScoreInput = styled.input`
-  -webkit-appearance: none;
-  width: calc(100% - 24px); /* Рассчитываем ширину инпута так, чтобы учесть размеры кружка и текста */
-  height: 15px;
-  border-radius: 5px;
-  background: #d3d3d3;
-  outline: none;
-  opacity: 0.7;
-  -webkit-transition: 0.2s;
-  transition: opacity 0.2s;
-  margin: 0 12px; /* Устанавливаем отступы слева и справа для кружка и текста */
-
-  &:hover {
-    opacity: 1;
-  }
-
-  &::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    background: #B3D2E6;
-    cursor: pointer;
-    position: relative;
-    z-index: 2;
-  }
-
-  &::-moz-range-thumb {
-    width: 25px;
-    height: 25px;
-    border-radius: 50%;
-    background: #B3D2E6;
-    cursor: pointer;
-    position: relative;
-    z-index: 2;
-  }
-`;
-
-const EmployeeScoreValue = styled.span`
+const CalendarContainer = styled.div`
   position: absolute;
   top: 50%;
+  left: 50%;
   transform: translate(-50%, -50%);
-  color: #FFFFF9;
-  font-size: 14px;
-  pointer-events: none; /* Чтобы предотвратить взаимодействие с текстом */
-  z-index: 3; /* Убедимся, что текст всегда находится поверх кружка */
+  z-index: 10;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+  max-width: 691px;
 `;
 
-
-const AcceptButton = styled.button`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 6px;
-  background-color: #109cf1;
-  margin-top: 25px;
-  color: #fff;
-  padding: 10px;
-  font: 16px Roboto, sans-serif;
-  border: none;
-  cursor: pointer;
-
+const CalendarHeader = styled.header`
+  border-radius: 8px 8px 0 0;
+  background-color: #f5f6f7;
+  color: #444950;
+  padding: 11px 15px;
+  font: 500 15px Roboto, sans-serif;
   @media (max-width: 991px) {
-    max-width: 100%;
-    padding: 0 20px;
+    padding-right: 20px;
   }
 `;
 
-export default Grading;
-=======
-import dynamic from 'next/dynamic'
- 
-const DynamicHeader = dynamic(() => import('../../components/grading/page'), {
-  loading: () => <p>Loading...</p>,
-  ssr: false,
-})
- 
-export default function Grading() {
-  return <DynamicHeader />
-}
->>>>>>> for_master
+const CalendarContent = styled.div`
+  display: flex;
+  gap: 20px;
+  @media (max-width: 991px) {
+    flex-direction: column;
+  }
+`;
+
+const EmployeeCalendar = styled.section`
+  display: flex;
+  flex-direction: column;
+  width: 50%;
+  margin: 25px 0 0 21px;
+  font-size: 15px;
+  color: #444950;
+  @media (max-width: 991px) {
+    width: 100%;
+    margin-left: 20px;
+  }
+`;
+
+const EmployeeSearch = styled.div`
+  border-radius: 8px;
+  border: 1px solid #c4c4c4;
+  background-color: #fff;
+  color: #c4c4c4;
+  padding: 12px 15px;
+  font: 300 15px Roboto, sans-serif;
+  @media (max-width: 991px) {
+    padding-right: 20px;
+  }
+`;
+const EmployeeItemWrapper = styled.div`
+  width: 300px;
+  max-height: 350px;
+  overflow-y: auto;
+`;
+const EmployeeItem = styled.div`
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  background-color: ${(props) => (props.isSelected ? "#ecf3ff" : "transparent")};
+  padding: ${(props) => (props.isSelected ? "11px 17px 11px 5px" : "0")};
+  margin-top: ${(props) => (props.isSelected ? "10px" : "21px")};
+  cursor: pointer;
+  @media (max-width: 991px) {
+    margin-left: ${(props) => (props.isSelected ? "0" : "10px")};
+  }
+`;
+
+const CalendarCheckbox = styled.span`
+  border-radius: 9px;
+  border: 1px solid ${(props) => (props.isSelected ? "#1877f2" : "#d3d3d3")};
+  background-color: ${(props) => (props.isSelected ? "#ecf3ff" : "transparent")};
+  width: 14px;
+  height: 14px;
+`;
+
+const EmployeeName = styled.span`
+  font: 400 15px Roboto, sans-serif;
+`;
+
+const CalendarSection = styled.section`
+  border-radius: 0 8px 8px 0;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+  background-color: #fff;
+  width: 50%;
+  padding: 29px 0;
+  @media (max-width: 991px) {
+    width: 100%;
+  }
+`;
+
+const StyledCalendar = styled(Calendar)`
+  margin: 0 auto;
+  .react-calendar {
+    border: none;
+    width: 100%;
+    max-width: 100%;
+    background: white;
+    font-family: Roboto, sans-serif;
+    line-height: 1.125em;
+  }
+  .react-calendar__navigation {
+    display: flex;
+    height: 44px;
+    margin-bottom: 1em;
+  }
+  .react-calendar__navigation button {
+    min-width: 44px;
+    background: none;
+    font-size: 16px;
+    margin-top: 8px;
+  }
+  .react-calendar__navigation button:enabled:hover,
+  .react-calendar__navigation button:enabled:focus {
+    background-color: #f8f8fa;
+  }
+  .react-calendar__navigation button[disabled] {
+    background-color: #f0f0f0;
+  }
+  .react-calendar__month-view__weekdays {
+    text-align: center;
+    text-transform: uppercase;
+    font-weight: bold;
+    font-size: 0.75em;
+  }
+  .react-calendar__month-view__weekdays__weekday {
+    padding: 0.5em;
+  }
+  .react-calendar__month-view__weekNumbers .react-calendar__tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75em;
+    font-weight: bold;
+  }
+  .react-calendar__month-view__days__day--weekend {
+    color: #d10000;
+  }
+  .react-calendar__month-view__days__day--neighboringMonth {
+    color: #757575;
+  }
+  .react-calendar__year-view .react-calendar__tile,
+  .react-calendar__decade-view .react-calendar__tile,
+  .react-calendar__century-view .react-calendar__tile {
+    padding: 2em 0.5em;
+  }
+  .react-calendar__tile {
+    aspect-ratio: 1/1;
+    max-width: 100%;
+    background: none;
+    text-align: center;
+  }
+  .react-calendar__tile:disabled {
+    background-color: #f0f0f0;
+  }
+  .react-calendar__tile:enabled:hover,
+  .react-calendar__tile:enabled:focus {
+    background: #f8f8fa;
+    color: #1871ed;
+    border-radius: 8px;
+  }
+  .react-calendar__tile--now {
+    background: #1871ed33;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #1871ed;
+  }
+  .react-calendar__tile--now:enabled:hover,
+  .react-calendar__tile--now:enabled:focus {
+    background: #1871ed33;
+    border-radius: 8px;
+    font-weight: bold;
+    color: #1871ed;
+  }
+  .react-calendar__tile--hasActive {
+    background: #76baff;
+  }
+  .react-calendar__tile--hasActive:enabled:hover,
+  .react-calendar__tile--hasActive:enabled:focus {
+    background: #a9d4ff;
+  }
+  .react-calendar__tile--active {
+    background: #1871ed;
+    border-radius: 8px;
+    color: white;
+  }
+  .react-calendar__tile--active:enabled:hover,
+  .react-calendar__tile--active:enabled:focus {
+    background: #1871ed;
+    color: white;
+  }
+  .react-calendar--selectRange .react-calendar__tile--hover {
+    background-color: #e6e6e6;
+  }
+`;
+
+const CalendarFooter = styled.footer`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 30px;
+  padding: 0 26px;
+`;
+
+const SelectedDate = styled.span`
+  font: 400 16px Roboto, sans-serif;
+  color: #444950;
+`;
+
+const AssignButton = styled.button`
+  border-radius: 8px;
+  background-color: #1871ed;
+  color: #fff;
+  padding: 10px 30px;
+  font: 400 18px Roboto, sans-serif;
+  cursor: pointer;
+  @media (max-width: 991px) {
+    padding: 16px 20px;
+  }
+`;
+
+
+export default OpenProposal;

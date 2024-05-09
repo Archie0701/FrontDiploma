@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 'use client';
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
@@ -9,11 +8,8 @@ import toast, { Toaster } from 'react-hot-toast';
 import { redirect } from 'next/navigation';
 
 const SignInPage = () => {
-  const [accessToken, setAccessToken] = useState(null);
+  const accessToken = localStorage.getItem('accessToken');
 
-  if (typeof window !== 'undefined') {
-    setAccessToken(localStorage.getItem('accessToken'));
-  }
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -44,10 +40,8 @@ const SignInPage = () => {
       });
       const userDataResponse = await fetchUserData();
       const role = userDataResponse.is_proposer ? 'proposer' : 'staff';
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('userRole', role);
-      }
-      redirect('/main');
+      localStorage.setItem('userRole', role);
+      window.location.href = '/main';
     } catch (error) {
       toast.error("Login attributes are incorrect.")
       console.error('Login failed:', error);
@@ -279,7 +273,7 @@ const InputOption = styled.div`
     font-size: 15px;
     padding: 5px;
     ::placeholder {
-      color: #5d5d5d;
+      color: #5d5d5d; /* Цвет placeholder'а */
     }
   }
 `;
@@ -339,11 +333,12 @@ const SignInButton = styled.button`
     }
   }
   &:hover {
-    background-color: #1d5a96;
+    background-color: #1d5a96; /* Изменение цвета при наведении */
   }
 
+  /* Добавьте обработчик событий по вашему выбору */
   &:active {
-    background-color: #144276; 
+    background-color: #144276; /* Изменение цвета при активации */
   }
 `;
 
@@ -466,15 +461,3 @@ const SocialIcon = styled.button`
   }
 `;
 export default SignInPage;
-=======
-import dynamic from 'next/dynamic'
- 
-const DynamicHeader = dynamic(() => import('../../components/login/page'), {
-  loading: () => <p>Loading...</p>,
-  ssr: false,
-})
- 
-export default function Login() {
-  return <DynamicHeader />
-}
->>>>>>> for_master

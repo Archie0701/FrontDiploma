@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 'use client';
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
@@ -1292,3 +1293,15 @@ const RejectButton = styled.button`
 `;
 
 export default MyComponent;
+=======
+import dynamic from 'next/dynamic'
+ 
+const DynamicHeader = dynamic(() => import('../../components/slider/page'), {
+  loading: () => <p>Loading...</p>,
+  ssr: false,
+})
+ 
+export default function Slider() {
+  return <DynamicHeader />
+}
+>>>>>>> for_master

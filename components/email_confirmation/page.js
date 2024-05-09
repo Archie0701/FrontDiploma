@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 'use client';
 import React, { useState, useRef, useEffect } from "react";
 import { registration, confirmationEmail } from "../services/apiService";
@@ -19,24 +18,20 @@ function ConfirmEmail() {
   const [resendDisabled, setResendDisabled] = useState(false);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
     const lastResendTimeStr = localStorage.getItem('last_resend_time');
     if (lastResendTimeStr) {
       const lastResendTime = parseInt(lastResendTimeStr, 10);
       setLastResendTime(lastResendTime);
     }
-  }
   }, []);
   
   const [registrationData, setRegistrationData] = useState({});
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const storedData = JSON.parse(localStorage.getItem('registration_data'));
-      if(storedData === null) {
-        redirect('/login');
-      } else {
-        setRegistrationData(storedData);
-      }
+    const storedData = JSON.parse(localStorage.getItem('registration_data'));
+    if(storedData === null) {
+      redirect('/login');
+    } else {
+      setRegistrationData(storedData);
     }
   }, []);
 
@@ -56,9 +51,7 @@ function ConfirmEmail() {
       for (let i = 0; i < 8; i++) {
         code += characters.charAt(Math.floor(Math.random() * charactersLength));
       }
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('last_resend_time', currentTime.toString());
-      }
+      localStorage.setItem('last_resend_time', currentTime.toString());
       setLastResendTime(currentTime);
       registrationData.confirmation_code = code;
       await confirmationEmail({confirmationCode: code, email: registrationData.email});
@@ -102,7 +95,7 @@ function ConfirmEmail() {
           });
           toast.success('Registration was successful.');
           console.log('Registration successful:', response);
-          redirect('/login');
+          window.location.href = "../login"
     
         } catch (error) {
           console.error('Registration failed:', error);
@@ -428,15 +421,3 @@ const HelpText = styled.span`
 `;
 
 export default ConfirmEmail;
-=======
-import dynamic from 'next/dynamic'
- 
-const DynamicHeader = dynamic(() => import('../../components/email_confirmation/page'), {
-  loading: () => <p>Loading...</p>,
-  ssr: false,
-})
- 
-export default function Email_Confirmation() {
-  return <DynamicHeader />
-}
->>>>>>> for_master

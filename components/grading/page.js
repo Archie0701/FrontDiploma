@@ -1,22 +1,19 @@
-<<<<<<< HEAD
 'use client';
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
 import Spinner from '../components/spinner/spinner';
 import { getImageById, fetchUserData, fetchAcceptedProposalData, fetchGradingsData, gradeProposal, updateProposalStatusGraded, addComment, updateProposalStatusArchive, API_URL } from '../services/apiService';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
 import './grading.css';
-import { redirect } from 'next/navigation'
+
+export const logOut = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('userRole');
+    window.location.href = "../login";
+};
 
 const EmployeeScoreSlider = ({ value, onValueChange }) => {
-
-    const logOut = () => {
-        if (typeof window !== 'undefined') {
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('userRole');
-    }
-        redirect('/login');
-    };
   const handleChange = (event) => {
     onValueChange(event.target.value);
   };
@@ -55,18 +52,13 @@ function Grading(props) {
   const [isHovered, setIsHovered] = useState(false);
   const [imageSrc, setImageSrc] = useState(null);
   const [userRole, setUserRole] = useState(null);
-  const [accessToken, setAccessToken] = useState(null);
+  const accessToken = localStorage.getItem('accessToken');
 
-  if (typeof window !== 'undefined') {
-    setAccessToken(localStorage.getItem('accessToken'));
-  }
     useEffect(() => {
-      if (typeof window !== 'undefined') {
       const storedUserRole = localStorage.getItem('userRole');
       if (storedUserRole) {
         setUserRole(storedUserRole);
       }
-    }
     }, []);
     
   const handleMouseEnter = () => {
@@ -103,7 +95,7 @@ function Grading(props) {
       setLoading(false);
     } catch (error) {
       console.error('Error fetching user data:', error);
-      redirect('/login');
+      window.location.href = "../login";
     }
   };
 
@@ -1180,15 +1172,3 @@ const AcceptButton = styled.button`
 `;
 
 export default Grading;
-=======
-import dynamic from 'next/dynamic'
- 
-const DynamicHeader = dynamic(() => import('../../components/grading/page'), {
-  loading: () => <p>Loading...</p>,
-  ssr: false,
-})
- 
-export default function Grading() {
-  return <DynamicHeader />
-}
->>>>>>> for_master

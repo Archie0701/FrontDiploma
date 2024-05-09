@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 import React, { useState, useEffect } from 'react';
 import styled from "styled-components";
@@ -1378,3 +1379,15 @@ const FooterTotal = styled.div`
 `;
 
 export default MyComponent;
+=======
+import dynamic from 'next/dynamic'
+ 
+const DynamicHeader = dynamic(() => import('../../components/proposals/page'), {
+  loading: () => <p>Loading...</p>,
+  ssr: false,
+})
+ 
+export default function Proposals() {
+  return <DynamicHeader />
+}
+>>>>>>> for_master
