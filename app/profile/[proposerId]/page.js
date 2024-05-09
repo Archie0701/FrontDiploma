@@ -9,43 +9,50 @@ import Select from 'react-select';
 import NotFoundPage from '../../components/notFoundPageComponent'
 import { redirect } from 'next/navigation';
 
-export const logOut = () => {
-  localStorage.removeItem('accessToken');
-  localStorage.removeItem('userRole');
-  window.location.href = "../login";
-};
 
+function Header({params}) {
+  const [profileData, setProfileData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState(null);
+  const [profileId, setProfileID] = useState(params.proposerId);
+  const [selectedYear, setSelectedYear] = useState('2024');
+  const [proposalsDataById, setProposalsData] = useState(null);
+  const [error, setError] = useState(null);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
+  const [imageSrc, setImageSrc] = useState(null);
+  const [userRole, setUserRole] = useState(null);
+  const accessToken = localStorage.getItem('accessToken');
 
-
-const customTheme = createTheme({
-  level0: '#d0e1eb',
-  level1: '#b6ddf4',
-  level2: '#74a0ca',
-  level3: '#0161a6',
-  level4: '#154373',
-});
-
-const years = [
-  { value: '2025', label: '2025' },
-  { value: '2024', label: '2024' },
-  { value: '2023', label: '2023' },
-  { value: '2022', label: '2022' },
-  { value: '2021', label: '2021' },
-  { value: '2020', label: '2020' }
-]
-
-
-const data = [
-  {
-    id: 1,
-    name: "Adil Sissenov",
-    image: "https://cdn.builder.io/api/v1/image/assets/TEMP/c2a3a5c7a159d00f3f76413741945156f0dbc1cf972b7d109ae5a439fb4fafe9?apiKey=76bc4e76ba824cf091e9566ff1ae9339&",
-    awards: [
-      { id: 1, image: "https://cdn.builder.io/api/v1/image/assets/TEMP/219d0239c213b406c20cf50b504208c4f7a16c3d5b20364f128e47f3dc5552a1?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" },
-      { id: 2, image: "https://cdn.builder.io/api/v1/image/assets/TEMP/2288abf5fb06b34a2001bee518e5d8f6b1dd83efec16ead3e887fd58ee253be9?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" },
-    ],
-  },
-];
+  const customTheme = createTheme({
+    level0: '#d0e1eb',
+    level1: '#b6ddf4',
+    level2: '#74a0ca',
+    level3: '#0161a6',
+    level4: '#154373',
+  });
+  
+  const years = [
+    { value: '2025', label: '2025' },
+    { value: '2024', label: '2024' },
+    { value: '2023', label: '2023' },
+    { value: '2022', label: '2022' },
+    { value: '2021', label: '2021' },
+    { value: '2020', label: '2020' }
+  ]
+  
+  
+  const data = [
+    {
+      id: 1,
+      name: "Adil Sissenov",
+      image: "https://cdn.builder.io/api/v1/image/assets/TEMP/c2a3a5c7a159d00f3f76413741945156f0dbc1cf972b7d109ae5a439fb4fafe9?apiKey=76bc4e76ba824cf091e9566ff1ae9339&",
+      awards: [
+        { id: 1, image: "https://cdn.builder.io/api/v1/image/assets/TEMP/219d0239c213b406c20cf50b504208c4f7a16c3d5b20364f128e47f3dc5552a1?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" },
+        { id: 2, image: "https://cdn.builder.io/api/v1/image/assets/TEMP/2288abf5fb06b34a2001bee518e5d8f6b1dd83efec16ead3e887fd58ee253be9?apiKey=76bc4e76ba824cf091e9566ff1ae9339&" },
+      ],
+    },
+  ];
 
 
 

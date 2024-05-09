@@ -23,8 +23,11 @@ function MainPage(props) {
 
 
   const [userRole, setUserRole] = useState(null);
-  const accessToken = localStorage.getItem('accessToken');
+  const [accessToken, setAccessToken] = useState(null);
 
+    if (typeof window !== 'undefined') {
+      setAccessToken(localStorage.getItem('accessToken'));
+    }
     useEffect(() => {
       const storedUserRole = localStorage.getItem('userRole');
       if (storedUserRole) {
@@ -38,7 +41,7 @@ function MainPage(props) {
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('userRole');
-    window.location.href = "/login"; 
+    redirect('/login');
   };
 
 
